@@ -1,0 +1,150 @@
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+.main {
+    display: flex;
+    height: 100vh;
+}
+
+.panel_left {
+    width: 15%;
+    height: 100%;
+    background-color: blueviolet
+}
+
+.panel_right {
+    width: 85%;
+    height: 100%;
+}
+
+.hand {
+    display: flex;
+    height: 10%;
+}
+
+.hand_glyphes {
+    display: flex;
+    justify-content: center;
+    width: 70%;
+    background-color: antiquewhite;
+    align-items: center;
+}
+
+.hand_prodiges {
+    display: flex;
+    justify-content: space-around;
+    width: 30%;
+    background-color: brown;
+    align-items: center;
+}
+
+.terrain {
+    display: flex;
+    height: 80%;
+    background-color: aquamarine;
+    justify-content: center;
+    align-items: center;
+    flex-direction: row;
+}
+
+.terrain_voies {
+    display: flex;
+    height: 100%;
+    width: 70%;
+    background-color: aquamarine;
+    justify-content: center;
+    align-items: center;
+    flex-direction: column;
+}
+
+.terrain_prodiges {
+    display: flex;
+    height: 100%;
+    width: 30%;
+    background-color: aquamarine;
+    justify-content: center;
+    align-items: center;
+    flex-direction: column;
+}
+
+.ligne_centre {
+    display: flex;
+    flex-direction: row;
+    width: 80%;
+    justify-content: space-around;
+}
+
+.voie {
+    display: flex;
+    height: 20vh;
+    width: 20vh;
+    background-color: blue;
+    justify-content: center;
+    align-items: center;
+}
+
+.glyphe {
+    display: flex;
+    height: 8vh;
+    width: 8vh;
+    background-color: chartreuse;
+    justify-content: center;
+    align-items: center;
+}
+
+.prodige {
+    display: flex;
+    height: 8vh;
+    width: 8vh;
+    background-color: darkorchid;
+    justify-content: center;
+    align-items: center;
+}
+
+.empty_voie {
+    display: flex;
+    height: 12vh;
+    width: 12vh;
+    border: 2px solid black;
+    border-radius: 5px;
+    justify-content: center;
+    align-items: center;
+}
+
+#validate_button {
+    height: 8vh;
+    width: 20vh;
+    background-color: coral;
+    justify-content: center;
+    align-items: center;
+}
+
+#false_button {
+    height: 8vh;
+    width: 20vh;
+    background-color: aquamarine;
+    justify-content: center;
+    align-items: center;
+}
+
+[clicked="true"] {
+    border: 5px solid red;
+}
+
+.empty_prodige {
+    display: flex;
+    height: 26vh;
+    width: 18vh;
+    border: 2px solid black;
+    border-radius: 5px;
+    justify-content: center;
+    align-items: center;
+}
+
+.empty_prodige > .prodige {
+    height: 80%;
+    width: 80%;
+}

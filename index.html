@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <link rel='stylesheet' href="style.css">
+    </head>
+    <body onload="init_game();">
+        <div class='main'>
+            <div class='panel_left'>
+            </div>
+            <div class='panel_right'>
+                <div id='j0' class='hand'>
+                    <div class='hand_glyphes' id='hand_glyphes_j0'></div>
+                    <div class='hand_prodiges'></div>
+                </div>
+                <div class='terrain'>
+                    <div class='terrain_voies'>
+                        <div class='ligne_centre'>
+                            <div class='empty_voie'></div>
+                            <div class='empty_voie'></div>
+                            <div class='empty_voie'></div>
+                            <div class='empty_voie'></div>
+                        </div>
+                        <div class='ligne_centre' style="height: 3vh;"></div>
+                        <div class='ligne_centre'>
+                            <div class='voie'>AIR</div>
+                            <div class='voie'>EAU</div>
+                            <div class='voie'>TERRE</div>
+                            <div class='voie'>FEU</div>
+                        </div>
+                        <div class='ligne_centre' style="height: 3vh;"></div>
+                        <div class='ligne_centre' id='ligne_centre_player'>
+                            <div class='empty_voie' ondrop="drop(event)" ondragover="allowDrop(event)"></div>
+                            <div class='empty_voie' ondrop="drop(event)" ondragover="allowDrop(event)"></div>
+                            <div class='empty_voie' ondrop="drop(event)" ondragover="allowDrop(event)"></div>
+                            <div class='empty_voie' ondrop="drop(event)" ondragover="allowDrop(event)"></div>
+                        </div>  
+                        <div class='ligne_centre' style="height: 5vh;"></div>
+                        <div id='validate_button' style="display: none">Valider</div>
+                        <div id='false_button' style="display: flex"></div>
+                    </div>
+                    <div class='terrain_prodiges'>
+                        <div class='empty_prodige' id='empty_prodige_j0'></div>
+                        <div style='height: 5vh;'></div>
+                        <div class='empty_prodige' id='empty_prodige_j1' ondrop="drop(event)" ondragover="allowDrop(event)"></div>
+                    </div>
+                </div>
+                <div id='j1' class='hand'>
+                    <div class='hand_glyphes' id='hand_glyphes_j1' ondrop="drop(event)" ondragover="allowDrop(event)"></div>
+                    <div class='hand_prodiges' id='hand_prodiges_j1' ondrop="drop(event)" ondragover="allowDrop(event)"></div>
+                </div>            
+            </div>
+        </div>
+        <script src="/socket.io/socket.io.js"></script>
+        <script src= "./script.js"></script>
+    </body>
+</html>

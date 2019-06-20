@@ -148,3 +148,19 @@
     height: 80%;
     width: 80%;
 }
+
+.btn_room_choice {
+    height: 3vh;
+    width: 20vh;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    background-color: aquamarine;
+}
+
+#waiting {
+    display: flex;
+    height: 100vh;
+    justify-content: center;
+    align-items: center;
+}

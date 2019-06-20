@@ -1,0 +1,385 @@
+[
+    {
+      "name": "Alissonne",
+      "power": 8,
+      "damage": 6,
+      "talent": {
+          "target": "opp",
+          "condition": "victoire",
+          "value": -2,
+          "effect": "modif_hp",
+          "contrecoup": true
+      },
+      "mastery": {
+          "effect": "nothing"
+      },
+      "element": "anar"
+  },
+  {
+      "name": "Batsu",
+      "power": 7,
+      "damage": 3,
+      "talent": {
+          "target": "owner",
+          "condition": "riposte",
+          "value": 1,
+          "effect": "modif_power_damage"
+      },
+      "mastery": {
+          "target": "owner",
+          "condition": "courage",
+          "value": 4,
+          "effect": "modif_damage"
+      },
+      "element": "wilwar"
+  },
+  {
+      "name": "Svenn",
+      "power": 7,
+      "damage": 2,
+      "talent": {
+          "target": "owner",
+          "value": 2,
+          "effect": "modif_damage"
+      },
+      "mastery": {
+          "target": "opp",
+          "effect": "echange_d"
+      },
+      "element": "ulmo"
+  },
+  {
+      "name": "Amalrik",
+      "power": 6,
+      "damage": 1,
+      "talent": {
+          "target": "owner",
+          "value": 3,
+          "effect": "modif_power"
+      },
+      "mastery": {
+          "target": "opp",
+          "value": -3,
+          "effect": "modif_hp"
+      },
+      "element": "anar"
+  },
+  {
+      "name": "Asato",
+      "power": 7,
+      "damage": 2,
+      "talent": {
+          "target": "owner",
+          "effect": "protection"
+      },
+      "mastery": {
+          "target": "owner",
+          "value": 3,
+          "effect": "modif_damage"
+      },
+      "element": "sulimo"
+  },
+  {
+      "name": "Faine",
+      "power": 5,
+      "damage": 2,
+      "talent": {
+          "target": "opp",
+          "modification": "patience",
+          "value": -1,
+          "effect": "modif_damage"
+      },
+      "mastery": {
+          "target": "opp",
+          "value": -3,
+          "effect": "modif_damage"
+      },
+      "element": "wilwar"
+  },
+  {
+      "name": "Haru",
+      "power": 7,
+      "damage": 3,
+      "talent": {
+          "target": "owner",
+          "effect": "initiative"
+      },
+      "mastery": {
+          "target": "owner",
+          "value": 1,
+          "modification": "par_glyphe",
+          "effect": "modif_damage"
+      },
+      "element": "wilwar"
+  },
+  {
+      "name": "Persephone",
+      "power": 7,
+      "damage": 3,
+      "talent": {
+          "target": "opp",
+          "condition": "defaite",
+          "value": -2,
+          "effect": "modif_hp"
+      },
+      "mastery": {
+          "target": "owner",
+          "condition": "defaite",
+          "value": 2,
+          "effect": "recuperation"
+      },
+      "element": "anar"
+  },
+  {
+      "name": "Siam",
+      "power": 7,
+      "damage": 1,
+      "talent": {
+          "target": "opp",
+          "condition": "courage",
+          "value": -2,
+          "effect": "modif_damage"
+      },
+      "mastery": {
+          "target": "opp",
+          "value": 1,
+          "effect": "pillage"
+      },
+      "element": "anar"
+  },
+  {
+      "name": "Fizz",
+      "power": 7,
+      "damage": 2,
+      "talent": {
+          "target": "owner",
+          "value": 2,
+          "effect": "modif_power"
+      },
+      "mastery": {
+          "target": "owner",
+          "condition": "courage",
+          "value": 2,
+          "effect": "recuperation"
+      },
+      "element": "ulmo"
+  },
+  {
+      "name": "Marcus",
+      "power": 7,
+      "damage": 2,
+      "talent": {
+          "target": "opp",
+          "effect": "stop_talent"
+      },
+      "mastery": {
+          "target": "opp",
+          "value": 1,
+          "effect": "oppression"
+      },
+      "element": "sulimo"
+  },
+  {
+      "name": "Luss",
+      "power": 7,
+      "damage": 4,
+      "talent": {
+          "target": "opp",
+          "effect": "stop_mastery"
+      },
+      "mastery": {
+          "target": "opp",
+          "effect": "copy_mastery"
+      },
+      "element": "ulmo"
+  },
+  {
+      "name": "Orsun",
+      "power": 6,
+      "damage": 4,
+      "talent": {
+          "target": "opp",
+          "effect": "echange_p"
+      },
+      "mastery": {
+          "target": "owner",
+          "condition": "riposte",
+          "value": 2,
+          "effect": "recuperation"
+      },
+      "element": "wilwar"
+  },
+  {
+      "name": "Rubis",
+      "power": 6,
+      "damage": 2,
+      "talent": {
+          "target": "opp",
+          "value": -2,
+          "effect": "modif_power"
+      },
+      "mastery": {
+          "target": "opp",
+          "value": 2,
+          "effect": "oppression",
+          "cost": true,
+          "cost_type": "glyph",
+          "cost_value": 1
+
+      },
+      "element": "sulimo"
+  },
+  {
+      "name": "Aurore",
+      "power": 7,
+      "damage": 2,
+      "talent": {
+          "target": "owner",
+          "effect": "avantage"
+      },
+      "mastery": {
+          "target": "opp",
+          "condition": "victoire",
+          "value": 2,
+          "effect": "oppression"
+      },
+      "element": "sulimo"
+  },
+  {
+      "name": "Paar",
+      "power": 8,
+      "damage": 2,
+      "talent": {
+          "target": "opp",
+          "contrecoup": true,
+          "value": -1,
+          "effect": "modif_hp"
+      },
+      "mastery": {
+          "target": "owner",
+          "cost": true,
+          "cost_type": "glyph",
+          "cost_value": 1,
+          "value": 5,
+          "effect": "modif_hp"
+      },
+      "element": "ulmo"
+  },
+  {
+      "name": "Olivaw",
+      "power": 9,
+      "damage": 2,
+      "talent": {
+          "target": "owner",
+          "value": 1,
+          "effect": "modif_hp"
+      },
+      "mastery": {
+          "target": "opp",
+          "value": -1,
+          "effect": "modif_damage",
+          "modification": "par_glyphe"
+      },
+      "element": "wilwar"
+  },
+  {
+      "name": "Oren",
+      "power": 7,
+      "damage": 7,
+      "talent": {
+          "target": "owner",
+          "value": 2,
+          "effect": "modif_damage",
+          "contrecoup": true
+      },
+      "mastery": {
+          "effect": "nothing"
+      },
+      "element": "anar"
+  },
+  {
+      "name": "Kiran",
+      "power": 7,
+      "damage": 0,
+      "talent": {
+          "target": "opp",
+          "effect": "stop_talent"
+      },
+      "mastery": {
+          "effect": "vampirism",
+          "value": 2,
+          "target": "opp"
+      },
+      "element": "sulimo"
+  },
+  {
+      "name": "Berthudon",
+      "power": 7,
+      "damage": 2,
+      "talent": {
+          "target": "opp",
+          "value": -1,
+          "modification": "patience",
+          "effect": "modif_power"
+      },
+      "mastery": {
+          "effect": "modif_damage",
+          "value": 2,
+          "target": "owner",
+          "modification": "acharnement"
+      },
+      "element": "wilwar"
+  },
+  {
+      "name": "Bulle",
+      "power": 6,
+      "damage": 1,
+      "talent": {
+          "target": "opp",
+          "condition": "courage",
+          "effect": "stop_mastery"
+      },
+      "mastery": {
+          "effect": "vampirism",
+          "value": 1,
+          "target": "opp",
+          "modification": "acharnement"
+      },
+      "element": "ulmo"
+  },
+  {
+      "name": "Foudre",
+      "power": 6,
+      "damage": 3,
+      "talent":{
+          "target": "opp",
+          "effect": "modif_power",
+          "value": -2
+      },
+      "mastery": {
+          "effect": "oppression",
+          "value": 2,
+          "target": "opp",
+          "condition": "defaite"
+      },
+      "element": "sulimo"
+  },
+  {
+      "name": "Sielahti",
+      "power": 8,
+      "damage": 3,
+      "talent":{
+          "target": "opp",
+          "effect": "oppression",
+          "value": 1,
+          "condition": "victoire"
+      },
+      "mastery": {
+          "effect": "recuperation",
+          "value": 1,
+          "target": "owner",
+          "modification": "patience"
+      },
+      "element": "anar"
+  }
+]

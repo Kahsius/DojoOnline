@@ -3,8 +3,10 @@
     <head>
         <link rel='stylesheet' href="style.css">
     </head>
-    <body onload="init_game();">
-        <div class='main'>
+    <body onload="init();">
+        <div id='room_choice'></div> 
+        <div id='waiting' style='display: none;'>En attente d'un adversaire</div>
+        <div class='main' style='display: none;'>
             <div class='panel_left'>
             </div>
             <div class='panel_right'>

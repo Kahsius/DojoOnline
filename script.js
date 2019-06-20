@@ -136,3 +136,29 @@ function init_game() {
         }
     }   
 }
+
+function debug(string) {
+    socket.emit('debug', {'cmd': string});
+}
+
+function init() {
+    var pseudo = prompt('Votre pseudo')
+    if (pseudo != null) {
+        socket.emit('init', pseudo);
+    }
+}
+
+function join_room(id) {
+//
+}
+
+socket.on('list_rooms', function(data){
+    list = document.getElementById('room_choice')
+    for (room of data){
+        elem = document.createElement('div');
+        elem.setAttribute('onclick', 'join_room", "' + room['id'] + '")');
+        elem.setAttribute('class', 'btn_room_choice');
+        elem.innerHTML = room['pseudo'];
+        list.appendChild(elem);
+    }
+});

@@ -1,0 +1,25 @@
+{
+  "name": "dojo_online",
+  "version": "1.0.0",
+  "description": "",
+  "main": "server.js",
+  "dependencies": {
+    "eslint": "^5.16.0",
+    "flow-bin": "^0.102.0-rc"
+  },
+  "devDependencies": {},
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "start": "node server.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Kahsius/DojoOnline.git"
+  },
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/Kahsius/DojoOnline/issues"
+  },
+  "homepage": "https://github.com/Kahsius/DojoOnline#readme"
+}

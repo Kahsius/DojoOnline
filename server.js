@@ -1,3 +1,5 @@
+const moteur = require('./src/moteur');
+
 const express = require('express');
 const app = express();
 const http = require('http').createServer(app);
@@ -24,7 +26,7 @@ io.on('connection', function(socket){
     socket.on('init', function(pseudo){
         let list_names = [];
         socket.pseudo = pseudo;
-        console.log(socket.id + ' -> ' + pseudo)
+        console.log('Connexion : ' + pseudo)
         for (let key in rooms) {
             if (rooms[key].length == 1){
                 list_names.push({'id': key, 'pseudo': rooms[key][0].pseudo})
@@ -35,10 +37,19 @@ io.on('connection', function(socket){
     });
 
     socket.on('join_room', function(id){
-        rooms[id] = (id == socket.id) ? [] : rooms[id]
-        socket.join(id);
-        rooms[id].push(socket);
-        console.log(socket.pseudo + ' rejoint ' + id);
+        socket.join(id)
+        socket.room = id;
+        players[socket.id] =  socket;
+        if (id == socket.id) {
+            rooms[id] = [socket];
+            console.log(socket.pseudo + ' crée une partie');
+        } else {
+            rooms[id].push(socket);
+            socket.opp = id;
+            players[id].opp = socket.id;
+            console.log(socket.pseudo + ' affronte ' + players[socket.opp].pseudo);
+            moteur.create_game(rooms[id]);
+        }
     });
 });
 

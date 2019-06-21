@@ -4,8 +4,7 @@
     box-sizing: border-box;
 }
 
-.main {
-    display: flex;
+#main {
     height: 100vh;
 }
 
@@ -84,6 +83,13 @@
     background-color: blue;
     justify-content: center;
     align-items: center;
+}
+
+.glyphe_opp {
+    display: flex;
+    height: 8vh;
+    width: 8vh;
+    background-color: black;
 }
 
 .glyphe {

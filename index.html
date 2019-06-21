@@ -6,13 +6,13 @@
     <body onload="init();">
         <div id='room_choice'></div> 
         <div id='waiting' style='display: none;'>En attente d'un adversaire</div>
-        <div class='main' style='display: none;'>
+        <div id='main' style='display: none;'>
             <div class='panel_left'>
             </div>
             <div class='panel_right'>
                 <div id='j0' class='hand'>
                     <div class='hand_glyphes' id='hand_glyphes_j0'></div>
-                    <div class='hand_prodiges'></div>
+                    <div class='hand_prodiges' id ='hand_prodiges_j0'></div>
                 </div>
                 <div class='terrain'>
                     <div class='terrain_voies'>
@@ -53,6 +53,6 @@
             </div>
         </div>
         <script src="/socket.io/socket.io.js"></script>
-        <script src= "./script.js"></script>
+        <script src= "./client.js"></script>
     </body>
 </html>

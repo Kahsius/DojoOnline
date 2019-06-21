@@ -106,34 +106,56 @@ function get_num_current_click() {
     return num_current_click;
 }
 
-function init_game() {
+
+function create_glyph(i, v) {
+    var glyph = document.createElement("div");
+    if (v != -1) {
+        glyph.setAttribute("id", "g"+i);
+        glyph.setAttribute("draggable", "true");
+        glyph.setAttribute("ondragstart", "drag(event)");
+        glyph.setAttribute("onclick", "click_glyph(event);");
+        glyph.setAttribute("clicked", "false");
+        glyph.setAttribute("class", "glyphe");
+        glyph.innerHTML = v;
+    } else {
+        glyph.setAttribute("class", "glyphe_opp");
+    }
+    return glyph;
+}
+
+
+function create_prodige(i, name) {
+    var prodige = document.createElement("div");
+    prodige.setAttribute("id", "prodige"+i);
+    prodige.setAttribute("class", "prodige");
+    prodige.setAttribute("draggable", "true");
+    prodige.setAttribute("ondragstart", "drag(event)");
+    prodige.setAttribute("player", "self");
+    prodige.innerHTML = name;
+    return prodige;
+}
+
+
+function init_game(data) {
+    me = data['me'];
+    opp = data['opp'];
+
     var hand_player = document.getElementById('hand_glyphes_j1');
+    var hand_opp = document.getElementById('hand_glyphes_j0');
     var hand_prodiges_player = document.getElementById('hand_prodiges_j1');
-    var glyphes = [4, 3, 3, 2, 2];
-    var prodiges = ['Asato', 'Fizz', 'Amalrik', 'Batsu']
+    var hand_prodiges_opp = document.getElementById('hand_prodiges_j0');
+
+    var glyphes = me.hand;
+    var prodiges = me.prodiges;
+    var prodiges_opp = opp.prodiges;
+
     for (var i = 0; i < prodiges.length; i++) {
-        var prodige = document.createElement("div");
-        prodige.setAttribute("id", "prodige"+i);
-        prodige.setAttribute("class", "prodige");
-        prodige.setAttribute("draggable", "true");
-        prodige.setAttribute("ondragstart", "drag(event)");
-        prodige.setAttribute("player", "self");
-        prodige.innerHTML = prodiges[i];
-        hand_prodiges_player.appendChild(prodige);
+        hand_prodiges_player.appendChild(create_prodige(i, prodiges[i]));
+        hand_prodiges_opp.appendChild(create_prodige(i+4, prodiges_opp[i]));
     }
     for (var i = 0; i < glyphes.length; i++) {
-        for (var j = 0; j < glyphes[i]; j++) {
-            var glyph = document.createElement("div");
-            glyph.setAttribute("id", "g1"+i+j);
-            glyph.setAttribute("class", "glyphe");
-            glyph.setAttribute("draggable", "true");
-            glyph.setAttribute("ondragstart", "drag(event)");
-            glyph.setAttribute("onclick", "click_glyph(event);");
-            glyph.setAttribute("clicked", "false");
-            glyph.setAttribute("player", "self");
-            glyph.innerHTML = i;
-            hand_player.appendChild(glyph);
-        }
+        hand_player.appendChild(create_glyph(i, glyphes[i]));
+        hand_opp.appendChild(create_glyph(i+glyphes.length, -1));
     }   
 }
 
@@ -149,16 +171,24 @@ function init() {
 }
 
 function join_room(id) {
-//
+    socket.emit('join_room', id);
+    document.getElementById('room_choice').style.display = 'none';
+    document.getElementById('waiting').style.display = 'flex';
 }
 
 socket.on('list_rooms', function(data){
     list = document.getElementById('room_choice')
     for (room of data){
         elem = document.createElement('div');
-        elem.setAttribute('onclick', 'join_room", "' + room['id'] + '")');
+        elem.setAttribute('onclick', 'join_room("' + room['id'] + '")');
         elem.setAttribute('class', 'btn_room_choice');
         elem.innerHTML = room['pseudo'];
         list.appendChild(elem);
     }
+});
+
+socket.on('init_game', function(data){
+    document.getElementById('waiting').style.display = 'none';
+    document.getElementById('main').style.display = 'flex';
+    init_game(data);
 });

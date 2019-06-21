@@ -155,6 +155,15 @@
     width: 80%;
 }
 
+#refresh {
+    height: 3vh;
+    width: 20vh;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    background-color: green;
+}
+
 .btn_room_choice {
     height: 3vh;
     width: 20vh;

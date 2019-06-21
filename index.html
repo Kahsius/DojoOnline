@@ -4,7 +4,10 @@
         <link rel='stylesheet' href="style.css">
     </head>
     <body onload="init();">
-        <div id='room_choice'></div> 
+        <div id='room_choice'>
+            <div id='room_choice_list'></div>  
+            <div id='refresh' onclick='refresh();'>Actualiser</div>
+        </div> 
         <div id='waiting' style='display: none;'>En attente d'un adversaire</div>
         <div id='main' style='display: none;'>
             <div class='panel_left'>
@@ -56,3 +59,4 @@
         <script src= "./client.js"></script>
     </body>
 </html>
+

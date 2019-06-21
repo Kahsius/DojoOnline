@@ -164,10 +164,11 @@ function debug(string) {
 }
 
 function init() {
-    var pseudo = prompt('Votre pseudo')
-    if (pseudo != null) {
-        socket.emit('init', pseudo);
-    }
+    do {
+        var pseudo = prompt('Votre pseudo');
+    } while (pseudo == '');
+    socket.pseudo = pseudo;
+    socket.emit('init', pseudo);
 }
 
 function join_room(id) {
@@ -176,8 +177,16 @@ function join_room(id) {
     document.getElementById('waiting').style.display = 'flex';
 }
 
+function refresh(id) {
+    list = document.getElementById('room_choice_list');
+    while (list.firstChild) {
+        list.removeChild(list.firstChild);
+    }
+    socket.emit('init', socket.pseudo);
+}
+
 socket.on('list_rooms', function(data){
-    list = document.getElementById('room_choice')
+    list = document.getElementById('room_choice_list');
     for (room of data){
         elem = document.createElement('div');
         elem.setAttribute('onclick', 'join_room("' + room['id'] + '")');
@@ -186,6 +195,7 @@ socket.on('list_rooms', function(data){
         list.appendChild(elem);
     }
 });
+
 
 socket.on('init_game', function(data){
     document.getElementById('waiting').style.display = 'none';

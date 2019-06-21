@@ -26,7 +26,7 @@ io.on('connection', function(socket){
     socket.on('init', function(pseudo){
         let list_names = [];
         socket.pseudo = pseudo;
-        console.log('Connexion : ' + pseudo)
+        console.log('Récupère liste parties : ' + pseudo)
         for (let key in rooms) {
             if (rooms[key].length == 1){
                 list_names.push({'id': key, 'pseudo': rooms[key][0].pseudo})

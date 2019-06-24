@@ -9,9 +9,12 @@
 }
 
 .panel_left {
+    display: flex;
     width: 15%;
     height: 100%;
-    background-color: blueviolet
+    background-color: blueviolet;
+    justify-content: center;
+    align-items: center;
 }
 
 .panel_right {
@@ -101,6 +104,10 @@
     align-items: center;
 }
 
+.glyphe:hover {
+    background-color: ForestGreen;
+}
+
 .prodige {
     display: flex;
     height: 8vh;
@@ -108,6 +115,10 @@
     background-color: darkorchid;
     justify-content: center;
     align-items: center;
+}
+
+#hand_prodiges_j1 > .prodige:hover {
+    border: 5px solid white;
 }
 
 .empty_voie {
@@ -173,9 +184,20 @@
     background-color: aquamarine;
 }
 
+.btn_room_choice:hover {
+    background-color: CadetBlue;
+}
+
 #waiting {
     display: flex;
     height: 100vh;
     justify-content: center;
     align-items: center;
+}
+
+.log {
+    width: 90%;
+    height: 70%;
+    overflow: auto;
+    background-color: white;
 }

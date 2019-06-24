@@ -1,42 +1,33 @@
-var fs = require('fs')
-var utils = require('./src/utils')
-var Player = require('./src/Player')
-var settings = require('./src/settings')
+var Player = require('./Player').Player;
 
-module.exports = class Game {
-    constructor() {
-        this.players = [];
+module.exports.Game = class {
+    constructor(room) {
+        this.players = {};
         this.score_voies = [];
         this.voies = [];
         this.turn = 0;
-
+        this.voies = ['Air', 'Ulmo', 'Wilwar', 'Anar'];
+        this.first_player = null;
+        
         // Création des joueurs
-        for (let i = 0; i < 2; i++) {
-            this.players.push(new Player(i));
-            this.players[i].order = i;
-            this.players[i].id = i;
-            this.players[i].hp = settings.BASE_HP;
+        var player0 = new Player(room[0].pseudo, 0);
+        var player1 = new Player(room[1].pseudo, 1);
+        this.first_player = player0;
+        
+        // Création des prodiges
+        player0.prodiges = ["Amalrik", "Batsu", "Fizz", "Asato"];
+        player1.prodiges = ["Alisonne", "Faine", "Rubis", "Svenn"];
+
+        // Assignation des joueurs à la partie
+        this.players[room[0].id] = player0;
+        this.players[room[1].id] = player1;
+
+        for (let socket of room) {
+            socket.emit('init_game', {'me': player0, 'opp': player1});
         }
+    }
 
-        // Définition des opposants
-        for (let i = 0; i < 2; i++) {
-            this.players[i].opp = self.players[(i+1) % 2];
-        }
-
-        // Génération des Prodiges for chaque joueur
-        var json_data = fs.readFileSync('data/prodigies.json');
-        var d = JSON.parse(json_data);
-        d = utils.shuffle(d);
-        selected = d.slice(0, 8);
-
-        // Attribution des prodiges à chaque joueur
-        this.players[0].prodigies = [for (i of utils.range(0, 4)) selected[i]];
-        this.players[1].prodigies = [for (i of utils.range(4, 8)) selected[i]];
-        for (let i = 0; i < 4; i++) {
-            this.players[0].prodigies[i] = new Card( self.players[0].prodigies[i], owner=self.players[0]);
-            this.players[1].prodigies[i] = new Card( self.players[1].prodigies[i], owner=self.players[1]);
-        }
-
-        this.generate_voies()
+    start_game() {
+        
     }
 }

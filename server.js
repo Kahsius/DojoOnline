@@ -1,13 +1,14 @@
-const moteur = require('./src/moteur');
-
 const express = require('express');
 const app = express();
 const http = require('http').createServer(app);
 const path = require('path');
 var io = require('socket.io')(http);
 
+var Game = require('./src/Game').Game;
+
 rooms = {}
 players = {}
+games = {}
 
 app.get('/', function(req, res){
     res.sendFile(path.join(__dirname + '/index.html'));
@@ -36,6 +37,26 @@ io.on('connection', function(socket){
         socket.emit('list_rooms', list_names);
     });
 
+    socket.on('init_debug', function() {
+        id = 'banana';
+        socket.join(id)
+        socket.room = id;
+        players[socket.id] =  socket;
+        if (!(id in rooms)) {
+            socket.pseudo = 'K';
+            rooms[id] = [socket];
+            console.log(socket.pseudo + ' crée une partie');
+        } else {
+            socket.pseudo = 'L';
+            rooms[id].push(socket);
+            socket.opp = rooms[id][0].id;
+            players[socket.opp].opp = socket.id;
+            console.log(socket.pseudo + ' affronte ' + players[socket.opp].pseudo);
+            games[id] = new Game(rooms[id]);
+            games[id].start_game()
+        }
+    });
+
     socket.on('join_room', function(id){
         socket.join(id)
         socket.room = id;
@@ -48,9 +69,16 @@ io.on('connection', function(socket){
             socket.opp = id;
             players[id].opp = socket.id;
             console.log(socket.pseudo + ' affronte ' + players[socket.opp].pseudo);
-            moteur.create_game(rooms[id]);
+            games[id] = new Game(rooms[id]);
+            games[id].start_game()
         }
     });
+
+    // FOR DEBUG ONLY =====================
+    socket.on('cmd', function(data) {
+        socket.emit(data.cmd, data.data);
+    });
+    // ====================================
 });
 
 app.use(express.static('.'));

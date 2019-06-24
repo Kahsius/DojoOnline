@@ -3,7 +3,7 @@ var socket = io();
 var need_click = true;
 var num_need_click = 10;
 var num_current_click = 0;
-var need_click_target = "main";
+var need_click_target = "voie";
 var choice_prodige = true;
 
 function allowDrop(ev) {
@@ -83,9 +83,10 @@ function drop(ev) {
 function click_glyph(ev) {
     node = ev.currentTarget;
     num_current_click = get_num_current_click();
+    console.log(node.parentNode.getAttribute("class"))
     if (need_click) {
-        if (need_click_target == "voie" && node.parentNode.getAttribute("class") == "empty_voie"
-            || need_click_target == "main" && node.parentNode.getAttribute("class") == "hand_glyphes")
+        if ((need_click_target == "voie" && node.parentNode.getAttribute("class") == "empty_voie")
+            || (need_click_target == "main" && node.parentNode.getAttribute("class") == "hand_glyphes"))
         if (node.getAttribute("clicked") == "false" && num_current_click < num_need_click) {
             node.setAttribute("clicked", "true");
         } else if (node.getAttribute("clicked") == "true") {
@@ -124,13 +125,14 @@ function create_glyph(i, v) {
 }
 
 
-function create_prodige(i, name) {
+function create_prodige(i, name, opp=false) {
     var prodige = document.createElement("div");
     prodige.setAttribute("id", "prodige"+i);
     prodige.setAttribute("class", "prodige");
-    prodige.setAttribute("draggable", "true");
-    prodige.setAttribute("ondragstart", "drag(event)");
-    prodige.setAttribute("player", "self");
+    if (!opp) {
+        prodige.setAttribute("draggable", "true");
+        prodige.setAttribute("ondragstart", "drag(event)");
+    }
     prodige.innerHTML = name;
     return prodige;
 }
@@ -151,7 +153,7 @@ function init_game(data) {
 
     for (var i = 0; i < prodiges.length; i++) {
         hand_prodiges_player.appendChild(create_prodige(i, prodiges[i]));
-        hand_prodiges_opp.appendChild(create_prodige(i+4, prodiges_opp[i]));
+        hand_prodiges_opp.appendChild(create_prodige(i+4, prodiges_opp[i], opp=true));
     }
     for (var i = 0; i < glyphes.length; i++) {
         hand_player.appendChild(create_glyph(i, glyphes[i]));
@@ -163,7 +165,15 @@ function debug(string) {
     socket.emit('debug', {'cmd': string});
 }
 
+// =========== ONLY FOR DEBUG
 function init() {
+    socket.emit('init_debug');
+    document.getElementById('room_choice').style.display = 'none';
+    document.getElementById('waiting').style.display = 'none';
+}
+// ==========================
+
+function init_backup() {
     do {
         var pseudo = prompt('Votre pseudo');
     } while (pseudo == '');
@@ -202,3 +212,11 @@ socket.on('init_game', function(data){
     document.getElementById('main').style.display = 'flex';
     init_game(data);
 });
+
+socket.on('text_log', function(string){
+    log = document.getElementsByClassName('log')[0]
+    node = document.createElement('p');
+    node.innerHTML = string;
+    log.appendChild(node);
+    log.scrollTop = log.scrollHeight;
+})

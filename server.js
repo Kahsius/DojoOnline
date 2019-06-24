@@ -7,7 +7,7 @@ var io = require('socket.io')(http);
 var Game = require('./src/Game').Game;
 
 rooms = {}
-players = {}
+player_sockets = {}
 games = {}
 
 app.get('/', function(req, res){
@@ -16,6 +16,7 @@ app.get('/', function(req, res){
 
 io.on('connection', function(socket){
     socket.on('disconnect', function(){
+        // TODO: garder la connection en cas de refresh
         console.log(socket.id + ' disconnected');
     });
 
@@ -41,7 +42,7 @@ io.on('connection', function(socket){
         id = 'banana';
         socket.join(id)
         socket.room = id;
-        players[socket.id] =  socket;
+        player_sockets[socket.id] =  socket;
         if (!(id in rooms)) {
             socket.pseudo = 'K';
             rooms[id] = [socket];
@@ -50,8 +51,8 @@ io.on('connection', function(socket){
             socket.pseudo = 'L';
             rooms[id].push(socket);
             socket.opp = rooms[id][0].id;
-            players[socket.opp].opp = socket.id;
-            console.log(socket.pseudo + ' affronte ' + players[socket.opp].pseudo);
+            player_sockets[socket.opp].opp = socket.id;
+            console.log(socket.pseudo + ' affronte ' + player_sockets[socket.opp].pseudo);
             games[id] = new Game(rooms[id]);
             games[id].start_game()
         }
@@ -60,22 +61,40 @@ io.on('connection', function(socket){
     socket.on('join_room', function(id){
         socket.join(id)
         socket.room = id;
-        players[socket.id] =  socket;
+        player_sockets[socket.id] = socket;
         if (id == socket.id) {
             rooms[id] = [socket];
             console.log(socket.pseudo + ' crée une partie');
         } else {
             rooms[id].push(socket);
             socket.opp = id;
-            players[id].opp = socket.id;
-            console.log(socket.pseudo + ' affronte ' + players[socket.opp].pseudo);
+            player_sockets[id].opp = socket.id;
+            console.log(socket.pseudo + ' affronte ' + player_sockets[socket.opp].pseudo);
             games[id] = new Game(rooms[id]);
             games[id].start_game()
         }
     });
 
+    socket.on('choix_prodige', function(prodige){
+        let game = games[socket.room];
+        let player = game.players[socket.id]
+        if (game.choix == 'prodige' && prodige in player.prodiges) {
+            let p = player.prodiges[prodige]
+            if (p.available) {
+                player.played_prodige = p;
+                p.available = false;
+                socket.emit('drop_validated');
+            } else {
+                socket.emit('drop_not_validated');
+            }
+        } else {
+            socket.emit('drop_not_validated');
+        }
+    });
+
     // FOR DEBUG ONLY =====================
     socket.on('cmd', function(data) {
+        // boomerang vers client
         socket.emit(data.cmd, data.data);
     });
     // ====================================

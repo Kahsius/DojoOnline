@@ -1,47 +1,31 @@
 var socket = io();
 
-var need_click = true;
-var num_need_click = 10;
+var need_click = false;
+var num_need_click = 0;
 var num_current_click = 0;
-var need_click_target = "voie";
-var choice_prodige = true;
-
-function allowDrop(ev) {
-    ev.preventDefault();
-}
+var need_click_target = "none";
+var choix = null;
 
 function drag(ev) {
     ev.dataTransfer.setData("text", ev.target.id);
 }
 
 function drop_triggered(ev) {
-    var src = document.getElementById(ev.dataTransfer.getData("text"));
-    var srcParent = src.parentNode;
-    var target = ev.currentTarget.firstElementChild;
+    socket.drop_src = document.getElementById(ev.dataTransfer.getData("text"));
+    socket.drop_srcParent = src.parentNode;
+    socket.drop_target = ev.currentTarget.firstElementChild;
+    socket.drop_ev = ev;
     
     // On enlève le fait que le glyphe ait été cliqué, d'où qu'il vienne
     // Normalement servira à rien, vu qu'il n'y a pas d'action clickée qui
     // nécessite de déplacer des glyphes, mais sait on jamais
-    src.setAttribute("clicked", "false")
-        
-    // Si on vise la main, on ne fait pas de remplacement
-    if (['hand_glyphes', 'hand_prodiges'].includes(ev.currentTarget.getAttributeNode("class").value)) {
-        ev.currentTarget.appendChild(src);
-    } else {
-        if (target != null) {
-            // S'il y a déjà quelque chose dans la case
-            ev.currentTarget.replaceChild (src, target);
-            srcParent.appendChild(target);
-        } else {
-            // Sinon
-            ev.currentTarget.appendChild(src);
-        }
-    }
-    
-    // Activation ou non du bouton "Valider"
-    var btn = document.getElementById('validate_button');
-    var false_btn = document.getElementById('false_button');
-    
+    socket.drop_src.setAttribute("clicked", "false")
+
+    // On demande au serveur si le move est légal
+    validate_drop();
+}
+
+function check_validate_button() {
     // Est-ce que toutes les voies sont pleines
     var lignePlayer = document.getElementById('ligne_centre_player');
     var glyphes = lignePlayer.children;
@@ -56,7 +40,13 @@ function drop_triggered(ev) {
     // Est-ce que le prodige a été joué
     var prodige_played = document.getElementById('empty_prodige_j1').children.length > 0;
     
-    if (all_voies_full || (prodige_played && choice_prodige)) {
+    // Activation ou non du bouton "Valider"
+    var btn = document.getElementById('validate_button');
+    var false_btn = document.getElementById('false_button');
+    let cond_prodige_played = choix == 'prodige' && prodige_played;
+    let cond_glyphe_played = choix == 'glyphes' && all_voies_full;
+    let cond_glyphe_chosen = choix == 'select_glyphes'
+    if (cond_glyphe_chosen || cond_glyphe_played || cond_prodige_played) {
         btn.style.display = 'flex';
         false_btn.style.display = 'none';
     } else {
@@ -125,9 +115,9 @@ function create_glyph(i, v) {
 }
 
 
-function create_prodige(i, name, opp=false) {
+function create_prodige(name, opp=false) {
     var prodige = document.createElement("div");
-    prodige.setAttribute("id", "prodige"+i);
+    prodige.setAttribute("id", name);
     prodige.setAttribute("class", "prodige");
     if (!opp) {
         prodige.setAttribute("draggable", "true");
@@ -152,8 +142,8 @@ function init_game(data) {
     var prodiges_opp = opp.prodiges;
 
     for (var i = 0; i < prodiges.length; i++) {
-        hand_prodiges_player.appendChild(create_prodige(i, prodiges[i]));
-        hand_prodiges_opp.appendChild(create_prodige(i+4, prodiges_opp[i], opp=true));
+        hand_prodiges_player.appendChild(create_prodige(prodiges[i]));
+        hand_prodiges_opp.appendChild(create_prodige(prodiges_opp[i], opp=true));
     }
     for (var i = 0; i < glyphes.length; i++) {
         hand_player.appendChild(create_glyph(i, glyphes[i]));
@@ -195,6 +185,21 @@ function refresh(id) {
     socket.emit('init', socket.pseudo);
 }
 
+function validate_drop() {
+    if (choix == 'prodige') {
+        prodige = socket.drop_src.getAttribute('id');
+        socket.emit('choix_prodige', prodige);
+    }
+}
+
+function text_log(string){
+    log = document.getElementsByClassName('log')[0]
+    node = document.createElement('p');
+    node.innerHTML = string;
+    log.appendChild(node);
+    log.scrollTop = log.scrollHeight;
+}
+
 socket.on('list_rooms', function(data){
     list = document.getElementById('room_choice_list');
     for (room of data){
@@ -206,7 +211,6 @@ socket.on('list_rooms', function(data){
     }
 });
 
-
 socket.on('init_game', function(data){
     document.getElementById('waiting').style.display = 'none';
     document.getElementById('main').style.display = 'flex';
@@ -214,9 +218,44 @@ socket.on('init_game', function(data){
 });
 
 socket.on('text_log', function(string){
-    log = document.getElementsByClassName('log')[0]
-    node = document.createElement('p');
-    node.innerHTML = string;
-    log.appendChild(node);
-    log.scrollTop = log.scrollHeight;
-})
+    text_log(string)
+});
+
+socket.on('choix_prodige', function() {
+    choix = 'prodige';
+    hand = document.getElementsById('hand_prodiges_j1');
+    for (child of hand.children) {
+        child.setAttribute('draggable', 'true');
+    }
+});
+
+socket.on('drop_validated', function(){
+    src = socket.drop_src;
+    srcParent = socket.drop_srcParent;
+    target = socket.drop_target;
+    ev = socket.drop_ev;
+        
+    // Si on vise la main, on ne fait pas de remplacement
+    if (['hand_glyphes', 'hand_prodiges'].includes(ev.currentTarget.getAttributeNode("class").value)) {
+        ev.currentTarget.appendChild(src);
+    } else {
+        if (target != null) {
+            // S'il y a déjà quelque chose dans la case
+            ev.currentTarget.replaceChild (src, target);
+            srcParent.appendChild(target);
+        } else {
+            // Sinon
+            ev.currentTarget.appendChild(src);
+        }
+    }
+
+    check_validate_button();
+});
+
+socket.on('drop_not_validated', function(){
+    socket.drop_src = null;
+    socket.drop_srcParent = null;
+    socket.drop_target = null;
+    socket.drop_ev = null;
+    text_log('Coup interdit');
+});

@@ -25,18 +25,18 @@ module.exports.Game = class {
         this.players[room[1].id] = player1;
 
         for (let socket of room) {
-            socket.emit('init_game', {'me': player0, 'opp': player1});
+            socket.emit('init_game', {'me': this.players[socket.id], 'opp': this.players[socket.opp]});
         }
     }
 
     start_game() {
         // Demande le prodige au premier joueur
-        player_sockets[this.first_player.id].emit('choix_prodige');
+        player_sockets[this.first_player.id].emit('init_choix_prodige');
     }
 
     create_prodiges(list_names){
         let prodiges = {};
-        for (name of list_names) {
+        for (let name of list_names) {
             // A modifier pour créer les objets Prodiges
             prodiges[name] = new Prodige(name);
         }

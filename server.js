@@ -78,18 +78,26 @@ io.on('connection', function(socket){
     socket.on('choix_prodige', function(prodige){
         let game = games[socket.room];
         let player = game.players[socket.id]
+        console.log(player.pseudo + ' joue ' + prodige);
         if (game.choix == 'prodige' && prodige in player.prodiges) {
             let p = player.prodiges[prodige]
             if (p.available) {
                 player.played_prodige = p;
                 p.available = false;
+                console.log('... validé')
                 socket.emit('drop_validated');
             } else {
+                console.log('...non validé (!available)')
                 socket.emit('drop_not_validated');
             }
         } else {
+            console.log('...non validé (choix invalide ou prodige not in prodiges)')
             socket.emit('drop_not_validated');
         }
+    });
+
+    socket.on('valide_choix_prodige', function(){
+        // TODO: CONTINUE       
     });
 
     // FOR DEBUG ONLY =====================

@@ -4,22 +4,36 @@ var need_click = false;
 var num_need_click = 0;
 var num_current_click = 0;
 var need_click_target = "none";
+var drop_src = null;
+var drop_srcParent = null;
+var drop_target_zone = null;
 var choix = null;
+
+function status() {
+    console.log('need_click : ' + need_click);
+    console.log('num_need_click : ' + num_need_click);
+    console.log('num_current_click : ' + num_current_click);
+    console.log('need_click_target : ' + need_click_target);
+    console.log('choix : ' + choix);
+}
+
+function allowDrop(ev){
+    ev.preventDefault();
+}
 
 function drag(ev) {
     ev.dataTransfer.setData("text", ev.target.id);
 }
 
 function drop_triggered(ev) {
-    socket.drop_src = document.getElementById(ev.dataTransfer.getData("text"));
-    socket.drop_srcParent = src.parentNode;
-    socket.drop_target = ev.currentTarget.firstElementChild;
-    socket.drop_ev = ev;
+    drop_src = document.getElementById(ev.dataTransfer.getData("text"));
+    drop_srcParent = drop_src.parentNode;
+    drop_target_zone = ev.currentTarget;
     
     // On enlève le fait que le glyphe ait été cliqué, d'où qu'il vienne
     // Normalement servira à rien, vu qu'il n'y a pas d'action clickée qui
     // nécessite de déplacer des glyphes, mais sait on jamais
-    socket.drop_src.setAttribute("clicked", "false")
+    drop_src.setAttribute("clicked", "false")
 
     // On demande au serveur si le move est légal
     validate_drop();
@@ -73,7 +87,6 @@ function drop(ev) {
 function click_glyph(ev) {
     node = ev.currentTarget;
     num_current_click = get_num_current_click();
-    console.log(node.parentNode.getAttribute("class"))
     if (need_click) {
         if ((need_click_target == "voie" && node.parentNode.getAttribute("class") == "empty_voie")
             || (need_click_target == "main" && node.parentNode.getAttribute("class") == "hand_glyphes"))
@@ -122,6 +135,7 @@ function create_prodige(name, opp=false) {
     if (!opp) {
         prodige.setAttribute("draggable", "true");
         prodige.setAttribute("ondragstart", "drag(event)");
+        prodige.setAttribute('available', 'true')
     }
     prodige.innerHTML = name;
     return prodige;
@@ -141,9 +155,11 @@ function init_game(data) {
     var prodiges = me.prodiges;
     var prodiges_opp = opp.prodiges;
 
-    for (var i = 0; i < prodiges.length; i++) {
-        hand_prodiges_player.appendChild(create_prodige(prodiges[i]));
-        hand_prodiges_opp.appendChild(create_prodige(prodiges_opp[i], opp=true));
+    for (var prodige in prodiges) {
+        hand_prodiges_player.appendChild(create_prodige(prodige));
+    }
+    for (var prodige in prodiges_opp) {
+        hand_prodiges_opp.appendChild(create_prodige(prodige, opp=true));
     }
     for (var i = 0; i < glyphes.length; i++) {
         hand_player.appendChild(create_glyph(i, glyphes[i]));
@@ -187,7 +203,7 @@ function refresh(id) {
 
 function validate_drop() {
     if (choix == 'prodige') {
-        prodige = socket.drop_src.getAttribute('id');
+        prodige = drop_src.getAttribute('id');
         socket.emit('choix_prodige', prodige);
     }
 }
@@ -198,6 +214,10 @@ function text_log(string){
     node.innerHTML = string;
     log.appendChild(node);
     log.scrollTop = log.scrollHeight;
+}
+
+function validate_choice(){
+    socket.emit('valide_choix_prodige');
 }
 
 socket.on('list_rooms', function(data){
@@ -221,31 +241,31 @@ socket.on('text_log', function(string){
     text_log(string)
 });
 
-socket.on('choix_prodige', function() {
+socket.on('init_choix_prodige', function() {
     choix = 'prodige';
-    hand = document.getElementsById('hand_prodiges_j1');
+    hand = document.getElementById('hand_prodiges_j1');
     for (child of hand.children) {
         child.setAttribute('draggable', 'true');
     }
 });
 
 socket.on('drop_validated', function(){
-    src = socket.drop_src;
-    srcParent = socket.drop_srcParent;
-    target = socket.drop_target;
-    ev = socket.drop_ev;
+    src = drop_src;
+    srcParent = drop_srcParent;
+    target = drop_target_zone;
         
     // Si on vise la main, on ne fait pas de remplacement
-    if (['hand_glyphes', 'hand_prodiges'].includes(ev.currentTarget.getAttributeNode("class").value)) {
-        ev.currentTarget.appendChild(src);
+    if (['hand_glyphes', 'hand_prodiges'].includes(target.getAttributeNode("class").value)) {
+        target.appendChild(src)
     } else {
-        if (target != null) {
+        if (target.firstElementChild != null) {
             // S'il y a déjà quelque chose dans la case
-            ev.currentTarget.replaceChild (src, target);
-            srcParent.appendChild(target);
+            t = target.firstElementChild;
+            target.replaceChild(src, t);
+            srcParent.appendChild(t);
         } else {
             // Sinon
-            ev.currentTarget.appendChild(src);
+            target.appendChild(src);
         }
     }
 
@@ -253,9 +273,9 @@ socket.on('drop_validated', function(){
 });
 
 socket.on('drop_not_validated', function(){
-    socket.drop_src = null;
-    socket.drop_srcParent = null;
-    socket.drop_target = null;
-    socket.drop_ev = null;
+    drop_src = null;
+    drop_srcParent = null;
+    drop_target_zone = null;
+    drop_ev = null;
     text_log('Coup interdit');
 });

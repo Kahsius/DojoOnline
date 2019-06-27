@@ -21,10 +21,10 @@
                 <div class='terrain'>
                     <div class='terrain_voies'>
                         <div class='ligne_centre'>
-                            <div class='empty_voie'></div>
-                            <div class='empty_voie'></div>
-                            <div class='empty_voie'></div>
-                            <div class='empty_voie'></div>
+                            <div class='empty_voie' id='j0-air'></div>
+                            <div class='empty_voie' id='j0-eau'></div>
+                            <div class='empty_voie' id='j0-terre'></div>
+                            <div class='empty_voie' id='j0-feu'></div>
                         </div>
                         <div class='ligne_centre' style="height: 3vh;"></div>
                         <div class='ligne_centre'>
@@ -35,13 +35,13 @@
                         </div>
                         <div class='ligne_centre' style="height: 3vh;"></div>
                         <div class='ligne_centre' id='ligne_centre_player'>
-                            <div class='empty_voie' ondrop="drop(event)" ondragover="allowDrop(event)"></div>
-                            <div class='empty_voie' ondrop="drop(event)" ondragover="allowDrop(event)"></div>
-                            <div class='empty_voie' ondrop="drop(event)" ondragover="allowDrop(event)"></div>
-                            <div class='empty_voie' ondrop="drop(event)" ondragover="allowDrop(event)"></div>
+                            <div class='empty_voie' id='j1-air' ondrop="drop(event)" ondragover="allowDrop(event)"></div>
+                            <div class='empty_voie' id='j1-eau' ondrop="drop(event)" ondragover="allowDrop(event)"></div>
+                            <div class='empty_voie' id='j1-terre' ondrop="drop(event)" ondragover="allowDrop(event)"></div>
+                            <div class='empty_voie' id='j1-feu' ondrop="drop(event)" ondragover="allowDrop(event)"></div>
                         </div>  
                         <div class='ligne_centre' style="height: 5vh;"></div>
-                        <div id="validate_button" style="display: none" onclick="validate();">Valider</div>
+                        <div id="validate_button" style="display: none" onclick="validate_choice();">Valider</div>
                         <div id='false_button' style="display: flex"></div>
                     </div>
                     <div class='terrain_prodiges'>

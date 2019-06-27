@@ -17,7 +17,7 @@ app.get('/', function(req, res){
 io.on('connection', function(socket){
     socket.on('disconnect', function(){
         // TODO: garder la connection en cas de refresh
-        console.log(socket.id + ' disconnected');
+        console.log(socket.pseudo + ' disconnected');
     });
 
     socket.on('debug', function(data){
@@ -91,13 +91,30 @@ io.on('connection', function(socket){
                 socket.emit('drop_not_validated');
             }
         } else {
-            console.log('...non validé (choix invalide ou prodige not in prodiges)')
+            console.log('...non validé (choix invalide ou prodige not in P.prodiges)')
             socket.emit('drop_not_validated');
         }
     });
 
     socket.on('valide_choix_prodige', function(){
-        // TODO: CONTINUE       
+        let game = games[socket.room];
+        let player = game.players[socket.id];
+        let prodige = player.played_prodige.name;
+        console.log(player.pseudo + ' valide ' + prodige);
+        player_sockets[socket.opp].emit('choix_prodige_adverse', prodige)
+        if (player === game.first_player) {
+            console.log(game.players[socket.opp].pseudo + ' choisi son Prodige');
+            player_sockets[socket.opp].emit('init_choix_prodige');
+        } else {
+            console.log('Début choix des Glyphes');
+            for (player_id in game.players){
+                player_sockets[player_id].emit('init_choix_glyphes');
+            }
+        }
+    });
+
+    socket.on('choix_glyphe', function(){
+        // TODO : CONTINUE
     });
 
     // FOR DEBUG ONLY =====================

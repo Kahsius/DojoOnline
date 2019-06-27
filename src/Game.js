@@ -38,7 +38,7 @@ module.exports.Game = class {
         let prodiges = {};
         for (let name of list_names) {
             // A modifier pour créer les objets Prodiges
-            prodiges[name] = new Prodige(name);
+            prodiges[name] = new Prodige({'name': name, 'puissance': 10, 'degats': 8});
         }
         return prodiges;
     }

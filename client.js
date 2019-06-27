@@ -33,7 +33,9 @@ function drop_triggered(ev) {
     // On enlève le fait que le glyphe ait été cliqué, d'où qu'il vienne
     // Normalement servira à rien, vu qu'il n'y a pas d'action clickée qui
     // nécessite de déplacer des glyphes, mais sait on jamais
-    drop_src.setAttribute("clicked", "false")
+    if (drop_src.getAttribute('class') == 'glyphe'){
+        drop_src.setAttribute("clicked", "false")
+    }
 
     // On demande au serveur si le move est légal
     validate_drop();
@@ -115,7 +117,7 @@ function create_glyph(i, v) {
     var glyph = document.createElement("div");
     if (v != -1) {
         glyph.setAttribute("id", "g"+i);
-        glyph.setAttribute("draggable", "true");
+        glyph.setAttribute("draggable", "false");
         glyph.setAttribute("ondragstart", "drag(event)");
         glyph.setAttribute("onclick", "click_glyph(event);");
         glyph.setAttribute("clicked", "false");
@@ -133,7 +135,7 @@ function create_prodige(name, opp=false) {
     prodige.setAttribute("id", name);
     prodige.setAttribute("class", "prodige");
     if (!opp) {
-        prodige.setAttribute("draggable", "true");
+        prodige.setAttribute("draggable", "false");
         prodige.setAttribute("ondragstart", "drag(event)");
         prodige.setAttribute('available', 'true')
     }
@@ -205,6 +207,10 @@ function validate_drop() {
     if (choix == 'prodige') {
         prodige = drop_src.getAttribute('id');
         socket.emit('choix_prodige', prodige);
+    } else if (choix == 'glyphes') {
+        valeur = drop_src.getAttribute('valeur');
+        voie = drop_target_zone.getAttribute('id');
+        socket.emit('choix_glyphe', [voie, valeur]);
     }
 }
 
@@ -217,10 +223,38 @@ function text_log(string){
 }
 
 function validate_choice(){
-    socket.emit('valide_choix_prodige');
+    text_log('Envoi du Prodige au combat');
+    if (choix == 'prodige'){
+        freeze();
+        socket.emit('valide_choix_prodige');
+    }
+}
+
+function freeze(){
+    // Freeze choix
+    choix = 'rien';
+
+    // Freeze prodiges
+    prodiges = document.getElementsByClassName('prodige');
+    for (prodige of prodiges){
+        prodige.setAttribute('draggable', 'false');
+    }
+
+    // Freeze glyphes
+    glyphs = document.getElementsByClassName('glyphe');
+    for (glyph of glyphs){
+        glyph.setAttribute('draggable', 'false');
+    }
+
+    // Freeze bouton Valider
+    var btn = document.getElementById('validate_button');
+    var false_btn = document.getElementById('false_button');
+    btn.style.display = 'none';
+    false_btn.style.display = 'flex';
 }
 
 socket.on('list_rooms', function(data){
+    console.log('Récupération de la liste des parties');
     list = document.getElementById('room_choice_list');
     for (room of data){
         elem = document.createElement('div');
@@ -232,16 +266,19 @@ socket.on('list_rooms', function(data){
 });
 
 socket.on('init_game', function(data){
+    text_log('Création de la partie');
     document.getElementById('waiting').style.display = 'none';
     document.getElementById('main').style.display = 'flex';
     init_game(data);
 });
 
 socket.on('text_log', function(string){
-    text_log(string)
+    console.log('Texte dans logs')
+    text_log(string);
 });
 
 socket.on('init_choix_prodige', function() {
+    text_log('Choix du prodige');
     choix = 'prodige';
     hand = document.getElementById('hand_prodiges_j1');
     for (child of hand.children) {
@@ -273,9 +310,26 @@ socket.on('drop_validated', function(){
 });
 
 socket.on('drop_not_validated', function(){
+    text_log('Prodige non valide');
     drop_src = null;
     drop_srcParent = null;
     drop_target_zone = null;
     drop_ev = null;
     text_log('Coup interdit');
+});
+
+socket.on('init_choix_glyphes', function() {
+    text_log('Choix des glyphes');
+    choix = 'glyphes';
+    glyphes = document.getElementById('hand_glyphes_j1').children;
+    for (glyph of glyphes){
+        glyph.setAttribute('draggable', 'true');
+    }
+});
+
+socket.on('choix_prodige_adverse', function(id){
+    text_log('L\'adversaire joue ' + id);
+    var prodige = document.getElementById(id);
+    var empty_prodige = document.getElementById('empty_prodige_j0');
+    empty_prodige.appendChild(prodige);
 });

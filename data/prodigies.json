@@ -1,8 +1,8 @@
 [
     {
       "name": "Alissonne",
-      "power": 8,
-      "damage": 6,
+      "puissance": 8,
+      "degats": 6,
       "talent": {
           "target": "opp",
           "condition": "victoire",
@@ -10,215 +10,215 @@
           "effect": "modif_hp",
           "contrecoup": true
       },
-      "mastery": {
+      "maitrise": {
           "effect": "nothing"
       },
-      "element": "anar"
+      "element": "feu"
   },
   {
       "name": "Batsu",
-      "power": 7,
-      "damage": 3,
+      "puissance": 7,
+      "degats": 3,
       "talent": {
           "target": "owner",
           "condition": "riposte",
           "value": 1,
-          "effect": "modif_power_damage"
+          "effect": "modif_puissance_degats"
       },
-      "mastery": {
+      "maitrise": {
           "target": "owner",
           "condition": "courage",
           "value": 4,
-          "effect": "modif_damage"
+          "effect": "modif_degats"
       },
-      "element": "wilwar"
+      "element": "terre"
   },
   {
       "name": "Svenn",
-      "power": 7,
-      "damage": 2,
+      "puissance": 7,
+      "degats": 2,
       "talent": {
           "target": "owner",
           "value": 2,
-          "effect": "modif_damage"
+          "effect": "modif_degats"
       },
-      "mastery": {
+      "maitrise": {
           "target": "opp",
           "effect": "echange_d"
       },
-      "element": "ulmo"
+      "element": "eau"
   },
   {
       "name": "Amalrik",
-      "power": 6,
-      "damage": 1,
+      "puissance": 6,
+      "degats": 1,
       "talent": {
           "target": "owner",
           "value": 3,
-          "effect": "modif_power"
+          "effect": "modif_puissance"
       },
-      "mastery": {
+      "maitrise": {
           "target": "opp",
           "value": -3,
           "effect": "modif_hp"
       },
-      "element": "anar"
+      "element": "feu"
   },
   {
       "name": "Asato",
-      "power": 7,
-      "damage": 2,
+      "puissance": 7,
+      "degats": 2,
       "talent": {
           "target": "owner",
           "effect": "protection"
       },
-      "mastery": {
+      "maitrise": {
           "target": "owner",
           "value": 3,
-          "effect": "modif_damage"
+          "effect": "modif_degats"
       },
-      "element": "sulimo"
+      "element": "air"
   },
   {
       "name": "Faine",
-      "power": 5,
-      "damage": 2,
+      "puissance": 5,
+      "degats": 2,
       "talent": {
           "target": "opp",
           "modification": "patience",
           "value": -1,
-          "effect": "modif_damage"
+          "effect": "modif_degats"
       },
-      "mastery": {
+      "maitrise": {
           "target": "opp",
           "value": -3,
-          "effect": "modif_damage"
+          "effect": "modif_degats"
       },
-      "element": "wilwar"
+      "element": "terre"
   },
   {
       "name": "Haru",
-      "power": 7,
-      "damage": 3,
+      "puissance": 7,
+      "degats": 3,
       "talent": {
           "target": "owner",
           "effect": "initiative"
       },
-      "mastery": {
+      "maitrise": {
           "target": "owner",
           "value": 1,
           "modification": "par_glyphe",
-          "effect": "modif_damage"
+          "effect": "modif_degats"
       },
-      "element": "wilwar"
+      "element": "terre"
   },
   {
       "name": "Persephone",
-      "power": 7,
-      "damage": 3,
+      "puissance": 7,
+      "degats": 3,
       "talent": {
           "target": "opp",
           "condition": "defaite",
           "value": -2,
           "effect": "modif_hp"
       },
-      "mastery": {
+      "maitrise": {
           "target": "owner",
           "condition": "defaite",
           "value": 2,
           "effect": "recuperation"
       },
-      "element": "anar"
+      "element": "feu"
   },
   {
       "name": "Siam",
-      "power": 7,
-      "damage": 1,
+      "puissance": 7,
+      "degats": 1,
       "talent": {
           "target": "opp",
           "condition": "courage",
           "value": -2,
-          "effect": "modif_damage"
+          "effect": "modif_degats"
       },
-      "mastery": {
+      "maitrise": {
           "target": "opp",
           "value": 1,
           "effect": "pillage"
       },
-      "element": "anar"
+      "element": "feu"
   },
   {
       "name": "Fizz",
-      "power": 7,
-      "damage": 2,
+      "puissance": 7,
+      "degats": 2,
       "talent": {
           "target": "owner",
           "value": 2,
-          "effect": "modif_power"
+          "effect": "modif_puissance"
       },
-      "mastery": {
+      "maitrise": {
           "target": "owner",
           "condition": "courage",
           "value": 2,
           "effect": "recuperation"
       },
-      "element": "ulmo"
+      "element": "eau"
   },
   {
       "name": "Marcus",
-      "power": 7,
-      "damage": 2,
+      "puissance": 7,
+      "degats": 2,
       "talent": {
           "target": "opp",
           "effect": "stop_talent"
       },
-      "mastery": {
+      "maitrise": {
           "target": "opp",
           "value": 1,
           "effect": "oppression"
       },
-      "element": "sulimo"
+      "element": "air"
   },
   {
       "name": "Luss",
-      "power": 7,
-      "damage": 4,
+      "puissance": 7,
+      "degats": 4,
       "talent": {
           "target": "opp",
-          "effect": "stop_mastery"
+          "effect": "stop_maitrise"
       },
-      "mastery": {
+      "maitrise": {
           "target": "opp",
-          "effect": "copy_mastery"
+          "effect": "copy_maitrise"
       },
-      "element": "ulmo"
+      "element": "eau"
   },
   {
       "name": "Orsun",
-      "power": 6,
-      "damage": 4,
+      "puissance": 6,
+      "degats": 4,
       "talent": {
           "target": "opp",
           "effect": "echange_p"
       },
-      "mastery": {
+      "maitrise": {
           "target": "owner",
           "condition": "riposte",
           "value": 2,
           "effect": "recuperation"
       },
-      "element": "wilwar"
+      "element": "terre"
   },
   {
       "name": "Rubis",
-      "power": 6,
-      "damage": 2,
+      "puissance": 6,
+      "degats": 2,
       "talent": {
           "target": "opp",
           "value": -2,
-          "effect": "modif_power"
+          "effect": "modif_puissance"
       },
-      "mastery": {
+      "maitrise": {
           "target": "opp",
           "value": 2,
           "effect": "oppression",
@@ -227,35 +227,35 @@
           "cost_value": 1
 
       },
-      "element": "sulimo"
+      "element": "air"
   },
   {
       "name": "Aurore",
-      "power": 7,
-      "damage": 2,
+      "puissance": 7,
+      "degats": 2,
       "talent": {
           "target": "owner",
           "effect": "avantage"
       },
-      "mastery": {
+      "maitrise": {
           "target": "opp",
           "condition": "victoire",
           "value": 2,
           "effect": "oppression"
       },
-      "element": "sulimo"
+      "element": "air"
   },
   {
       "name": "Paar",
-      "power": 8,
-      "damage": 2,
+      "puissance": 8,
+      "degats": 2,
       "talent": {
           "target": "opp",
           "contrecoup": true,
           "value": -1,
           "effect": "modif_hp"
       },
-      "mastery": {
+      "maitrise": {
           "target": "owner",
           "cost": true,
           "cost_type": "glyph",
@@ -263,123 +263,123 @@
           "value": 5,
           "effect": "modif_hp"
       },
-      "element": "ulmo"
+      "element": "eau"
   },
   {
       "name": "Olivaw",
-      "power": 9,
-      "damage": 2,
+      "puissance": 9,
+      "degats": 2,
       "talent": {
           "target": "owner",
           "value": 1,
           "effect": "modif_hp"
       },
-      "mastery": {
+      "maitrise": {
           "target": "opp",
           "value": -1,
-          "effect": "modif_damage",
+          "effect": "modif_degats",
           "modification": "par_glyphe"
       },
-      "element": "wilwar"
+      "element": "terre"
   },
   {
       "name": "Oren",
-      "power": 7,
-      "damage": 7,
+      "puissance": 7,
+      "degats": 7,
       "talent": {
           "target": "owner",
           "value": 2,
-          "effect": "modif_damage",
+          "effect": "modif_degats",
           "contrecoup": true
       },
-      "mastery": {
+      "maitrise": {
           "effect": "nothing"
       },
-      "element": "anar"
+      "element": "feu"
   },
   {
       "name": "Kiran",
-      "power": 7,
-      "damage": 0,
+      "puissance": 7,
+      "degats": 0,
       "talent": {
           "target": "opp",
           "effect": "stop_talent"
       },
-      "mastery": {
+      "maitrise": {
           "effect": "vampirism",
           "value": 2,
           "target": "opp"
       },
-      "element": "sulimo"
+      "element": "air"
   },
   {
       "name": "Berthudon",
-      "power": 7,
-      "damage": 2,
+      "puissance": 7,
+      "degats": 2,
       "talent": {
           "target": "opp",
           "value": -1,
           "modification": "patience",
-          "effect": "modif_power"
+          "effect": "modif_puissance"
       },
-      "mastery": {
-          "effect": "modif_damage",
+      "maitrise": {
+          "effect": "modif_degats",
           "value": 2,
           "target": "owner",
           "modification": "acharnement"
       },
-      "element": "wilwar"
+      "element": "terre"
   },
   {
       "name": "Bulle",
-      "power": 6,
-      "damage": 1,
+      "puissance": 6,
+      "degats": 1,
       "talent": {
           "target": "opp",
           "condition": "courage",
-          "effect": "stop_mastery"
+          "effect": "stop_maitrise"
       },
-      "mastery": {
+      "maitrise": {
           "effect": "vampirism",
           "value": 1,
           "target": "opp",
           "modification": "acharnement"
       },
-      "element": "ulmo"
+      "element": "eau"
   },
   {
       "name": "Foudre",
-      "power": 6,
-      "damage": 3,
+      "puissance": 6,
+      "degats": 3,
       "talent":{
           "target": "opp",
-          "effect": "modif_power",
+          "effect": "modif_puissance",
           "value": -2
       },
-      "mastery": {
+      "maitrise": {
           "effect": "oppression",
           "value": 2,
           "target": "opp",
           "condition": "defaite"
       },
-      "element": "sulimo"
+      "element": "air"
   },
   {
       "name": "Sielahti",
-      "power": 8,
-      "damage": 3,
+      "puissance": 8,
+      "degats": 3,
       "talent":{
           "target": "opp",
           "effect": "oppression",
           "value": 1,
           "condition": "victoire"
       },
-      "mastery": {
+      "maitrise": {
           "effect": "recuperation",
           "value": 1,
           "target": "owner",
           "modification": "patience"
       },
-      "element": "anar"
+      "element": "feu"
   }
 ]

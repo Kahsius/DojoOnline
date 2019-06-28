@@ -7,7 +7,7 @@ module.exports.shuffle = function(a) {
 }
 
 module.exports.range = function*(start, end) {
-    for (let i = start; i <= end; i++) {
+    for (let i = start; i < end; i++) {
         yield i;
     }
 }

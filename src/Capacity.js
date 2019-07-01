@@ -1,4 +1,6 @@
-const range = require('./utils').range
+const utils = require('./utils');
+const range = utils.range;
+const deepcopy = utils.deepcopy;
 
 module.exports.Capacity = class {
 	constructor(json, owner){
@@ -30,6 +32,7 @@ module.exports.Capacity = class {
 	    if (this.check_condition(o) && !this.stopped) {
 	        if (this.cost) {
 	            if (this.cost_type == "glyph") {
+                    // TODO : demande de récupération d'un glyphe
 	                let index = o.get_random_glyphe_index(feinte_allowed=false);
 	                if (index != -1) {
 	                    o.hand.splice(index, 1);
@@ -114,22 +117,27 @@ module.exports.Capacity = class {
 
 var effets = {};
 
+
+function ask_for_glyphs(n, socket) {
+    return new Promise(function(resolve, reject){
+        socket.emit('ask_for_glyphs', n);
+        socket.once('answer_for_glyphes', function(list_glyphes){
+            resolve(list_glyphes);
+        });
+    });
+}
+
+
 effets['recuperation'] = function(capa) {
     let v = capa.value;
     let t = capa.target;
     let l = Object.keys(t.played_glyphs).length - 1;
     let count = 0;
-    for (let i of range(0, l)) {
-        if (count == v) {
-            break;
+    ask_for_glyphs(v).then(list_glyphes => {
+        for (glyphe of list_glyphes) {
+            // TODO: do something
         }
-        let index = l - i;
-        if (!range(0, 5).includes(t.played_glyphs[index])) {
-            t.hand = t.hand + [t.played_glyphs[index]];
-            t.played_glyphs.splice(index, 1);
-            count = count + 1;
-        }
-    }
+    });
 }
 
 
@@ -198,6 +206,8 @@ effets['echange_d'] = function(capa) {
 
 
 effets['copy_talent'] = function(capa) {
+    // TODO: est-ce qu'on l'utilise ?
+    // TODO: vérifier l'odre d'application
     let p1 = capa.target.played_prodigy;
     let p2 = capa.target.opp.played_prodigy;
     p2.talent = deepcopy(p1.talent);
@@ -205,6 +215,7 @@ effets['copy_talent'] = function(capa) {
 
 
 effets['copy_maitrise'] = function(capa) {
+    // TODO: vérifier l'ordre d'application
     let p1 = capa.target.played_prodigy;
     let p2 = capa.target.opp.played_prodigy;
     p2.maitrise = deepcopy(p1.maitrise);
@@ -221,6 +232,7 @@ effets['oppression'] = function(capa) {
             break;
         }
         let index = l - i - 1;
+        // TODO: demander défausse à l'adversaire
         if (t.hand[index] != 0) {
             t.hand.splice(index, 1);
             count = count + 1;
@@ -239,6 +251,7 @@ effets['pillage'] = function(capa) {
             break;
         }
         let index = l - i - 1;
+        // TODO: demander défauuse à l'adversaire
         if (t.hand[index] != 0) {
             t.opp.hand = t.opp.hand + [t.hand[index]];
             t.hand.splice(index, 1);

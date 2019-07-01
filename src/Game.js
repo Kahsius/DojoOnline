@@ -22,6 +22,8 @@ module.exports.Game = class {
         var player1 = new Player(room[1], 1);
         player0.opp = room[1].id;
         player1.opp = room[0].id;
+        player0.order = 0;
+        player1.order = 1;
         this.first_player = player0;
         
         // Création des prodiges

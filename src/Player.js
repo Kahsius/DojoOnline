@@ -12,6 +12,7 @@ module.exports.Player = class {
         this.has_regard = true;
         this.winner = false;
         this.ready = false;
+        this.order = -1;
 
         let glyph = order == 0 ? 5 : 4
         this.hand.push(glyph);

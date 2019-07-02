@@ -32,7 +32,7 @@ module.exports.Capacity = class {
 	    if (this.check_condition(o) && !this.stopped) {
 	        if (this.cost) {
 	            if (this.cost_type == "glyph") {
-                    // TODO : demande de récupération d'un glyphe
+                    // TODO demande de récupération d'un glyphe
 	                let index = o.get_random_glyphe_index(feinte_allowed=false);
 	                if (index != -1) {
 	                    o.hand.splice(index, 1);
@@ -117,29 +117,33 @@ module.exports.Capacity = class {
 
 var effets = {};
 
-
-function ask_for_glyphs(n, socket) {
-    return new Promise(function(resolve, reject){
-        socket.emit('ask_for_glyphs', n);
-        socket.once('answer_for_glyphes', function(list_glyphes){
-            resolve(list_glyphes);
-        });
-    });
-}
-
-
 effets['recuperation'] = function(capa) {
     let v = capa.value;
     let t = capa.target;
-    let l = Object.keys(t.played_glyphs).length - 1;
     let count = 0;
-    ask_for_glyphs(v).then(list_glyphes => {
-        for (glyphe of list_glyphes) {
-            // TODO: do something
+    let socket = player_sockets[t.id];
+    socket.emit('ask_for_glyphs', {'where': 'played', 'howmany': n});
+    socket.once('answer_for_glyphes', function(list){
+        if (list.length <= v){
+            let ok = true;
+            for (element of list){
+                if (t.played_glyphs[element] < 1) ok = false;
+            }
+            if (nok) {
+                // TODO faire les event nok et ok dans client.js
+                socket.emit('nok', 'Certains glyphes ne sont pas valides');
+            } else {
+                socket.emit('ok');
+                for (element of list){
+                    t.hand.push(t.played_glyphs[element]);
+                    t.played_glyphs[element] = -1;
+                }
+            }
+        } else {
+            socket.emit('nok', 'Trop de glyphes retournés');
         }
     });
 }
-
 
 effets['modif_degats'] = function(capa) {
     let p = capa.target.played_prodigy;
@@ -251,7 +255,7 @@ effets['pillage'] = function(capa) {
             break;
         }
         let index = l - i - 1;
-        // TODO: demander défauuse à l'adversaire
+        // TODO: demander défause à l'adversaire
         if (t.hand[index] != 0) {
             t.opp.hand = t.opp.hand + [t.hand[index]];
             t.hand.splice(index, 1);

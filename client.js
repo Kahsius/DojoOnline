@@ -347,15 +347,6 @@ socket.on('choix_prodige_adverse', function(id){
     empty_prodige.appendChild(prodige);
 });
 
-socket.on('choix_glyphe_opp', function(voie){
-    let empty_voie = document.getElementById('j0-' + voie);
-    let already_played = empty_voie.firstElementChild;
-    if (already_played == null) {
-        let glyph = document.getElementById('hand_glyphes_j0').firstElementChild;
-        empty_voie.appendChild(glyph);
-    }
-});
-
 socket.on('retire_glyphe_opp', function(voie){
     let glyph = document.createElement("div");
     glyph.setAttribute("class", "glyphe_opp");
@@ -363,20 +354,28 @@ socket.on('retire_glyphe_opp', function(voie){
     document.getElementById('j0-' + voie).innerHTML = "";
 });
 
-socket.on('choix_glyphe_opp_regard', function(data){
+socket.on('choix_glyphe_opp', function(data){
     let voie = data['voie'];
     let valeur = data['valeur'];
     let empty_voie = document.getElementById('j0-' + voie);
-    let glyph = document.createElement("div");
-    glyph.setAttribute("id", "glyph_opp_regard");
-    glyph.setAttribute("class", "glyphe");
-    glyph.setAttribute("valeur", valeur);
-    glyph.innerHTML = valeur;
-    let already_played = empty_voie.firstElementChild;
-    if (already_played == null) {
-        let hand = document.getElementById('hand_glyphes_j0');
-        hand.removeChild(hand.firstElementChild);
+    if (data['regard']){
+        let glyph = document.createElement("div");
+        glyph.setAttribute("id", "glyph_opp_regard");
+        glyph.setAttribute("class", "glyphe");
+        glyph.setAttribute("valeur", valeur);
+        glyph.innerHTML = valeur;
+        let already_played = empty_voie.firstElementChild;
+        if (already_played == null) {
+            let hand = document.getElementById('hand_glyphes_j0');
+            hand.removeChild(hand.firstElementChild);
+        }
+        empty_voie.innerHTML = "";
+        empty_voie.appendChild(glyph);
+    } else {
+        let already_played = empty_voie.firstElementChild;
+        if (already_played == null) {
+            let glyph = document.getElementById('hand_glyphes_j0').firstElementChild;
+            empty_voie.appendChild(glyph);
+        }
     }
-    empty_voie.innerHTML = "";
-    empty_voie.appendChild(glyph);
 });

@@ -135,31 +135,16 @@ io.on('connection', function(socket){
         let opp = players[player.opp];
         let hand = player.hand;
         console.log(player.pseudo + ' joue ' + valeur + ' sur ' + voie);
-        if (valeur in hand){
-            let g = player.played_glyphs[voie]
-            let offset = (g != -1) ? g : 0;
-            console.log(voie);
-            if (player.sum_played_glyphs() + valeur - offset 
-                <= player.played_prodigy.puissance){
-                console.log('... validé');
-                hand.splice(hand.indexOf(valeur), 1);
-                if (g >= 0){
-                    player.hand.push(g);
-                }
-                player.played_glyphs[voie] = valeur
-                socket.emit('drop_validated');
-                if (opp.has_regard && voie == opp.played_prodigy.element){
-                    opp.socket.emit('choix_glyphe_opp_regard', {'voie': voie, 'valeur': valeur});
-                } else {
-                    opp.socket.emit('choix_glyphe_opp', voie);
-                }
-            } else {
-                console.log('... non valide ( > puissance)');
-            }
-        } else {
-            socket.emit('drop_not_validated', 'Le glyphe n\'est pas dans votre main');
-            console.log('... non validé (pas dans p.hand)');
-        }
+
+        // Est-ce que le glyphe est valide ?
+        let valid = player.valide_choix_glyphe(voie, valeur)
+        if (valid) socket.emit('drop_validated');
+        else socket.emit('drop_not_validated', 'Choix invalide');
+
+        // Est-ce que l'adversaire peut voir le glyphe ?
+        let body = {'voie': voie, 'valeur': valeur, 'regard': false}
+        if (player.on_opp_regard(voie)) body['regard'] = true;
+        opp.socket.emit('choix_glyphe_opp', body);
     });
 
     socket.on('retire_glyphe', function(voie){
@@ -167,11 +152,10 @@ io.on('connection', function(socket){
         let player = players[socket.id];
         console.log(player.pseudo + ' retire '
             + player.played_glyphs[voie] + ' de la voie ' + voie);
-        if (player.played_glyphs[voie] != -1){
-            player.hand.push(player.played_glyphs[voie]);
-            player.played_glyphs[voie] = -1;
-            socket.emit('drop_validated');
+        let valid = player.retire_glyphe(voie);
+        if (valid) {
             players[player.opp].socket.emit('retire_glyphe_opp', voie);
+            socket.emit('drop_validated');
         }
     });
 

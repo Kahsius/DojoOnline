@@ -13,6 +13,7 @@ module.exports.Player = class {
         this.winner = false;
         this.ready = false;
         this.order = order;
+        this.opp = null;
 
         let glyph = order == 0 ? 5 : 4
         this.hand.push(glyph);
@@ -27,5 +28,42 @@ module.exports.Player = class {
             }
         }
         return sum;
+    }
+
+    valide_choix_glyphe(voie, valeur){
+        if (valeur in this.hand){
+            let g = this.played_glyphs[voie]
+            let offset = (g != -1) ? g : 0;
+            console.log(voie);
+            if (this.sum_played_glyphs() + valeur - offset 
+                <= this.played_prodigy.puissance){
+                console.log('... validé');
+                this.hand.splice(this.hand.indexOf(valeur), 1);
+                if (g >= 0){
+                    this.hand.push(g);
+                }
+                this.played_glyphs[voie] = valeur
+                return true;
+            } else {
+                return false;
+                console.log('... non valide ( > puissance)');
+            }
+        } else {
+            console.log('... non validé (pas dans p.hand)');
+        }
+    }
+
+    on_opp_regard(voie){
+        let opp = players[this.opp];
+        return (opp.has_regard && voie == opp.played_prodigy.element) ? true : false;
+    }
+
+    retire_glyphe(voie){
+        if (this.played_glyphs[voie] != -1) {
+            this.hand.push(this.played_glyphs[voie]);
+            this.played_glyphs[voie] = -1;
+            return true;
+        }
+        return false;
     }
 }

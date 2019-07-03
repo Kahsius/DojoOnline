@@ -1,7 +1,6 @@
 const fs = require('fs');
 const range = require('./utils').range;
-var Player = require('./Player').Player;
-var Prodige = require('./Prodige').Prodige;
+const Player = require('./Player').Player;
 
 function get_json_data(path, key_id){
     let file = fs.readFileSync(path);
@@ -42,8 +41,8 @@ module.exports.Game = class {
 
         // Création des prodiges
         // TODO /!\ DRAFT /!\
-        player0.prodiges = this.create_prodiges(["Amalrik", "Batsu", "Faine", "Asato"]);
-        player1.prodiges = this.create_prodiges(["Alissonne", "Fizz", "Rubis", "Svenn"]);
+        player0.create_prodiges(["Amalrik", "Batsu", "Faine", "Asato"]);
+        player1.create_prodiges(["Alissonne", "Fizz", "Rubis", "Svenn"]);
 
         // Assignation des joueurs à la partie
         this.players = [player0, player1]
@@ -57,20 +56,15 @@ module.exports.Game = class {
         }
     }
 
-    start_game() {
-        // Demande le prodige au premier joueur
-        this.get_player_by_order(0).socket.emit('init_choix_prodige');
-    }
-
     valide_choix_prodige(id_player, prodige){
         let player = players[id_player];
         if (this.choix == 'prodige' && prodige in player.prodiges) {
             let p = player.prodiges[prodige]
             if (p.available) {
-                if (player.played_prodigy != null){
-                    player.played_prodigy.available = true;
+                if (player.get_played_prodigy() != null){
+                    player.get_played_prodigy().available = true;
                 }
-                player.played_prodigy = p;
+                player.played_prodigy = prodige;
                 p.available = false;
                 console.log('... validé')
                 return({'valid': true});
@@ -84,31 +78,26 @@ module.exports.Game = class {
         }
     }
 
-    create_prodiges(list_names, owner){
-        let prodiges = {};
-        for (let name of list_names) {
-            // A modifier pour créer les objets Prodiges
-            prodiges[name] = new Prodige(prodige_data[name]);
-        }
-        return prodiges;
-    }
-
     applique_talents(){
-        // Application des Talents a priorite
         let t = null;
-        for (order of range(2)){
-            t = this.get_player_by_order(order).played_prodigy.talent;
-            if (t.priority) t.execute_capacity(this.turn);
-        }
-        // Application des Talents
-        for (order of range(2)){
-            t = this.get_player_by_order(order).played_prodigy.talent;
-            if (!t.priority && !t.need_winner) t.execute_capacity(this.turn);
-        }
-    }
 
-    get_player(id){
-        return player_sockets[id].player;
+        // Application des Talents a priorite
+        for (let order of range(0, 2)){
+            t = this.get_player_by_order(order).get_played_prodigy().talent;
+            if (t.priority) {
+                t.execute_capacity();
+                while (!t.done) setTimeout(function(){}, 500);
+            }
+        }
+        
+        // Application des Talents
+        for (let order of range(0, 2)){
+            t = this.get_player_by_order(order).get_played_prodigy().talent;
+            if (!t.priority && !t.need_winner) {
+                t.execute_capacity();
+                while (!t.done) setTimeout(function(){}, 500);
+            }
+        }
     }
 
     resolve_round(){
@@ -123,8 +112,8 @@ module.exports.Game = class {
             if (p1.played_glyphs[element] > p2.played_glyphs[element]) {winner = -1}
             else if (p1.played_glyphs[element] < p2.played_glyphs[element]) {winner = 1}
             else {
-                if (p1.played_prodigy.initiative){winner = -1}
-                else if (p2.played_prodigy.initiative) {winner = -1}
+                if (p1.get_played_prodigy().initiative){winner = -1}
+                else if (p2.get_played_prodigy().initiative) {winner = -1}
             }
             this.score_voies.push(winner);
         }
@@ -139,9 +128,9 @@ module.exports.Game = class {
         // Application des Talents éventuels
         for (id in this.players){
             let p = this.players[id];
-            if (p.played_prodigy.talent.need_winner){
-                console.log(p.played_prodigy.name + "_" + str(p.id) + " utilise Talent")
-                p.played_prodigy.talent.execute_capacity(this.turn)
+            if (p.get_played_prodigy().talent.need_winner){
+                console.log(p.get_played_prodigy().name + "_" + str(p.id) + " utilise Talent")
+                p.get_played_prodigy().talent.execute_capacity(this.turn)
             }
         }
 
@@ -155,15 +144,15 @@ module.exports.Game = class {
                 p1_win = self.score_voies[j] < 0 && p == this.first_player;
                 p2_win = self.score_voies[j] > 0 && p != this.first_player;
                 if (p1_win || p2_win) {
-                    console.log(p.played_prodigy.name + "_" + str(p.id) + " remporte " + v.element)
+                    console.log(p.get_played_prodigy().name + "_" + str(p.id) + " remporte " + v.element)
                     // S'il peut activer sa maîtrise
-                    element_ok = (v.element == p.played_prodigy.element)
-                    damage = p.played_prodigy.maitrise.need_victory
+                    element_ok = (v.element == p.get_played_prodigy().element)
+                    damage = p.get_played_prodigy().maitrise.need_victory
                     damage_and_winner = (p.winner && damage)
-                    not_stopped = !p.played_prodigy.maitrise.stopped
+                    not_stopped = !p.get_played_prodigy().maitrise.stopped
                     if (element_ok && (damage_and_winner || !damage) && not_stopped) {
                         console.log("\tet applique sa Maitrise")
-                        p.played_prodigy.maitrise.execute_capacity(self.turn)
+                        p.get_played_prodigy().maitrise.execute_capacity(self.turn)
                     // Sinon
                     } else {
                         console.log("\tet applique son effet")
@@ -185,9 +174,9 @@ module.exports.Game = class {
             return 1
         } else {
             // Est-ce qu'un joueur a l'avantage
-            if (p1.played_prodigy.advantaged) {
+            if (p1.get_played_prodigy().advantaged) {
                 return 0
-            } else if (p2.played_prodigy.advantaged) {
+            } else if (p2.get_played_prodigy().advantaged) {
                 return 1
             } else {
                 // Est-ce qu'un joueur a moins de pv que son opp

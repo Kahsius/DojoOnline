@@ -5,8 +5,8 @@ const deepcopy = utils.deepcopy;
 module.exports.Capacity = class {
 	constructor(json, owner){
         // ID des deux joueurs
-		this.owner = null;
-		this.opp = null;
+		this.owner = owner;
+		this.opp = players[owner.opp];
 
 		this.target = (json['target']) ? json['target'] : null;
         this.condition = (json['condition']) ? json['condition'] : "none";
@@ -26,43 +26,79 @@ module.exports.Capacity = class {
         this.contrecoup = (json['contrecoup']) ? json['contrecoup'] : false;
         this.stopped = false;
         this.data = json;
+        this.done = false;
 	}
 
     execute_capacity(turn) {
-    	console.log('Application : ' + this.get_string_effect());
-    	let o = player_sockets[this.owner].player;
+    	let o = this.owner;
+        let p = o.get_played_prodigy().name;
+        let msg = p + ' applique : ' + this.get_string_effect();
 	    if (this.check_condition(o) && !this.stopped) {
 	        if (this.cost) {
 	            if (this.cost_type == "glyph") {
                     // TODO demande de récupération d'un glyphe
-	                let index = o.get_random_glyphe_index(feinte_allowed=false);
-	                if (index != -1) {
-	                    o.hand.splice(index, 1);
-	                } else {
-	                   return;
-	                }
+                    socket.once('paid_cost', function(list){
+                        clone_hand = [...o.hand]
+                        if (list.length == this.cost_value) {
+                            let index = -1;
+                            let ok = true;
+                            for (glyph of list){
+                                index = clone_hand.indexOf(valeur);
+                                if (index > -1) {
+                                    clone_hand.splice(index, 1);
+                                } else {
+                                    ok = false;
+                                    break;
+                                }
+                            }
+                            if (ok) {
+                                for (glyph of list){
+                                    index = o.hand.indexOf(valeur);
+                                    o.hand.splice(index, 1);
+                                }
+                            }
+                            this.cost = (ok) ? 'paid' : 'not_paid';
+                        } else {
+                            this.cost = 'not_paid';
+                        }
+                    });
+                    socket.emit('pay_cost', 'glyphe');
+                    while (!['paid', 'not_paid'].includes(this.cost)){
+                        setTimeout(function(){}, 500);
+                    }
 	            } else if (this.cost_type == "hp") {
-	                o.hp = o.hp - this.cost_value;
+                    socket.once('paid_cost', function(ok){
+                        if (ok) o.hp -= this.cost_value;
+                        this.cost = (ok) ? 'paid' : 'not_paid';
+                    });
+                    socket.emit('pay_cost', 'hp');
+                    while (!['paid', 'not_paid'].includes(this.cost)){
+                        setTimeout(function(){}, 500);
+                    }
 	            }
 	        }
 	        this.set_target();
 	        for (let i of range(0, this.get_modification(o, turn))) {
+                console.log(msg);
+                this.owner.socket.emit('text_log', msg);
+                players[this.owner.opp].socket.emit('text_log', msg);
 	            this.effect(this);
 	        }
 	    }
+        this.done = true;
 	}
 
 	set_target() {
 	    // Target definition;
 	    let c = this.contrecoup;
 	    let t = this.target;
-	    let opp = this.get_player(this.opp);
-	    let owner = this.get_player(this.owner);
+	    let opp = this.opp;
+	    let own = this.owner;
 	    if (t == "opp") {
-	        this.target = (c) ? owner : opp;
+	        this.target = (c) ? own : opp;
 	    }
 	    else if (t == "owner") {
-	        this.target = (c) ? opp : owner;
+	        this.target = (c) ? opp : own;
 	    }
 	}
 
@@ -99,7 +135,7 @@ module.exports.Capacity = class {
 	}
 
 	get_string_effect() {
-	    let string = "\t";
+	    let string = "";
 	    let d = this.data;
 	    string = (!d['contrecoup']) ? string : string + "Contrecoup" + " ";
 	    if (d['cost']) {
@@ -144,13 +180,13 @@ effets['recuperation'] = function(capa) {
 }
 
 effets['modif_degats'] = function(capa) {
-    let p = capa.target.played_prodigy;
+    let p = capa.target.get_played_prodigy();
     let v = capa.value;
     p.degats = (p.protected && v < 0) ? p.degats : p.degats + v;
 }
 
 effets['modif_puissance'] = function(capa) {
-    let p = capa.target.played_prodigy;
+    let p = capa.target.get_played_prodigy();
     let v = capa.value;
     p.puissance = (p.protected && v < 0) ? p.puissance : p.puissance + v;
 }
@@ -169,7 +205,7 @@ effets['modif_hp'] = function(capa) {
 
 
 effets['stop_talent'] = function(capa) {
-    let p = capa.target.played_prodigy;
+    let p = capa.target.get_played_prodigy();
     if (!p.protected) {
         p.talent.stopped = true;
     }
@@ -177,7 +213,7 @@ effets['stop_talent'] = function(capa) {
 
 
 effets['stop_maitrise'] = function(capa) {
-    let p = capa.target.played_prodigy;
+    let p = capa.target.get_played_prodigy();
     if (!p.protected) {
         p.maitrise.stopped = true;
     }
@@ -185,13 +221,13 @@ effets['stop_maitrise'] = function(capa) {
 
 
 effets['protection'] = function(capa) {
-    capa.target.played_prodigy.protected = true;
+    capa.target.get_played_prodigy().protected = true;
 }
 
 
 effets['echange_p'] = function(capa) {
-    let p1 = capa.target.played_prodigy;
-    let p2 = capa.target.opp.played_prodigy;
+    let p1 = capa.target.get_played_prodigy();
+    let p2 = capa.target.opp.get_played_prodigy();
     let pp1 = p1.base_puissance;
     p1.base_puissance = p2.base_puissance;
     p2.base_puissance = pp1;
@@ -199,8 +235,8 @@ effets['echange_p'] = function(capa) {
 
 
 effets['echange_d'] = function(capa) {
-    let p1 = capa.target.played_prodigy;
-    let p2 = capa.target.opp.played_prodigy;
+    let p1 = capa.target.get_played_prodigy();
+    let p2 = capa.target.opp.get_played_prodigy();
     let dp1 = p1.base_degats;
     p1.base_degats = p2.base_degats;
     p2.base_degats = dp1;
@@ -208,19 +244,24 @@ effets['echange_d'] = function(capa) {
 
 
 effets['copy_talent'] = function(capa) {
-    // TODO: est-ce qu'on l'utilise ?
-    // TODO: vérifier l'odre d'application
-    let p1 = capa.target.played_prodigy;
-    let p2 = capa.target.opp.played_prodigy;
-    p2.talent = deepcopy(p1.talent);
+    let t = capa.target.get_played_prodigy().talent;
+    let clone = {...t};
+    clone.owner = t.opp;
+    clone.opp = t.owner;
+    let json = clone.data;
+    clone.target = (json['target']) ? json['target'] : null;
+    clone.execute_capacity();
 }
 
 
 effets['copy_maitrise'] = function(capa) {
-    // TODO: vérifier l'ordre d'application
-    let p1 = capa.target.played_prodigy;
-    let p2 = capa.target.opp.played_prodigy;
-    p2.maitrise = deepcopy(p1.maitrise);
+    let t = capa.target.get_played_prodigy().maitrise;
+    let clone = {...t};
+    clone.owner = t.opp;
+    clone.opp = t.owner;
+    let json = clone.data;
+    clone.target = (json['target']) ? json['target'] : null;
+    clone.execute_capacity();
 }
 
 
@@ -264,12 +305,12 @@ effets['pillage'] = function(capa) {
 
 
 effets['initiative'] = function(capa) {
-    capa.target.played_prodigy.initiative = true;
+    capa.target.get_played_prodigy().initiative = true;
 }
 
 
 effets['avantage'] = function(capa) {
-    capa.target.played_prodigy.advantaged = true;
+    capa.target.get_played_prodigy().advantaged = true;
 }
 
 

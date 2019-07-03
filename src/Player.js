@@ -1,4 +1,5 @@
 const settings = require("../settings");
+const Prodige = require('./Prodige').Prodige;
 
 module.exports.Player = class {
     constructor(socket, order){
@@ -58,6 +59,13 @@ module.exports.Player = class {
         return (opp.has_regard && voie == opp.played_prodigy.element) ? true : false;
     }
 
+    create_prodiges(list_names){
+        for (let name of list_names) {
+            // A modifier pour créer les objets Prodiges
+            this.prodiges[name] = new Prodige(prodige_data[name], this);
+        }
+    }
+
     retire_glyphe(voie){
         if (this.played_glyphs[voie] != -1) {
             this.hand.push(this.played_glyphs[voie]);
@@ -65,5 +73,9 @@ module.exports.Player = class {
             return true;
         }
         return false;
+    }
+
+    get_played_prodigy(){
+        return this.prodiges[this.played_prodigy];
     }
 }

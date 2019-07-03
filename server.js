@@ -62,7 +62,7 @@ io.on('connection', function(socket){
                     'prodiges': Object.keys(players[player.opp].prodiges)};
                 player.socket.emit('init_game', {'me': me, 'opp': opp});
             }
-            game.start_game()
+            game.get_player_by_order(0).socket.emit('init_choix_prodige');
         }
     });
 
@@ -84,7 +84,7 @@ io.on('connection', function(socket){
                     'prodiges': Object.keys(players[player.opp].prodiges)};
                 player.socket.emit('init_game', {'me': me, 'opp': opp});
             }
-            game.start_game()
+            game.get_player_by_order(0).socket.emit('init_choix_prodige');
         }
     });
 
@@ -99,7 +99,7 @@ io.on('connection', function(socket){
         let player = players[socket.id];
         console.log(player.pseudo + ' retire ' + prodige);
         socket.emit('drop_validated');
-        player.played_prodigy.available = true;
+        player.get_played_prodigy().available = true;
         player.played_prodigy = null;
     });
 
@@ -107,7 +107,7 @@ io.on('connection', function(socket){
         let game = games[socket.id];
         let player = players[socket.id];
         let opp = players[player.opp];
-        let prodige = player.played_prodigy.name;
+        let prodige = player.played_prodigy;
 
         console.log(player.pseudo + ' valide ' + prodige);
         

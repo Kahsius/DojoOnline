@@ -1,23 +1,24 @@
 const fs = require('fs');
+const range = require('./utils').range;
 var Player = require('./Player').Player;
 var Prodige = require('./Prodige').Prodige;
 
-let file = fs.readFileSync('./data/prodigies.json');
-data = JSON.parse(file);
-prodige_data = {};
-for (prodige of data){
-    prodige_data[prodige['name']] = prodige;
+function get_json_data(path, key_id){
+    let file = fs.readFileSync(path);
+    let data = JSON.parse(file);
+    let dict_data = {};
+    for (point of data){
+        dict_data[point[key_id]] = point;
+    }
+    return dict_data;
 }
-let file = fs.readFileSync('./data/voies.json');
-data = JSON.parse(file);
-voie_data = {};
-for (voie of data){
-    voie_data[voie['name']] = voie;
-}
+
+prodige_data = get_json_data('./data/prodigies.json', 'name');
+voie_data = get_json_data('./data/voies.json', 'element');
+
 
 module.exports.Game = class {
     constructor(room) {
-        this.players = {};
         this.turn = 0;
         this.first_player = null;
         this.choix = 'prodige';
@@ -28,56 +29,82 @@ module.exports.Game = class {
         // TODO Création des voies dans le constructeur de Game
 
         // Création des joueurs
+        let id0 = room[0].id;
+        let id1 = room[1].id;
+
         var player0 = new Player(room[0], 0);
+        player0.opp = id1;
+        players[id0] = player0;
+
         var player1 = new Player(room[1], 1);
-        player0.opp = room[1].id;
-        player1.opp = room[0].id;
-        player0.order = 0;
-        player1.order = 1;
-        this.first_player = player0;
+        player1.opp = id0;
+        players[id1] = player1;
 
         // Création des prodiges
-        player0.prodiges = this.create_prodiges(["Amalrik", "Batsu", "Faine", "Asato"], room[0].id);
-        player1.prodiges = this.create_prodiges(["Alissonne", "Fizz", "Rubis", "Svenn"], room[1].id);
+        // TODO /!\ DRAFT /!\
+        player0.prodiges = this.create_prodiges(["Amalrik", "Batsu", "Faine", "Asato"]);
+        player1.prodiges = this.create_prodiges(["Alissonne", "Fizz", "Rubis", "Svenn"]);
 
         // Assignation des joueurs à la partie
-        this.players[room[0].id] = player0;
-        this.players[room[1].id] = player1;
-        player_sockets[room[0].id].player = player0;
-        player_sockets[room[1].id].player = player1;
+        this.players = [player0, player1]
+    }
 
-        for (let socket of room) {
-            socket.emit('init_game', {'me': this.players[socket.id], 'opp': this.players[socket.opp]});
+    get_player_by_order(order){
+        for (let player of this.players){
+            if (player.order == order) {
+                return player;
+            }
         }
     }
 
     start_game() {
         // Demande le prodige au premier joueur
-        player_sockets[this.first_player.id].emit('init_choix_prodige');
+        this.get_player_by_order(0).socket.emit('init_choix_prodige');
+    }
+
+    valide_choix_prodige(id_player, prodige){
+        let player = players[id_player];
+        if (this.choix == 'prodige' && prodige in player.prodiges) {
+            let p = player.prodiges[prodige]
+            if (p.available) {
+                if (player.played_prodigy != null){
+                    player.played_prodigy.available = true;
+                }
+                player.played_prodigy = p;
+                p.available = false;
+                console.log('... validé')
+                return({'valid': true});
+            } else {
+                console.log('...non validé (!available)')
+                return({'valid': false, 'text': p.name + ' n\'est plus disponible'});
+            }
+        } else {
+            console.log('...non validé (choix invalide ou prodige not in P.prodiges)')
+            return({'valid': false, 'text': p.name + ' n\'est pas dans votre main'});
+        }
     }
 
     create_prodiges(list_names, owner){
         let prodiges = {};
         for (let name of list_names) {
             // A modifier pour créer les objets Prodiges
-            prodiges[name] = new Prodige(prodige_data[name], owner);
+            prodiges[name] = new Prodige(prodige_data[name]);
         }
         return prodiges;
     }
 
     applique_talents(){
         // Application des Talents a priorite
-        let fp = this.first_player;
-        let t = fp.played_prodigy.talent;
-        if (t.priority) t.execute_capacity(this.turn);
-        t = this.get_player(fp.opp).played_prodigy.talent;
-        if (t.priority) t.execute_capacity(this.turn);
-
+        let t = null;
+        for (order of range(2)){
+            t = this.get_player_by_order(order).played_prodigy.talent;
+            if (t.priority) t.execute_capacity(this.turn);
+        }
         // Application des Talents
-        t = fp.played_prodigy.talent;
-        if (!t.priority && !t.need_winner) t.execute_capacity(this.turn);
-        t = this.get_player(fp.opp).played_prodigy.talent;
-        if (!t.priority && !t.need_winner) t.execute_capacity(this.turn);
+        for (order of range(2)){
+            t = this.get_player_by_order(order).played_prodigy.talent;
+            if (!t.priority && !t.need_winner) t.execute_capacity(this.turn);
+        }
     }
 
     get_player(id){
@@ -171,4 +198,17 @@ module.exports.Game = class {
                 } else {
                     // Si jamais il y a une parfaite égalité
                     return 2
+                }
+            }
+        }
+    }
+
+    both_players_ready(){
+        for (player of this.players){
+            if (!player.ready) {
+                return false;
+            }
+        }
+        return true;
+    }
 }

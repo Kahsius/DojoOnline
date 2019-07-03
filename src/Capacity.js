@@ -4,8 +4,10 @@ const deepcopy = utils.deepcopy;
 
 module.exports.Capacity = class {
 	constructor(json, owner){
-		this.owner = owner;
-		this.opp = player_sockets[owner].opp;
+        // ID des deux joueurs
+		this.owner = null;
+		this.opp = null;
+
 		this.target = (json['target']) ? json['target'] : null;
         this.condition = (json['condition']) ? json['condition'] : "none";
         this.need_winner = false;
@@ -28,7 +30,7 @@ module.exports.Capacity = class {
 
     execute_capacity(turn) {
     	console.log('Application : ' + this.get_string_effect());
-    	let o = this.get_player(this.owner);
+    	let o = player_sockets[this.owner].player;
 	    if (this.check_condition(o) && !this.stopped) {
 	        if (this.cost) {
 	            if (this.cost_type == "glyph") {
@@ -109,10 +111,6 @@ module.exports.Capacity = class {
 	    string = (!d['value']) ? string : string + d['value'];
 	    return string;
 	}
-
-    get_player(id){
-    	return player_sockets[id].player;
-    }
 }
 
 var effets = {};

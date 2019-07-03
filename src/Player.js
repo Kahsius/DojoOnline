@@ -3,7 +3,7 @@ const settings = require("../settings");
 module.exports.Player = class {
     constructor(socket, order){
         this.pseudo = socket.pseudo;
-        this.id = socket.id;
+        this.socket = socket;
         this.hand = [0, 0, 0, 0, 1, 1, 1, 2, 2, 2, 3, 3, 4];
         this.played_glyphs = {'air': -1, 'eau': -1, 'terre': -1, 'feu': -1};
         this.played_prodigy = null;
@@ -12,7 +12,7 @@ module.exports.Player = class {
         this.has_regard = true;
         this.winner = false;
         this.ready = false;
-        this.order = -1;
+        this.order = order;
 
         let glyph = order == 0 ? 5 : 4
         this.hand.push(glyph);

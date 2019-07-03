@@ -93,12 +93,14 @@ function drop(ev) {
     var srcParent = src.parentNode;
     var target = ev.currentTarget;
     
-    if (src.getAttribute('class') == 'glyphe'
-        && ['empty_voie', 'hand_glyphes'].includes(target.getAttribute('class'))) {
-        drop_triggered(ev);
-    } else if (src.getAttribute('class') == 'prodige'
-               && ['empty_prodige', 'hand_prodiges'].includes(target.getAttribute('class'))) {
-        drop_triggered(ev);
+    if(srcParent != target) {
+        if (src.getAttribute('class') == 'glyphe'
+            && ['empty_voie', 'hand_glyphes'].includes(target.getAttribute('class'))) {
+            drop_triggered(ev);
+        } else if (src.getAttribute('class') == 'prodige'
+                   && ['empty_prodige', 'hand_prodiges'].includes(target.getAttribute('class'))) {
+            drop_triggered(ev);
+        }
     }
 }
 
@@ -176,10 +178,10 @@ function init_game(data) {
     var prodiges = me.prodiges;
     var prodiges_opp = opp.prodiges;
 
-    for (var prodige in prodiges) {
+    for (var prodige of prodiges) {
         hand_prodiges_player.appendChild(create_prodige(prodige));
     }
-    for (var prodige in prodiges_opp) {
+    for (var prodige of prodiges_opp) {
         hand_prodiges_opp.appendChild(create_prodige(prodige, opp=true));
     }
     for (var i = 0; i < glyphes.length; i++) {

@@ -37,7 +37,9 @@ module.exports.Capacity = class {
 	        if (this.cost) {
 	            if (this.cost_type == "glyph") {
                     // TODO demande de récupération d'un glyphe
-                    socket.once('paid_cost', function(list){
+                    socket.once('answer_for_glyphs', function(list){
+                        console.log(this);
+                        // Si ce n'est pas la capa, utiliser bind(this)
                         clone_hand = [...o.hand]
                         if (list.length == this.cost_value) {
                             let index = -1;
@@ -56,13 +58,17 @@ module.exports.Capacity = class {
                                     index = o.hand.indexOf(valeur);
                                     o.hand.splice(index, 1);
                                 }
+                                socket.emit('ok');
+                            } else {
+                                socket.emit('nok', 'Certains glyphes ne sont pas valides');
                             }
                             this.cost = (ok) ? 'paid' : 'not_paid';
                         } else {
+                            socket.emit('nok', 'Pas assez de Glyphes');
                             this.cost = 'not_paid';
                         }
                     });
-                    socket.emit('pay_cost', 'glyphe');
+                    socket.emit('ask_for_glyphs', {'where': 'main', 'howmany': this.cost_value});
                     while (!['paid', 'not_paid'].includes(this.cost)){
                         setTimeout(function(){}, 500);
                     }
@@ -156,14 +162,14 @@ effets['recuperation'] = function(capa) {
     let t = capa.target;
     let count = 0;
     let socket = player_sockets[t.id];
-    socket.emit('ask_for_glyphs', {'where': 'played', 'howmany': n});
-    socket.once('answer_for_glyphes', function(list){
+    socket.emit('ask_for_glyphs', {'where': 'voie', 'howmany': n});
+    socket.once('answer_for_glyphs', function(list){
         if (list.length <= v){
             let ok = true;
             for (element of list){
                 if (t.played_glyphs[element] < 1) ok = false;
             }
-            if (nok) {
+            if (!ok) {
                 // TODO faire les event nok et ok dans client.js
                 socket.emit('nok', 'Certains glyphes ne sont pas valides');
             } else {

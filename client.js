@@ -8,6 +8,7 @@ var drop_src = null;
 var drop_srcParent = null;
 var drop_target_zone = null;
 var choix = null;
+var glyphes_clicked = [];
 
 function status() {
     console.log('need_click : ' + need_click);
@@ -105,15 +106,34 @@ function drop(ev) {
 }
 
 function click_glyph(ev) {
-    node = ev.currentTarget;
-    num_current_click = get_num_current_click();
+    let node = ev.currentTarget;
+    let parent = node.parentNode;
+    let num_current_click = get_num_current_click();
     if (need_click) {
-        if ((need_click_target == "voie" && node.parentNode.getAttribute("class") == "empty_voie")
-            || (need_click_target == "main" && node.parentNode.getAttribute("class") == "hand_glyphes"))
-        if (node.getAttribute("clicked") == "false" && num_current_click < num_need_click) {
-            node.setAttribute("clicked", "true");
-        } else if (node.getAttribute("clicked") == "true") {
-            node.setAttribute("clicked", "false");
+        if (need_click_target == "voie" && parent.getAttribute("class") == "empty_voie") {
+            let voie = parent.getAttribute('id').split('-')[1];
+            if (node.getAttribute("clicked") == "false" && num_current_click < num_need_click) {
+                if (node.getAttribute('valeur') == 0) {
+                    text_log('Sélection Feinte invalide');
+                } else {
+                    node.setAttribute("clicked", "true");
+                    glyphes_clicked.push(voie);
+                }
+            } else if (node.getAttribute("clicked") == "true") {
+                node.setAttribute("clicked", "false");
+                glyphes_clicked.splice(glyphes_clicked.indexOf(voie), 1)
+            }
+        } else if (need_click_target == "main" && parent.getAttribute("class") == "hand_glyphes") {
+            let valeur = node.getAttribute('valeur');
+            if (node.getAttribute("clicked") == "false" && num_current_click < num_need_click) {
+                node.setAttribute("clicked", "true");
+                glyphes_clicked.push(valeur);
+                console.log(num_current_click);
+                console.log(num_current_click);
+            } else if (node.getAttribute("clicked") == "true") {
+                node.setAttribute("clicked", "false");
+                glyphes_clicked.splice(glyphes_clicked.indexOf(valeur), 1)
+            }
         }
     }
 }
@@ -122,14 +142,12 @@ function get_num_current_click() {
     glyphs = document.getElementsByClassName("glyphe")
     num_current_click = 0;
     for (let i = 0; i < glyphs.length; i++) {
-        if (glyphs[i].getAttribute("player") == "self"
-           && glyphs[i].getAttribute("clicked") == "true") {
+        if (glyphs[i].getAttribute("clicked") == "true") {
             num_current_click++;
         }
     }
     return num_current_click;
 }
-
 
 function create_glyph(i, v) {
     var glyph = document.createElement("div");
@@ -139,17 +157,14 @@ function create_glyph(i, v) {
         glyph.setAttribute("ondragstart", "drag(event)");
         glyph.setAttribute("class", "glyphe");
         glyph.setAttribute("valeur", v);
-        if (v != 0) {
-            glyph.setAttribute("onclick", "click_glyph(event);");
-            glyph.setAttribute("clicked", "false");
-        }
+        glyph.setAttribute("onclick", "click_glyph(event);");
+        glyph.setAttribute("clicked", "false");
         glyph.innerHTML = v;
     } else {
         glyph.setAttribute("class", "glyphe_opp");
     }
     return glyph;
 }
-
 
 function create_prodige(name, opp=false) {
     var prodige = document.createElement("div");
@@ -163,7 +178,6 @@ function create_prodige(name, opp=false) {
     prodige.innerHTML = name;
     return prodige;
 }
-
 
 function init_game(data) {
     me = data['me'];
@@ -241,6 +255,11 @@ function validate_choice(){
         text_log('Validation des Glyphes');
         freeze();
         socket.emit('valide_choix_glyphes');
+    } else if (choix == 'glyphes_clicked'){
+        text_log('Selection des Glyphes');
+        freeze();
+        socket.emit('answer_for_glyphs', glyphes_clicked);
+        glyphes_clicked = [];
     }
 }
 
@@ -378,4 +397,10 @@ socket.on('choix_glyphe_opp', function(data){
             empty_voie.appendChild(glyph);
         }
     }
+});
+
+socket.on('ask_for_glyphs', function(data){
+    need_click_target = data['where'];
+    num_need_click = data['howmany'];
+    choix = 'glyphes_clicked';
 });

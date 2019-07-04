@@ -32,12 +32,11 @@ module.exports.Player = class {
     }
 
     valide_choix_glyphe(voie, valeur){
-        if (valeur in this.hand){
+        if (this.hand.includes(valeur)){
             let g = this.played_glyphs[voie]
             let offset = (g != -1) ? g : 0;
-            console.log(voie);
             if (this.sum_played_glyphs() + valeur - offset 
-                <= this.played_prodigy.puissance){
+                <= this.get_played_prodigy().puissance){
                 console.log('... validé');
                 this.hand.splice(this.hand.indexOf(valeur), 1);
                 if (g >= 0){
@@ -50,13 +49,14 @@ module.exports.Player = class {
                 console.log('... non valide ( > puissance)');
             }
         } else {
+            return false;
             console.log('... non validé (pas dans p.hand)');
         }
     }
 
     on_opp_regard(voie){
         let opp = players[this.opp];
-        return (opp.has_regard && voie == opp.played_prodigy.element) ? true : false;
+        return (opp.has_regard && voie == opp.get_played_prodigy().element) ? true : false;
     }
 
     create_prodiges(list_names){

@@ -11,7 +11,3 @@ module.exports.range = function*(start, end) {
         yield i;
     }
 }
-
-module.exports.deepcopy = function(object) {
-	return JSON.parse(JSON.stringify(object));
-}

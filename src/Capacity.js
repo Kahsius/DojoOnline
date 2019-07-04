@@ -3,10 +3,10 @@ const range = utils.range;
 const deepcopy = utils.deepcopy;
 
 module.exports.Capacity = class {
-	constructor(json, owner){
-		this.owner = owner;
-		this.opp = player_sockets[owner].opp;
-		this.target = (json['target']) ? json['target'] : null;
+    constructor(json, owner) {
+        this.owner = owner;
+        this.opp = player_sockets[owner].opp;
+        this.target = (json['target']) ? json['target'] : null;
         this.condition = (json['condition']) ? json['condition'] : "none";
         this.need_winner = false;
         if ((json['condition'] !== undefined)) {
@@ -24,94 +24,93 @@ module.exports.Capacity = class {
         this.contrecoup = (json['contrecoup']) ? json['contrecoup'] : false;
         this.stopped = false;
         this.data = json;
-	}
+    }
 
     execute_capacity(turn) {
-    	console.log('Application : ' + this.get_string_effect());
-    	let o = this.get_player(this.owner);
-	    if (this.check_condition(o) && !this.stopped) {
-	        if (this.cost) {
-	            if (this.cost_type == "glyph") {
+        console.log('Application : ' + this.get_string_effect());
+        let o = this.get_player(this.owner);
+        if (this.check_condition(o) && !this.stopped) {
+            if (this.cost) {
+                if (this.cost_type == "glyph") {
                     // TODO : demande de récupération d'un glyphe
-	                let index = o.get_random_glyphe_index(feinte_allowed=false);
-	                if (index != -1) {
-	                    o.hand.splice(index, 1);
-	                } else {
-	                   return;
-	                }
-	            } else if (this.cost_type == "hp") {
-	                o.hp = o.hp - this.cost_value;
-	            }
-	        }
-	        this.set_target();
-	        for (let i of range(0, this.get_modification(o, turn))) {
-	            this.effect(this);
-	        }
-	    }
-	}
+                    let index = o.get_random_glyphe_index(feinte_allowed = false);
+                    if (index != -1) {
+                        o.hand.splice(index, 1);
+                    } else {
+                        return;
+                    }
+                } else if (this.cost_type == "hp") {
+                    o.hp = o.hp - this.cost_value;
+                }
+            }
+            this.set_target();
+            for (let i of range(0, this.get_modification(o, turn))) {
+                this.effect(this);
+            }
+        }
+    }
 
-	set_target() {
-	    // Target definition;
-	    let c = this.contrecoup;
-	    let t = this.target;
-	    let opp = this.get_player(this.opp);
-	    let owner = this.get_player(this.owner);
-	    if (t == "opp") {
-	        this.target = (c) ? owner : opp;
-	    }
-	    else if (t == "owner") {
-	        this.target = (c) ? opp : owner;
-	    }
-	}
+    set_target() {
+        // Target definition;
+        let c = this.contrecoup;
+        let t = this.target;
+        let opp = this.get_player(this.opp);
+        let owner = this.get_player(this.owner);
+        if (t == "opp") {
+            this.target = (c) ? owner : opp;
+        } else if (t == "owner") {
+            this.target = (c) ? opp : owner;
+        }
+    }
 
-	check_condition(owner) {
-	    let victoire = this.condition == "victoire" && owner.winner;
-	    let defaite = this.condition == "defaite" && !owner.winner;
-	    let courage = this.condition == "courage" && owner.order == 0;
-	    let riposte = this.condition == "riposte" && owner.order == 1;
-	    let none = this.condition == "none";
-	    if (victoire || defaite || courage || riposte || none) {
-	        return true;
-	    } else {
-	        return false;
-	    }
-	}
+    check_condition(owner) {
+        let victoire = this.condition == "victoire" && owner.winner;
+        let defaite = this.condition == "defaite" && !owner.winner;
+        let courage = this.condition == "courage" && owner.order == 0;
+        let riposte = this.condition == "riposte" && owner.order == 1;
+        let none = this.condition == "none";
+        if (victoire || defaite || courage || riposte || none) {
+            return true;
+        } else {
+            return false;
+        }
+    }
 
-	get_modification(owner, turn) {
-	    if (this.modification == "patience") {
-	        return turn;
-	    } else if (this.modification == "acharnement") {
-	        return 3 - turn;
-	    } else if (this.modification == "par_glyphe") {
-	        let count = 0;
-	        for (element in owner.played_glyphs) {
-	        	glyph = owner.played_glyphs[element];
-	            if (glyph == 0) {
-	                count = count + 1;
-	            }
-	        }
-	        return count;
-	    } else {
-	        return 1;
-	    }
-	}
+    get_modification(owner, turn) {
+        if (this.modification == "patience") {
+            return turn;
+        } else if (this.modification == "acharnement") {
+            return 3 - turn;
+        } else if (this.modification == "par_glyphe") {
+            let count = 0;
+            for (element in owner.played_glyphs) {
+                glyph = owner.played_glyphs[element];
+                if (glyph == 0) {
+                    count = count + 1;
+                }
+            }
+            return count;
+        } else {
+            return 1;
+        }
+    }
 
-	get_string_effect() {
-	    let string = "\t";
-	    let d = this.data;
-	    string = (!d['contrecoup']) ? string : string + "Contrecoup" + " ";
-	    if (d['cost']) {
-	        string = string + d['cost_value'] + " " + d['cost_type'] + " ";
-	    }
-	    string = (!d['condition']) ? string : string + d['condition'] + " ";
-	    string = (!d['modification']) ? string : string + d['modification'] + " ";
-	    string = string +  d['effect'] + " ";
-	    string = (!d['value']) ? string : string + d['value'];
-	    return string;
-	}
+    get_string_effect() {
+        let string = "\t";
+        let d = this.data;
+        string = (!d['contrecoup']) ? string : string + "Contrecoup" + " ";
+        if (d['cost']) {
+            string = string + d['cost_value'] + " " + d['cost_type'] + " ";
+        }
+        string = (!d['condition']) ? string : string + d['condition'] + " ";
+        string = (!d['modification']) ? string : string + d['modification'] + " ";
+        string = string + d['effect'] + " ";
+        string = (!d['value']) ? string : string + d['value'];
+        return string;
+    }
 
-    get_player(id){
-    	return player_sockets[id].player;
+    get_player(id) {
+        return player_sockets[id].player;
     }
 }
 
@@ -119,9 +118,9 @@ var effets = {};
 
 
 function ask_for_glyphs(n, socket) {
-    return new Promise(function(resolve, reject){
+    return new Promise(function(resolve, reject) {
         socket.emit('ask_for_glyphs', n);
-        socket.once('answer_for_glyphes', function(list_glyphes){
+        socket.once('answer_for_glyphes', function(list_glyphes) {
             resolve(list_glyphes);
         });
     });

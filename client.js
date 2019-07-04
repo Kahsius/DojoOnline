@@ -135,10 +135,12 @@ function create_glyph(i, v) {
         glyph.setAttribute("id", "g"+i);
         glyph.setAttribute("draggable", "false");
         glyph.setAttribute("ondragstart", "drag(event)");
-        glyph.setAttribute("onclick", "click_glyph(event);");
-        glyph.setAttribute("clicked", "false");
         glyph.setAttribute("class", "glyphe");
         glyph.setAttribute("valeur", v);
+        if (v != 0) {
+            glyph.setAttribute("onclick", "click_glyph(event);");
+            glyph.setAttribute("clicked", "false");
+        }
         glyph.innerHTML = v;
     } else {
         glyph.setAttribute("class", "glyphe_opp");

@@ -1,0 +1,33 @@
+[
+    {
+        "element": "feu",
+        "capacity": {
+            "target": "owner",
+            "value": 2,
+            "effect": "modif_damage"
+        }
+    },
+    {
+        "element": "air",
+        "capacity": {
+            "target": "owner",
+            "effect": "regard"
+        }
+    },
+    {
+        "element": "eau",
+        "capacity": {
+            "target": "owner",
+            "value": 1,
+            "effect": "modif_hp"
+        }
+    },
+    {
+        "element": "terre",
+        "capacity": {
+            "target": "owner",
+            "value": 1,
+            "effect": "recuperation"
+        }
+    }
+]

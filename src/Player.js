@@ -1,9 +1,10 @@
 const settings = require("../settings");
+const Prodige = require('./Prodige').Prodige;
 
 module.exports.Player = class {
     constructor(socket, order){
         this.pseudo = socket.pseudo;
-        this.id = socket.id;
+        this.socket = socket;
         this.hand = [0, 0, 0, 0, 1, 1, 1, 2, 2, 2, 3, 3, 4];
         this.played_glyphs = {'air': -1, 'eau': -1, 'terre': -1, 'feu': -1};
         this.played_prodigy = null;
@@ -12,7 +13,8 @@ module.exports.Player = class {
         this.has_regard = true;
         this.winner = false;
         this.ready = false;
-        this.order = -1;
+        this.order = order;
+        this.opp = null;
 
         let glyph = order == 0 ? 5 : 4
         this.hand.push(glyph);
@@ -27,5 +29,53 @@ module.exports.Player = class {
             }
         }
         return sum;
+    }
+
+    valide_choix_glyphe(voie, valeur){
+        if (this.hand.includes(valeur)){
+            let g = this.played_glyphs[voie]
+            let offset = (g != -1) ? g : 0;
+            if (this.sum_played_glyphs() + valeur - offset 
+                <= this.get_played_prodigy().puissance){
+                console.log('... validé');
+                this.hand.splice(this.hand.indexOf(valeur), 1);
+                if (g >= 0){
+                    this.hand.push(g);
+                }
+                this.played_glyphs[voie] = valeur
+                return true;
+            } else {
+                return false;
+                console.log('... non valide ( > puissance)');
+            }
+        } else {
+            return false;
+            console.log('... non validé (pas dans p.hand)');
+        }
+    }
+
+    on_opp_regard(voie){
+        let opp = players[this.opp];
+        return (opp.has_regard && voie == opp.get_played_prodigy().element) ? true : false;
+    }
+
+    create_prodiges(list_names){
+        for (let name of list_names) {
+            // A modifier pour créer les objets Prodiges
+            this.prodiges[name] = new Prodige(prodige_data[name], this);
+        }
+    }
+
+    retire_glyphe(voie){
+        if (this.played_glyphs[voie] != -1) {
+            this.hand.push(this.played_glyphs[voie]);
+            this.played_glyphs[voie] = -1;
+            return true;
+        }
+        return false;
+    }
+
+    get_played_prodigy(){
+        return this.prodiges[this.played_prodigy];
     }
 }

@@ -6,7 +6,6 @@ module.exports.Capacity = class {
 	constructor(json, owner){
         // ID des deux joueurs
 		this.owner = owner;
-		this.opp = players[owner.opp];
 
 		this.target = (json['target']) ? json['target'] : null;
         this.condition = (json['condition']) ? json['condition'] : "none";
@@ -98,8 +97,8 @@ module.exports.Capacity = class {
 	    // Target definition;
 	    let c = this.contrecoup;
 	    let t = this.target;
-	    let opp = this.opp;
 	    let own = this.owner;
+        let opp = players[own.opp];
 	    if (t == "opp") {
 	        this.target = (c) ? own : opp;
 	    }
@@ -161,8 +160,8 @@ effets['recuperation'] = function(capa) {
     let v = capa.value;
     let t = capa.target;
     let count = 0;
-    let socket = player_sockets[t.id];
-    socket.emit('ask_for_glyphs', {'where': 'voie', 'howmany': n});
+    let socket = t.socket;
+    let done = false;
     socket.once('answer_for_glyphs', function(list){
         if (list.length <= v){
             let ok = true;
@@ -178,11 +177,16 @@ effets['recuperation'] = function(capa) {
                     t.hand.push(t.played_glyphs[element]);
                     t.played_glyphs[element] = -1;
                 }
+                done = true;
             }
         } else {
             socket.emit('nok', 'Trop de glyphes retournés');
         }
     });
+    socket.emit('ask_for_glyphs', {'where': 'voie', 'howmany': n});
+    while (!done){
+        setTimeout(function(){}, 500);
+    }
 }
 
 effets['modif_degats'] = function(capa) {

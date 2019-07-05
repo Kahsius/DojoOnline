@@ -404,3 +404,7 @@ socket.on('ask_for_glyphs', function(data){
     num_need_click = data['howmany'];
     choix = 'glyphes_clicked';
 });
+
+socket.on('choix_maitrise_voix', function(){
+    text_log('Choix entre maitrise et voix');
+});

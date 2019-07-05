@@ -28,8 +28,8 @@ module.exports.Game = class {
 
         // Création des voies
         this.voies = [];
-        for(element in voie_data) {
-            this.voies.push(Voie(data))
+        for(let element in voie_data) {
+            this.voies.push(new Voie(voie_data[element]));
         }        
 
         // Création des joueurs
@@ -112,7 +112,8 @@ module.exports.Game = class {
         let g1 = p1.played_glyphs;
         let p2 = this.get_player_by_order(1);
         let g2 = p2.played_glyphs;
-        for (element in g1) {
+        console.log('Résolution du round');
+        for (let element in g1) {
             let winner = 0;
             if (p1.played_glyphs[element] > p2.played_glyphs[element]) {winner = -1}
             else if (p1.played_glyphs[element] < p2.played_glyphs[element]) {winner = 1}
@@ -120,18 +121,19 @@ module.exports.Game = class {
                 if (p1.get_played_prodigy().initiative){winner = -1}
                 else if (p2.get_played_prodigy().initiative) {winner = -1}
             }
-            this.score[element] = winner;
+            scores[element] = winner;
         }
 
         // Détermination du gagnant
         let winner = this.get_winner(scores, p1, p2);
 
         // Attribution du statut de victoire
-        [p1, p2][winner % 2].winner = true
-        [p1, p2][(winner + 1) % 2].winner = (winner != 2) ? false : true
+        let players = [p1, p2];
+        players[winner % 2].winner = true
+        players[(winner + 1) % 2].winner = (winner != 2) ? false : true
 
         // Application des Talents éventuels
-        for (let i of range(0,1)) {
+        for (let i of range(0, 2)) {
             let p = this.get_player_by_order(i);
             if (p.get_played_prodigy().talent.need_winner){
                 console.log(p.get_played_prodigy().name + "_" + str(p.order) + " utilise Talent")
@@ -140,28 +142,29 @@ module.exports.Game = class {
         }
 
         // Application des effets des Voies
+        console.log('Application des Voies');
         let i, j;
-        if (i of range(0,1)) {
+        for (i of range(0, 2)) {
             let p = this.get_player_by_order(i);
             // On étudie toutes les voies
-            if (j in this.voies) {
-                v = self.voies[j];
-                // Un des joueurs a remporté la voie
-                p_win = this.score_voies[j] < 0;
-                if (p_win) {
-                    console.log(p.get_played_prodigy().name + "_" + str(p.order) + " remporte " + v.element);
+            for (j in this.voies) {
+                let v = this.voies[j];
+                let p1_win = (scores[v.element] == -1 && i == 0);
+                let p2_win = (scores[v.element] == 1 && i == 1);
+                if ( p1_win || p2_win ) {
+                    console.log(p.get_played_prodigy().name + "_" + p.order + " remporte " + v.element);
                     // S'il peut activer sa maîtrise
-                    element_ok = (v.element == p.get_played_prodigy().element);
-                    not_stopped = !p.get_played_prodigy().maitrise.stopped;
+                    let element_ok = (v.element == p.get_played_prodigy().element);
+                    let not_stopped = !p.get_played_prodigy().maitrise.stopped;
                     if (element_ok && not_stopped) {
                         // TODO demander choix entre maitrise et voie
                         console.log("\tet peut appliquer sa Maitrise");
-                        socket.once('choix_maitrise_voie', function(choix){
+                        p.socket.once('choix_maitrise_voie', function(choix){
                             if (choix == 'maitrise'){
-                                p.get_played_prodigy().maitrise.execute_capacity(self.turn);
+                                p.get_played_prodigy().maitrise.execute_capacity(this.turn);
                             } else if (choix == 'voie'){
                                 v.capacity.owner = p;
-                                v.capacity.execute_capacity(self.turn);
+                                v.capacity.execute_capacity(this.turn);
                             }
                             this.pause = "nope";
                         });
@@ -173,7 +176,7 @@ module.exports.Game = class {
                     } else {
                         console.log("\tet applique son effet")
                         v.capacity.owner = p
-                        v.capacity.execute_capacity(self.turn)
+                        v.capacity.execute_capacity(this.turn)
                     }
                 }
             }
@@ -181,8 +184,8 @@ module.exports.Game = class {
     }
 
     get_winner(scores, p1, p2){
-        winner = 0;
-        for (elem in scores) {
+        let winner = 0;
+        for (let elem in scores) {
             winner += scores[elem];
         }
 
@@ -212,7 +215,7 @@ module.exports.Game = class {
     }
 
     both_players_ready(){
-        for (player of this.players){
+        for (let player of this.players){
             if (!player.ready) {
                 return false;
             }

@@ -25,6 +25,8 @@ module.exports.Game = class {
         this.score_voies = [];
         this.winner = null;
         this.pause = "nope";
+        this.state = {};
+        this.scores = {};
 
         // Création des voies
         this.voies = [];
@@ -61,46 +63,80 @@ module.exports.Game = class {
         }
     }
 
-    valide_choix_prodige(id_player, prodige){
-        let player = players[id_player];
-        if (this.choix == 'prodige' && prodige in player.prodiges) {
-            let p = player.prodiges[prodige]
-            if (p.available) {
-                if (player.get_played_prodigy() != null){
-                    player.get_played_prodigy().available = true;
-                }
-                player.played_prodigy = prodige;
-                p.available = false;
-                console.log('... validé')
-                return({'valid': true});
-            } else {
-                console.log('...non validé (!available)')
-                return({'valid': false, 'text': p.name + ' n\'est plus disponible'});
-            }
-        } else {
-            console.log('...non validé (choix invalide ou prodige not in P.prodiges)')
-            return({'valid': false, 'text': p.name + ' n\'est pas dans votre main'});
-        }
-    }
+    apply_talents(){
+        let t, order, player, p;
 
-    applique_talents(){
-        let t = null;
-
-        // Application des Talents a priorite
-        for (let order of range(0, 2)){
-            t = this.get_player_by_order(order).get_played_prodigy().talent;
+        if (this.state.label == 'talents:priority') {
+            order = this.state.player;
+            player = this.get_player_by_order(this.state.player);
+            t = player.get_played_prodigy().talent;
             if (t.priority) {
-                t.execute_capacity();
-                while (!t.done) setTimeout(function(){}, 500);
+                let state = t.execute_capacity(this.turn);
+                if (state) {
+                    this.substate = state;
+                    player.socket.emit('capacity_ongoing', state.label);
+                } else if (this.state.player == 0) {
+                    this.state.player++;
+                    this.apply_talents();
+                } else {
+                    this.state.label = 'talents:normal';
+                    this.state.player = 0;
+                    this.apply_talents();
+                }
+            } else if (this.state.player == 0) {
+                this.state.player++;
+                this.apply_talents();
+            } else {
+                this.state.label = 'talents:normal';
+                this.state.player = 0;
+                this.apply_talents();
             }
-        }
-        
-        // Application des Talents
-        for (let order of range(0, 2)){
-            t = this.get_player_by_order(order).get_played_prodigy().talent;
+        } else if (this.state.label == 'talents:normal') {
+            order = this.state.player;
+            player = this.get_player_by_order(this.state.player);
+            t = player.get_played_prodigy().talent;
             if (!t.priority && !t.need_winner) {
-                t.execute_capacity();
-                while (!t.done) setTimeout(function(){}, 500);
+                let state = t.execute_capacity(this.turn);
+                if (state) {
+                    this.substate = state;
+                    player.socket.emit('capacity_ongoing', state.label);
+                } else if (this.state.player == 0) {
+                    this.state.player++;
+                    this.apply_talents();
+                } else {
+                    game.state.label = 'choice_glyphes';
+                    io.to(player.socket.room).emit('text_log', 'Choix des Glyphes');
+                }
+            } else if (this.state.player == 0) {
+                this.state.player++;
+                this.apply_talents();
+            } else {
+                game.state.label = 'choice_glyphes';
+                io.to(player.socket.room).emit('text_log', 'Choix des Glyphes');
+            }
+        } else if (this.state.label == 'talents:post_winner') {
+            player = this.get_player_by_order(this.state.player);
+            p = player.get_played_prodigy();
+            if (p.talent.need_winner){
+                let state = p.talent.execute_capacity(this.turn);
+                if (state) {
+                    this.substate = state;
+                    player.socket.emit('capacity_ongoing', state.label);
+                } else if (this.state.player == 0) {
+                    this.state.player++;
+                    this.apply_talents();
+                } else {
+                    this.state.label = 'apply_voies';
+                    this.apply_voies();
+                    io.to(player.socket.room).emit('text_log', 'Application des Voies');
+                }
+            } else if (this.state.player == 0) {
+                this.state.player++;
+                this.apply_talents();
+            } else {
+                this.state.label = 'apply_voies';
+                io.to(player.socket.room).emit('text_log', 'Application des Voies');
+                this.apply_voies();
             }
         }
     }
@@ -123,6 +159,7 @@ module.exports.Game = class {
             }
             scores[element] = winner;
         }
+        this.scores = scores;
 
         // Détermination du gagnant
         let winner = this.get_winner(scores, p1, p2);
@@ -133,17 +170,17 @@ module.exports.Game = class {
         players[(winner + 1) % 2].winner = (winner != 2) ? false : true
 
         // Application des Talents éventuels
-        for (let i of range(0, 2)) {
-            let p = this.get_player_by_order(i);
-            if (p.get_played_prodigy().talent.need_winner){
-                console.log(p.get_played_prodigy().name + "_" + str(p.order) + " utilise Talent")
-                p.get_played_prodigy().talent.execute_capacity(this.turn)
-            }
-        }
+        this.state.labe = 'talents:post_winner';
+        this.apply_talents();
+    }
 
+    apply_voies(){
+        // TODO à refondre pour que les joueurs puissent
+        // choisir dans quels ordres ils appliquent les effets
         // Application des effets des Voies
         console.log('Application des Voies');
         let i, j;
+        let scores = this.scores;
         for (i of range(0, 2)) {
             let p = this.get_player_by_order(i);
             // On étudie toutes les voies

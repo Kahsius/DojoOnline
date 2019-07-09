@@ -19,10 +19,15 @@ module.exports.Capacity = class {
         this.cost = (json['cost']) ? json['cost'] : false;
         this.cost_type = (json['cost_type']) ? json['cost_type'] : "null";
         this.cost_value = (json['cost_value']) ? json['cost_value'] : 0;
+        this.cost_paid = false;
         this.effect = (json['effect']) ? effets[json['effect']] : null;
-        this.priority = (json['effect'] != 'stop_talent') ? true : false;
+        this.priority = (json['effect'] == 'stop_talent') ? true : false;
         this.value = (json['value']) ? json['value'] : 0;
         this.contrecoup = (json['contrecoup']) ? json['contrecoup'] : false;
+        this.need_choice = (['recuperation', 'oppression',
+            'pillage'].includes(json['effect']) || this.cost);
+        this.choice_made = false;
+        this.choice = [];
         this.stopped = false;
         this.data = json;
         this.done = false;
@@ -31,67 +36,64 @@ module.exports.Capacity = class {
     execute_capacity(turn) {
     	let o = this.owner;
         let p = o.get_played_prodigy().name;
-        let msg = p + ' applique : ' + this.get_string_effect();
-	    if (this.check_condition(o) && !this.stopped) {
-	        if (this.cost) {
-	            if (this.cost_type == "glyph") {
-                    // TODO demande de récupération d'un glyphe
-                    socket.once('answer_for_glyphs', function(list){
-                        console.log(this);
-                        // Si ce n'est pas la capa, utiliser bind(this)
-                        clone_hand = [...o.hand]
-                        if (list.length == this.cost_value) {
-                            let index = -1;
-                            let ok = true;
-                            for (glyph of list){
-                                index = clone_hand.indexOf(valeur);
-                                if (index > -1) {
-                                    clone_hand.splice(index, 1);
-                                } else {
-                                    ok = false;
-                                    break;
-                                }
-                            }
-                            if (ok) {
-                                for (glyph of list){
-                                    index = o.hand.indexOf(valeur);
-                                    o.hand.splice(index, 1);
-                                }
-                                socket.emit('ok');
-                            } else {
-                                socket.emit('nok', 'Certains glyphes ne sont pas valides');
-                            }
-                            this.cost = (ok) ? 'paid' : 'not_paid';
-                        } else {
-                            socket.emit('nok', 'Pas assez de Glyphes');
-                            this.cost = 'not_paid';
-                        }
-                    });
-                    socket.emit('ask_for_glyphs', {'where': 'main', 'howmany': this.cost_value});
-                    while (!['paid', 'not_paid'].includes(this.cost)){
-                        setTimeout(function(){}, 500);
-                    }
-	            } else if (this.cost_type == "hp") {
-                    socket.once('paid_cost', function(ok){
-                        if (ok) o.hp -= this.cost_value;
-                        this.cost = (ok) ? 'paid' : 'not_paid';
-                    });
-                    socket.emit('pay_cost', 'hp');
-                    while (!['paid', 'not_paid'].includes(this.cost)){
-                        setTimeout(function(){}, 500);
-                    }
-	            }
+        let msg = p + ' applique : ' + this.get_string_effect(turn);
+	    if (this.check_condition(o)
+            && !this.stopped
+            && this.available_targets()) {
+	        if (this.cost && !this.cost_paid) {
+                let state = {'label': 'paying_cost',
+                    'value': this.cost_value,
+                    'cost_type': this.cost_type,
+                    'capacity': this};
+                return state;
 	        }
-	        this.set_target();
-	        for (let i of range(0, this.get_modification(o, turn))) {
-                console.log(msg);
-                this.owner.socket.emit('text_log', msg);
-                players[this.owner.opp].socket.emit('text_log', msg);
+            if (this.need_choice
+                && !this.choice.length != this.value
+                && this.available_targets()) {
+                let state = {'label': 'waiting_choice',
+                    'value': this.cost_value,
+                    'capacity': this};
+                return state;
+            }
+            this.owner.socket.emit('text_log', msg);
+            players[this.owner.opp].socket.emit('text_log', msg);
+
+            this.set_target();
+            let modif = this.get_modification(turn);
+	        for (let i of range(0, modif)) {
 	            this.effect(this);
 	        }
 	    }
-        this.done = true;
+        return false;
 	}
+
+    available_targets() {
+        let opp = players[this.owner.opp];
+        let targets = 0;
+        if (this.data.effect == 'recuperation') {
+            for (let element in this.owner.played_glyphs) {
+                if (this.owner.played_glyphs[element] > 0) {
+                    targets++;
+                }
+            }
+            return (targets < this.choice.length);
+        } else if (['oppression', 'pillage'].includes(this.data.effect)) {
+            for (let glyph of opp.hand) {
+                if (glyph > 0) {
+                    targets++;
+                }
+            }
+            return (targets < this.choice.length);
+        } else if (this.data.cost_type == 'glyph') {
+            for (let glyph of this.owner.hand) {
+                if (glyph > 0) {
+                    targets++;
+                }
+            }
+            return (targets < this.choice.length);
+        }
+        return true;
+    }
 
 	set_target() {
 	    // Target definition;
@@ -120,7 +122,8 @@ module.exports.Capacity = class {
 	    }
 	}
 
-	get_modification(owner, turn) {
+	get_modification(turn) {
+        let owner = this.owner;
 	    if (this.modification == "patience") {
 	        return turn;
 	    } else if (this.modification == "acharnement") {
@@ -139,7 +142,7 @@ module.exports.Capacity = class {
 	    }
 	}
 
-	get_string_effect() {
+	get_string_effect(turn) {
 	    let string = "";
 	    let d = this.data;
 	    string = (!d['contrecoup']) ? string : string + "Contrecoup" + " ";
@@ -149,7 +152,8 @@ module.exports.Capacity = class {
 	    string = (!d['condition']) ? string : string + d['condition'] + " ";
 	    string = (!d['modification']) ? string : string + d['modification'] + " ";
 	    string = string +  d['effect'] + " ";
-	    string = (!d['value']) ? string : string + d['value'];
+        let modif = this.get_modification(turn);
+	    string = (!d['value']) ? string : string + parseInt(d['value']) * modif;
 	    return string;
 	}
 }

@@ -18,89 +18,33 @@ function status() {
     console.log('choix : ' + choix);
 }
 
-function allowDrop(ev){
-    ev.preventDefault();
-}
-
 function drag(ev) {
     ev.dataTransfer.setData("text", ev.target.id);
 }
 
-function drop_triggered(ev) {
+function drop(ev) {
+    ev.preventDefault();
     drop_src = document.getElementById(ev.dataTransfer.getData("text"));
     drop_srcParent = drop_src.parentNode;
     drop_target_zone = ev.currentTarget;
-    
-    // On enlève le fait que le glyphe ait été cliqué, d'où qu'il vienne
-    // Normalement servira à rien, vu qu'il n'y a pas d'action clickée qui
-    // nécessite de déplacer des glyphes, mais sait on jamais
-    if (drop_src.getAttribute('class') == 'glyphe'){
-        drop_src.setAttribute("clicked", "false")
-    }
+    let data = {
+        'source': drop_srcParent.getAttribute('class'),
+        'target': drop_target_zone.getAttribute('class')
+    };
 
-    // On demande au serveur si le move est légal
-    if (choix == 'prodige') {
-        prodige = drop_src.getAttribute('id');
-        if (drop_target_zone.getAttribute('class') == 'empty_prodige'){
-            socket.emit('choix_prodige', prodige);
-        } else if (drop_target_zone.getAttribute('class') == 'hand_prodiges'){
-            socket.emit('retire_prodige', prodige);
-        }
-    } else if (choix == 'glyphes') {
-        valeur = drop_src.getAttribute('valeur');
-        if (drop_target_zone.getAttribute('class') == 'empty_voie'){
-            voie = drop_target_zone.getAttribute('id');
-            socket.emit('choix_glyphe', {'voie': voie, 'valeur': valeur});
-        } else if (drop_target_zone.getAttribute('class') == 'hand_glyphes') {
-            voie = drop_srcParent.getAttribute('id');
-            socket.emit('retire_glyphe', voie);
-        }
-    }
-}
-
-function check_validate_button() {
-    // Est-ce que toutes les voies sont pleines
-    var lignePlayer = document.getElementById('ligne_centre_player');
-    var glyphes = lignePlayer.children;
-    var notEmpty = 0;
-    for (var i = 0; i < glyphes.length; i++) {
-        if (!glyphes[i].children.length == 0) {
-            notEmpty++;
-        }
-    }
-    var all_voies_full = notEmpty == 4;
-    
-    // Est-ce que le prodige a été joué
-    var prodige_played = document.getElementById('empty_prodige_j1').children.length > 0;
-    
-    // Activation ou non du bouton "Valider"
-    var btn = document.getElementById('validate_button');
-    var false_btn = document.getElementById('false_button');
-    let cond_prodige_played = choix == 'prodige' && prodige_played;
-    let cond_glyphe_played = choix == 'glyphes' && all_voies_full;
-    let cond_glyphe_chosen = choix == 'select_glyphes'
-    if (cond_glyphe_chosen || cond_glyphe_played || cond_prodige_played) {
-        btn.style.display = 'flex';
-        false_btn.style.display = 'none';
-    } else {
-        btn.style.display = 'none';
-        false_btn.style.display = 'flex';
-    }   
-}
-
-function drop(ev) {
-    ev.preventDefault();
-    var src = document.getElementById(ev.dataTransfer.getData("text"));
-    var srcParent = src.parentNode;
-    var target = ev.currentTarget;
-    
-    if(srcParent != target) {
-        if (src.getAttribute('class') == 'glyphe'
-            && ['empty_voie', 'hand_glyphes'].includes(target.getAttribute('class'))) {
-            drop_triggered(ev);
-        } else if (src.getAttribute('class') == 'prodige'
-                   && ['empty_prodige', 'hand_prodiges'].includes(target.getAttribute('class'))) {
-            drop_triggered(ev);
+    if(drop_srcParent != drop_target_zone) {
+        if (drop_src.getAttribute('class') == 'glyphe'
+            && ['empty_voie', 'hand_glyphes'].includes(data.target)) {
+            console.log('drop_glyphe');
+            data['value'] = drop_src.getAttribute('valeur');
+            let voie = (data.target) == 'empty_voie' ? drop_target_zone : drop_srcParent;
+            data['voie'] = voie.getAttribute('id').split('-')[1];
+            socket.emit('drop_glyphe', data);
+        } else if (drop_src.getAttribute('class') == 'prodige'
+            && ['empty_prodige', 'hand_prodiges'].includes(data.target)) {
+            console.log('drop prodige');
+            data['name'] = drop_src.getAttribute('id');
+            socket.emit('drop_prodige', data);
         }
     }
 }
@@ -153,7 +97,7 @@ function create_glyph(i, v) {
     var glyph = document.createElement("div");
     if (v != -1) {
         glyph.setAttribute("id", "g"+i);
-        glyph.setAttribute("draggable", "false");
+        glyph.setAttribute("draggable", "true");
         glyph.setAttribute("ondragstart", "drag(event)");
         glyph.setAttribute("class", "glyphe");
         glyph.setAttribute("valeur", v);
@@ -171,7 +115,7 @@ function create_prodige(name, opp=false) {
     prodige.setAttribute("id", name);
     prodige.setAttribute("class", "prodige");
     if (!opp) {
-        prodige.setAttribute("draggable", "false");
+        prodige.setAttribute("draggable", "true");
         prodige.setAttribute("ondragstart", "drag(event)");
         prodige.setAttribute('available', 'true')
     }
@@ -216,14 +160,6 @@ function init() {
 }
 // ==========================
 
-function init_backup() {
-    do {
-        var pseudo = prompt('Votre pseudo');
-    } while (pseudo == '');
-    socket.pseudo = pseudo;
-    socket.emit('init', pseudo);
-}
-
 function join_room(id) {
     socket.emit('join_room', id);
     document.getElementById('room_choice').style.display = 'none';
@@ -247,43 +183,7 @@ function text_log(string){
 }
 
 function validate_choice(){
-    if (choix == 'prodige'){
-        text_log('Envoi du Prodige au combat');
-        freeze();
-        socket.emit('valide_choix_prodige');
-    } else if (choix == 'glyphes'){
-        text_log('Validation des Glyphes');
-        freeze();
-        socket.emit('valide_choix_glyphes');
-    } else if (choix == 'glyphes_clicked'){
-        text_log('Selection des Glyphes');
-        freeze();
-        socket.emit('answer_for_glyphs', glyphes_clicked);
-        glyphes_clicked = [];
-    }
-}
-
-function freeze(){
-    // Freeze choix
-    choix = 'rien';
-
-    // Freeze prodiges
-    prodiges = document.getElementsByClassName('prodige');
-    for (prodige of prodiges){
-        prodige.setAttribute('draggable', 'false');
-    }
-
-    // Freeze glyphes
-    glyphs = document.getElementsByClassName('glyphe');
-    for (glyph of glyphs){
-        glyph.setAttribute('draggable', 'false');
-    }
-
-    // Freeze bouton Valider
-    var btn = document.getElementById('validate_button');
-    var false_btn = document.getElementById('false_button');
-    btn.style.display = 'none';
-    false_btn.style.display = 'flex';
+    socket.emit('validate_glyphes');
 }
 
 socket.on('list_rooms', function(data){
@@ -305,24 +205,14 @@ socket.on('init_game', function(data){
     init_game(data);
 });
 
-socket.on('text_log', function(string){
-    console.log('Texte dans logs')
-    text_log(string);
-});
-
-socket.on('init_choix_prodige', function() {
-    text_log('Choix du prodige');
-    choix = 'prodige';
-    hand = document.getElementById('hand_prodiges_j1');
-    for (child of hand.children) {
-        child.setAttribute('draggable', 'true');
-    }
+socket.on('text_log', function(data){
+    text_log(data);
 });
 
 socket.on('drop_validated', function(){
-    src = drop_src;
-    srcParent = drop_srcParent;
-    target = drop_target_zone;
+    let src = drop_src;
+    let srcParent = drop_srcParent;
+    let target = drop_target_zone;
         
     // Si on vise la main, on ne fait pas de remplacement
     if (['hand_glyphes', 'hand_prodiges'].includes(target.getAttributeNode("class").value)) {
@@ -339,7 +229,7 @@ socket.on('drop_validated', function(){
         }
     }
 
-    check_validate_button();
+    socket.emit('check_validate_button');
 });
 
 socket.on('drop_not_validated', function(string){
@@ -348,6 +238,7 @@ socket.on('drop_not_validated', function(string){
     drop_srcParent = null;
     drop_target_zone = null;
     drop_ev = null;
+    socket.emit('check_validate_button');
 });
 
 socket.on('init_choix_glyphes', function() {
@@ -408,3 +299,20 @@ socket.on('ask_for_glyphs', function(data){
 socket.on('choix_maitrise_voix', function(){
     text_log('Choix entre maitrise et voix');
 });
+
+socket.on('validate_button', function(validate){
+    // Activation ou non du bouton "Valider"
+    var btn = document.getElementById('validate_button');
+    var false_btn = document.getElementById('false_button');
+    if (validate) {
+        btn.style.display = 'flex';
+        false_btn.style.display = 'none';
+    } else {
+        btn.style.display = 'none';
+        false_btn.style.display = 'flex';
+    }   
+});
+
+socket.on('debug', function(str){
+    console.log(str);
+})

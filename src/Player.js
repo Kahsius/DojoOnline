@@ -78,4 +78,26 @@ module.exports.Player = class {
     get_played_prodigy(){
         return this.prodiges[this.played_prodigy];
     }
+
+
+    valide_choix_prodige(prodige){
+        if (prodige in this.prodiges) {
+            let p = this.prodiges[prodige]
+            if (p.available) {
+                if (this.get_played_prodigy() != null){
+                    this.get_played_prodigy().available = true;
+                }
+                this.played_prodigy = prodige;
+                p.available = false;
+                console.log('... validé')
+                return({'valid': true});
+            } else {
+                console.log('...non validé (!available)')
+                return({'valid': false, 'text': p.name + ' n\'est plus disponible'});
+            }
+        } else {
+            console.log('...non validé (choix invalide ou prodige not in P.prodiges)')
+            return({'valid': false, 'text': p.name + ' n\'est pas dans votre main'});
+        }
+    }
 }

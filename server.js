@@ -2,11 +2,11 @@ const express = require('express');
 const app = express();
 const http = require('http').createServer(app);
 const path = require('path');
-var io = require('socket.io')(http);
-
-var Game = require('./src/Game').Game;
+const Game = require('./src/Game').Game;
 
 
+
+global.io = require('socket.io')(http);
 global.players = {};
 global.sockets = {};
 global.games = {};
@@ -24,7 +24,7 @@ io.on('connection', function(socket){
 
     socket.on('debug', function(cmd){
         console.log('Get debug cmd : ' + cmd)
-        eval(cmd);
+        socket.emit('debug', eval(cmd));
     });
 
     socket.on('init', function(pseudo){
@@ -43,6 +43,7 @@ io.on('connection', function(socket){
     socket.on('init_debug', function() {
         id = 'banana';
         socket.join(id)
+        socket.room = id;
         sockets[socket.id] =  socket;
         if (!(id in rooms)) {
             socket.pseudo = 'K';
@@ -62,7 +63,9 @@ io.on('connection', function(socket){
                     'prodiges': Object.keys(players[player.opp].prodiges)};
                 player.socket.emit('init_game', {'me': me, 'opp': opp});
             }
-            game.get_player_by_order(0).socket.emit('init_choix_prodige');
+            game.state['label'] = 'wait_prodige';
+            game.state['player'] = 0;
+            game.get_player_by_order(0).socket.emit('text_log', 'Choix du Prodige');
         }
     });
 
@@ -88,83 +91,127 @@ io.on('connection', function(socket){
         }
     });
 
-    socket.on('choix_prodige', function(prodige){
-        console.log(players[socket.id].pseudo + ' joue ' + prodige);
-        let test = games[socket.id].valide_choix_prodige(socket.id, prodige);
-        if (test.valid) socket.emit('drop_validated');
-        else socket.emit('drop_not_validated', test.text);
-    });
-
-    socket.on('retire_prodige', function(prodige){
+    socket.on('validate_glyphes', function(){
         let player = players[socket.id];
-        console.log(player.pseudo + ' retire ' + prodige);
-        socket.emit('drop_validated');
-        player.get_played_prodigy().available = true;
-        player.played_prodigy = null;
+        let game = games[socket.id]
+        player.ready = true;
+        socket.emit('validate_button', false);
+        if (game.both_players_ready()){
+            game.resolve_round();
+        }
     });
 
-    socket.on('valide_choix_prodige', function(){
+    socket.on('drop_prodige', function(data){
         let game = games[socket.id];
         let player = players[socket.id];
         let opp = players[player.opp];
-        let prodige = player.played_prodigy;
+        let prodige = data.name;
+        // If game is waiting for a prodige to be chosen
+        if (game.state.label == 'wait_prodige'
+            && game.state.player == player.order) {
+            // If the prodige is played
+            if (data.source == "hand_prodiges"
+                && data.target == "empty_prodige") {
+                console.log(player.pseudo + ' joue ' + prodige);
+                let test = player.valide_choix_prodige(prodige);
+                if (test.valid) {
+                    // Display le choix du Prodige pour l'adversaire
+                    opp.socket.emit('choix_prodige_adverse', prodige);
+                    socket.emit('drop_validated');
+                    if (game.state.player == 0) {
+                        game.state.player++;
+                        opp.socket.emit('text_log', 'Choix du Prodige');
+                    } else {
+                        game.state = {'label': 'talents:priority', 'player': 0};
+                        io.to(player.socket.room).emit('text_log', 'Application des Talents');
+                        game.apply_talents();
+                    }
+                }
+                else socket.emit('drop_not_validated', test.text);
+            } 
+        }
+    });
 
-        console.log(player.pseudo + ' valide ' + prodige);
-        
-        // Display le choix du Prodige pour l'adversaire
-        opp.socket.emit('choix_prodige_adverse', prodige);
+    socket.on('drop_glyphe', function(data){
+        let game = games[socket.id];
+        let player = players[socket.id];
+        let hand = player.hand;
+        let opp = players[player.opp];
+        let voie = data.voie;
+        let valeur = parseInt(data.value);
+        let target = data.target;
+        if (game.state.label == 'choice_glyphes') {
+            if ( target == 'empty_voie'){
+                console.log(player.pseudo + ' joue ' + valeur + ' sur ' + voie);
 
-        // Vérification de qui fait quoi
-        if (player.order == 0) {
-            console.log(opp.pseudo + ' choisi son Prodige');
-            opp.socket.emit('init_choix_prodige');
-        } else {
-            console.log('Application des Talents');
-            game.applique_talents();
-            console.log('Début choix des Glyphes');
-            for (player of game.players){
-                player.socket.emit('init_choix_glyphes');
+                // Est-ce que le glyphe est valide ?
+                let valid = player.valide_choix_glyphe(voie, valeur)
+                if (valid) {
+                    socket.emit('drop_validated');
+                    // Est-ce que l'adversaire peut voir le glyphe ?
+                    let body = {'voie': voie, 'valeur': valeur, 'regard': false}
+                    if (player.on_opp_regard(voie)) body['regard'] = true;
+                    opp.socket.emit('choix_glyphe_opp', body);
+                }
+                else socket.emit('drop_not_validated', 'Choix invalide');
+            } else if ( target == 'hand_glyphes') {
+                // Le joueur retire un glyphe
+                console.log(player.pseudo + ' retire '
+                    + player.played_glyphs[voie] + ' de la voie ' + voie);
+                let valid = player.retire_glyphe(voie);
+                if (valid) {
+                    players[player.opp].socket.emit('retire_glyphe_opp', voie);
+                    socket.emit('drop_validated');
+                }
             }
         }
     });
 
-    socket.on('choix_glyphe', function(data){
-        let voie = data['voie'].split('-')[1];
-        let valeur = parseInt(data['valeur']);
-        let player = players[socket.id];
-        let opp = players[player.opp];
-        let hand = player.hand;
-        console.log(player.pseudo + ' joue ' + valeur + ' sur ' + voie);
+    socket.on('check_validate_button', function(){
+        let pg = players[socket.id].played_glyphs;
 
-        // Est-ce que le glyphe est valide ?
-        let valid = player.valide_choix_glyphe(voie, valeur)
-        if (valid) socket.emit('drop_validated');
-        else socket.emit('drop_not_validated', 'Choix invalide');
-
-        // Est-ce que l'adversaire peut voir le glyphe ?
-        let body = {'voie': voie, 'valeur': valeur, 'regard': false}
-        if (player.on_opp_regard(voie)) body['regard'] = true;
-        opp.socket.emit('choix_glyphe_opp', body);
-    });
-
-    socket.on('retire_glyphe', function(voie){
-        voie = voie.split('-')[1];
-        let player = players[socket.id];
-        console.log(player.pseudo + ' retire '
-            + player.played_glyphs[voie] + ' de la voie ' + voie);
-        let valid = player.retire_glyphe(voie);
-        if (valid) {
-            players[player.opp].socket.emit('retire_glyphe_opp', voie);
-            socket.emit('drop_validated');
+        // Est-ce que toutes les voies sont pleines
+        let notEmpty = 0;
+        for ( let element in pg) {
+            if ( pg[element] != -1) {
+                notEmpty++;
+            }
         }
+        let validate = notEmpty == 4;
+        socket.emit('validate_button', validate);
     });
 
-    socket.on('valide_choix_glyphes', function(){
+    socket.on('click', function(data){
+        let game = games[socket.id];
         let player = players[socket.id];
-        player.ready = true;
-        let game = games[socket.id]
-        if (game.both_players_ready()){
-            game.resolve_round();
+        let ss = game.substate;
+        if (ss.label == 'paying_cost'
+            && ss.cost_type == 'glyph'
+            && data.target_zone == 'player_hand') {
+            let hand = player.hand;
+            let value = data.value;
+            if (hand.includes(value)){
+                hand.splice(hand.indexOf(value));
+                ss.capacity.cost_paid = true;
+                game.apply_talents()
+            }
+        } else if (ss.label == 'waiting_choice'
+            && data.target_zone == ss.target_zone) {
+            let hand = player.hand;
+            let value = data.value;
+            let element = data.element;
+            if (data.target_zone == 'voies') {
+                if (player.played_glyphs[element] > 0) {
+                    ss.capacity.choice.push(element);
+                    game.apply_talents()
+                }
+            } else if (data.target_zone == 'hand') {
+                if (player.hand.includes(value)
+                    && value > 0) {
+                    ss.capacity.choice.push(value);
+                    game.apply_talents()
+                }
+            }
         }
     });
 

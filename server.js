@@ -63,8 +63,8 @@ io.on('connection', function(socket){
                     'prodiges': Object.keys(players[player.opp].prodiges)};
                 player.socket.emit('init_game', {'me': me, 'opp': opp});
             }
-            game.state['label'] = 'wait_prodige';
-            game.state['player'] = 0;
+            game.state.label = 'wait_prodige';
+            game.state.order = 0;
             game.get_player_by_order(0).socket.emit('text_log', 'Choix du Prodige');
         }
     });
@@ -93,10 +93,13 @@ io.on('connection', function(socket){
 
     socket.on('validate_glyphes', function(){
         let player = players[socket.id];
+        let opp = players[player.opp];
         let game = games[socket.id]
         player.ready = true;
         socket.emit('validate_button', false);
         if (game.both_players_ready()){
+            player.socket.emit('reveal', opp.played_glyphs);
+            opp.socket.emit('reveal', player.played_glyphs);
             game.resolve_round();
         }
     });
@@ -108,7 +111,7 @@ io.on('connection', function(socket){
         let prodige = data.name;
         // If game is waiting for a prodige to be chosen
         if (game.state.label == 'wait_prodige'
-            && game.state.player == player.order) {
+            && game.state.order == player.order) {
             // If the prodige is played
             if (data.source == "hand_prodiges"
                 && data.target == "empty_prodige") {
@@ -118,11 +121,11 @@ io.on('connection', function(socket){
                     // Display le choix du Prodige pour l'adversaire
                     opp.socket.emit('choix_prodige_adverse', prodige);
                     socket.emit('drop_validated');
-                    if (game.state.player == 0) {
-                        game.state.player++;
+                    if (game.state.order == 0) {
+                        game.state.order++;
                         opp.socket.emit('text_log', 'Choix du Prodige');
                     } else {
-                        game.state = {'label': 'talents:priority', 'player': 0};
+                        game.state = {'label': 'talents:priority', 'order': 0};
                         io.to(player.socket.room).emit('text_log', 'Application des Talents');
                         game.apply_talents();
                     }
@@ -184,32 +187,45 @@ io.on('connection', function(socket){
     socket.on('click', function(data){
         let game = games[socket.id];
         let player = players[socket.id];
-        let ss = game.substate;
-        if (ss.label == 'paying_cost'
-            && ss.cost_type == 'glyph'
-            && data.target_zone == 'player_hand') {
-            let hand = player.hand;
-            let value = data.value;
-            if (hand.includes(value)){
-                hand.splice(hand.indexOf(value));
-                ss.capacity.cost_paid = true;
-                game.apply_talents()
-            }
-        } else if (ss.label == 'waiting_choice'
-            && data.target_zone == ss.target_zone) {
-            let hand = player.hand;
-            let value = data.value;
-            let element = data.element;
-            if (data.target_zone == 'voies') {
-                if (player.played_glyphs[element] > 0) {
-                    ss.capacity.choice.push(element);
-                    game.apply_talents()
+        let ss = game.substate ? game.substate : {};
+        let talent = (game.state.label.split(':')[0] == 'talents');
+        let voies = (game.state.label == 'voies');
+
+        if (player.order == game.state.order) {
+            if (['air', 'feu', 'eau', 'terre'].includes(data.element)
+                && game.state.label == 'choice_voie') {
+                game.state.label = 'execute_voie';
+                game.state.element = data.element;
+                game.state.maitrise = data.maitrise;
+                game.apply_voies_players();
+            } 
+            if (ss.label == 'paying_cost'
+                && ss.cost_type == 'glyph'
+                && data.target_zone == 'hand_glyphes') {
+                let hand = player.hand;
+                let value = data.value;
+                if (hand.includes(value)){
+                    hand.splice(hand.indexOf(value));
+                    ss.capacity.cost_paid = true;
+                    if (talent) game.apply_talents();
                 }
-            } else if (data.target_zone == 'hand') {
-                if (player.hand.includes(value)
-                    && value > 0) {
-                    ss.capacity.choice.push(value);
-                    game.apply_talents()
+            }
+            if (ss.label == 'waiting_choice'
+                && data.target_zone == ss.target_zone) {
+                let hand = player.hand;
+                let value = data.value;
+                let element = data.element;
+                if (data.target_zone == 'empty_voie') {
+                    if (player.played_glyphs[element] > 0) {
+                        ss.capacity.choice.push(element);
+                        if (talent) game.apply_talents()
+                    }
+                } else if (data.target_zone == 'hand') {
+                    if (player.hand.includes(value)
+                        && value > 0) {
+                        ss.capacity.choice.push(value);
+                        if (talent) game.apply_talents()
+                    }
                 }
             }
         }

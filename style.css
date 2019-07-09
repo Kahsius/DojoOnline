@@ -151,6 +151,14 @@
     border: 5px solid red;
 }
 
+.voie[available="true"] {
+    border: 5px solid red;
+}
+
+.voie[available="true"]:hover {
+    background-color: navy;
+}
+
 .empty_prodige {
     display: flex;
     height: 26vh;

@@ -52,7 +52,8 @@ module.exports.Capacity = class {
                 && this.available_targets()) {
                 let state = {'label': 'waiting_choice',
                     'value': this.cost_value,
-                    'capacity': this};
+                    'capacity': this,
+                    'target_zone': this.get_target_zone()};
                 return state;
             }
             this.owner.socket.emit('text_log', msg);
@@ -66,6 +67,16 @@ module.exports.Capacity = class {
 	    }
         return false;
 	}
+
+    get_target_zone(){
+        let e = this.data.effet;
+        if (['oppression', 'pillage'].includes(e)
+            && e.cost_type == 'glyph') {
+            return 'hand_glyphes';
+        } else if (e == 'recuperation') {
+            return 'empty_voie';
+        } 
+    }
 
     available_targets() {
         let opp = players[this.owner.opp];

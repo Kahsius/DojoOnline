@@ -50,6 +50,8 @@ function drop(ev) {
 }
 
 function click_glyph(ev) {
+    // TODO à refondre
+    // doit renvoyer data = {'value': valeur, 'target_zone': zone du glyphe, 'element': si sur voie}
     let node = ev.currentTarget;
     let parent = node.parentNode;
     let num_current_click = get_num_current_click();
@@ -82,6 +84,12 @@ function click_glyph(ev) {
     }
 }
 
+function click_voie(ev) {
+    let node = ev.currentTarget;
+    let element = node.getAttribute('id').split('_')[1];
+    socket.emit('click', {'element': element, 'maitrise': false});
+}
+
 function get_num_current_click() {
     glyphs = document.getElementsByClassName("glyphe")
     num_current_click = 0;
@@ -96,10 +104,10 @@ function get_num_current_click() {
 function create_glyph(i, v) {
     var glyph = document.createElement("div");
     if (v != -1) {
-        glyph.setAttribute("id", "g"+i);
         glyph.setAttribute("draggable", "true");
         glyph.setAttribute("ondragstart", "drag(event)");
         glyph.setAttribute("class", "glyphe");
+        glyph.setAttribute("id", i);
         glyph.setAttribute("valeur", v);
         glyph.setAttribute("onclick", "click_glyph(event);");
         glyph.setAttribute("clicked", "false");
@@ -315,4 +323,28 @@ socket.on('validate_button', function(validate){
 
 socket.on('debug', function(str){
     console.log(str);
-})
+});
+
+socket.on('choices_voies', function(effects){
+    let voie;
+    for (let node of document.getElementsByClassName('voie')){
+        console.log(node.id);
+        node.setAttribute('available', 'false');
+    }
+    for (let effect of effects) {
+        if (effect.playable) {
+            voie = document.getElementById('voie_' + effect.element);
+            voie.setAttribute('available', 'true');
+        }
+    }
+});
+
+socket.on('reveal', function(pg){
+    let ev, id;
+    for (let element in pg) {
+        ev = document.getElementById('j0-' + element);
+        id = ev.children[0].id;
+        ev.removeChild(ev.children[0]);
+        ev.appendChild(create_glyph(id, pg[element]));
+    }
+});

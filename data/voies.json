@@ -4,7 +4,7 @@
         "capacity": {
             "target": "owner",
             "value": 2,
-            "effect": "modif_damage"
+            "effect": "modif_degats"
         }
     },
     {

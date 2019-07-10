@@ -187,44 +187,49 @@ io.on('connection', function(socket){
     socket.on('click', function(data){
         let game = games[socket.id];
         let player = players[socket.id];
-        let ss = game.substate ? game.substate : {};
+        let ss = (game.substate) ? game.substate : {};
         let talent = (game.state.label.split(':')[0] == 'talents');
-        let voies = (game.state.label == 'voies');
+        let voies = (game.state.label == 'execute_voie');
 
         if (player.order == game.state.order) {
             if (['air', 'feu', 'eau', 'terre'].includes(data.element)
-                && game.state.label == 'choice_voie') {
+                && game.state.label == 'choice_voie'
+                && game.substate.label == 'none') {
                 game.state.label = 'execute_voie';
                 game.state.element = data.element;
                 game.state.maitrise = data.maitrise;
                 game.apply_voies_players();
-            } 
-            if (ss.label == 'paying_cost'
+            } else if (ss.label == 'paying_cost'
                 && ss.cost_type == 'glyph'
                 && data.target_zone == 'hand_glyphes') {
                 let hand = player.hand;
                 let value = data.value;
                 if (hand.includes(value)){
                     hand.splice(hand.indexOf(value));
+                    player.socket.emit('text_log', 'Coût payé');
                     ss.capacity.cost_paid = true;
                     if (talent) game.apply_talents();
+                    if (voies) game.apply_voies_players();
                 }
-            }
-            if (ss.label == 'waiting_choice'
+            } else if (ss.label == 'waiting_choice'
                 && data.target_zone == ss.target_zone) {
                 let hand = player.hand;
                 let value = data.value;
                 let element = data.element;
                 if (data.target_zone == 'empty_voie') {
                     if (player.played_glyphs[element] > 0) {
-                        ss.capacity.choice.push(element);
+                        player.socket.emit('text_log', 'Cible choisie');
+                        ss.capacity.choice.push({'element': element, 'value': value});
                         if (talent) game.apply_talents()
+                        if (voies) game.apply_voies_players();
                     }
                 } else if (data.target_zone == 'hand') {
                     if (player.hand.includes(value)
                         && value > 0) {
+                        player.socket.emit('text_log', 'Cible choisie');
                         ss.capacity.choice.push(value);
                         if (talent) game.apply_talents()
+                        if (voies) game.apply_voies_players();
                     }
                 }
             }

@@ -54,35 +54,15 @@ function click_glyph(ev) {
     // doit renvoyer data = {'value': valeur, 'target_zone': zone du glyphe, 'element': si sur voie}
     let node = ev.currentTarget;
     let parent = node.parentNode;
-    let num_current_click = get_num_current_click();
-    if (need_click) {
-        if (need_click_target == "voie" && parent.getAttribute("class") == "empty_voie") {
-            let voie = parent.getAttribute('id').split('-')[1];
-            if (node.getAttribute("clicked") == "false" && num_current_click < num_need_click) {
-                if (node.getAttribute('valeur') == 0) {
-                    text_log('Sélection Feinte invalide');
-                } else {
-                    node.setAttribute("clicked", "true");
-                    glyphes_clicked.push(voie);
-                }
-            } else if (node.getAttribute("clicked") == "true") {
-                node.setAttribute("clicked", "false");
-                glyphes_clicked.splice(glyphes_clicked.indexOf(voie), 1)
-            }
-        } else if (need_click_target == "main" && parent.getAttribute("class") == "hand_glyphes") {
-            let valeur = node.getAttribute('valeur');
-            if (node.getAttribute("clicked") == "false" && num_current_click < num_need_click) {
-                node.setAttribute("clicked", "true");
-                glyphes_clicked.push(valeur);
-                console.log(num_current_click);
-                console.log(num_current_click);
-            } else if (node.getAttribute("clicked") == "true") {
-                node.setAttribute("clicked", "false");
-                glyphes_clicked.splice(glyphes_clicked.indexOf(valeur), 1)
-            }
-        }
-    }
-}
+    let value = node.getAttribute('valeur');
+    let target_zone = parent.getAttribute('class');
+    let element = target_zone == 'empty_voie' ? parent.getAttribute('id').split('-')[1] : '';
+    socket.emit('click', {
+        'value': value,
+        'target_zone': target_zone,
+        'element': element
+    });
+ }
 
 function click_voie(ev) {
     let node = ev.currentTarget;
@@ -328,11 +308,10 @@ socket.on('debug', function(str){
 socket.on('choices_voies', function(effects){
     let voie;
     for (let node of document.getElementsByClassName('voie')){
-        console.log(node.id);
         node.setAttribute('available', 'false');
     }
     for (let effect of effects) {
-        if (effect.playable) {
+        if (effect.display) {
             voie = document.getElementById('voie_' + effect.element);
             voie.setAttribute('available', 'true');
         }
@@ -348,3 +327,8 @@ socket.on('reveal', function(pg){
         ev.appendChild(create_glyph(id, pg[element]));
     }
 });
+
+socket.on('capacity_ongoing', function(label){
+    text_log('Capacité en cours : ' + label);
+});
+

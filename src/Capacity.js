@@ -48,7 +48,7 @@ module.exports.Capacity = class {
                 return state;
 	        }
             if (this.need_choice
-                && !this.choice.length != this.value
+                && this.choice.length != this.value
                 && this.available_targets()) {
                 let state = {'label': 'waiting_choice',
                     'value': this.cost_value,
@@ -60,48 +60,56 @@ module.exports.Capacity = class {
             players[this.owner.opp].socket.emit('text_log', msg);
 
             this.set_target();
-            let modif = this.get_modification(turn);
-	        for (let i of range(0, modif)) {
-	            this.effect(this);
-	        }
+            this.value *= this.get_modification(turn);
+            return this.effect(this);
 	    }
         return false;
 	}
 
     get_target_zone(){
-        let e = this.data.effet;
-        if (['oppression', 'pillage'].includes(e)
-            && e.cost_type == 'glyph') {
+        let e = this.data.effect;
+        if (this.data.cost_type == 'glyph' && !this.cost_paid){
             return 'hand_glyphes';
-        } else if (e == 'recuperation') {
-            return 'empty_voie';
-        } 
+        } else {
+            if (['oppression', 'pillage'].includes(e)) {
+                return 'hand_glyphes';
+            } else if (e == 'recuperation') {
+                return 'empty_voie';
+            } 
+        }
     }
 
     available_targets() {
         let opp = players[this.owner.opp];
+        let own = this.owner;
         let targets = 0;
-        if (this.data.effect == 'recuperation') {
-            for (let element in this.owner.played_glyphs) {
-                if (this.owner.played_glyphs[element] > 0) {
-                    targets++;
-                }
-            }
-            return (targets < this.choice.length);
-        } else if (['oppression', 'pillage'].includes(this.data.effect)) {
-            for (let glyph of opp.hand) {
-                if (glyph > 0) {
-                    targets++;
-                }
-            }
-            return (targets < this.choice.length);
-        } else if (this.data.cost_type == 'glyph') {
+        if (this.data.cost_type == 'glyph' && !this.cost_paid){
+            // Si le coût n'a pas encore été payé
             for (let glyph of this.owner.hand) {
                 if (glyph > 0) {
                     targets++;
                 }
             }
-            return (targets < this.choice.length);
+            return (targets - this.choice.length >= this.cost_value);
+        } else {
+            // Si le coût a été payé mais qu'il faut quand même une cible
+            if (this.data.effect == 'recuperation') {
+                let value = this.value;
+                for (let element in own.played_glyphs) {
+                    if (own.played_glyphs[element] > 0) {
+                        targets++;
+                    }
+                }
+                return (targets - this.choice.length >= this.value);
+            } else if (['oppression', 'pillage'].includes(this.data.effect)) {
+                let value = this.value;
+                for (let glyph of opp.hand) {
+                    if (glyph > 0) {
+                        targets++;
+                    }
+                }
+                return (targets - this.choice.length >= this.value);
+            }
         }
         return true;
     }
@@ -174,33 +182,15 @@ var effets = {};
 effets['recuperation'] = function(capa) {
     let v = capa.value;
     let t = capa.target;
-    let count = 0;
-    let socket = t.socket;
-    let done = false;
-    socket.once('answer_for_glyphs', function(list){
-        if (list.length <= v){
-            let ok = true;
-            for (element of list){
-                if (t.played_glyphs[element] < 1) ok = false;
-            }
-            if (!ok) {
-                // TODO faire les event nok et ok dans client.js
-                socket.emit('nok', 'Certains glyphes ne sont pas valides');
-            } else {
-                socket.emit('ok');
-                for (element of list){
-                    t.hand.push(t.played_glyphs[element]);
-                    t.played_glyphs[element] = -1;
-                }
-                done = true;
-            }
-        } else {
-            socket.emit('nok', 'Trop de glyphes retournés');
-        }
-    });
-    socket.emit('ask_for_glyphs', {'where': 'voie', 'howmany': n});
-    while (!done){
-        setTimeout(function(){}, 500);
+    let choices = capa.choices;
+    for (let c in choices) {
+        t.hand.push(c.value);
+        t.played_glyphs[c.element] = -1;
+    }
+    return {
+        'label': 'recuperation',
+        'choices': capa.choices;
+        'status': 'done';
     }
 }
 

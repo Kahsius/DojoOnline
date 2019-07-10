@@ -1,4 +1,5 @@
 const settings = require("../settings");
+const range = require("./utils").range;
 const Prodige = require('./Prodige').Prodige;
 
 module.exports.Player = class {
@@ -99,5 +100,16 @@ module.exports.Player = class {
             console.log('...non validé (choix invalide ou prodige not in P.prodiges)')
             return({'valid': false, 'text': p.name + ' n\'est pas dans votre main'});
         }
+    }
+
+    get_hand_state() {
+        let state = {};
+        for (let i in range(0, 6)) {
+            state[i] = 0;
+        }
+        for (let g of this.hand) {
+            state[g]++;
+        }
+        return state;
     }
 }

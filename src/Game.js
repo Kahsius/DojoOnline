@@ -73,7 +73,7 @@ module.exports.Game = class {
             t = player.get_played_prodigy().talent;
             if (t.priority) {
                 let state = t.execute_capacity(this.turn);
-                if (state) {
+                if (state.status != 'done') {
                     this.substate = state;
                     player.socket.emit('capacity_ongoing', state.label);
                 } else if (this.state.order == 0) {
@@ -98,7 +98,7 @@ module.exports.Game = class {
             t = player.get_played_prodigy().talent;
             if (!t.priority && !t.need_winner) {
                 let state = t.execute_capacity(this.turn);
-                if (state) {
+                if (state.status != 'done') {
                     this.substate = state;
                     player.socket.emit('capacity_ongoing', state.label);
                 } else if (this.state.order == 0) {
@@ -120,7 +120,7 @@ module.exports.Game = class {
             p = player.get_played_prodigy();
             if (p.talent.need_winner){
                 let state = p.talent.execute_capacity(this.turn);
-                if (state) {
+                if (state.status != 'done') {
                     this.substate = state;
                     player.socket.emit('capacity_ongoing', state.label);
                 } else if (this.state.order == 0) {
@@ -196,7 +196,7 @@ module.exports.Game = class {
                     // S'il peut activer sa maîtrise
                     element_ok = (v.element == p.get_played_prodigy().element);
                     not_stopped = !p.get_played_prodigy().maitrise.stopped;
-                    effect = {'element': j, 'playable': true};
+                    effect = {'element': j, 'playable': true, 'display': true};
                     effect.maitrise = (element_ok && not_stopped) ? true : false
                     effects[i].push(effect);
                 }
@@ -204,6 +204,7 @@ module.exports.Game = class {
         }
         this.voies_players = effects;
         this.state.label = 'init_choice_voie';
+        this.substate = {'label': 'none'};
         this.apply_voies_players()
     }
 
@@ -212,7 +213,7 @@ module.exports.Game = class {
         let order = this.state.order;
         let element = this.state.element;
         let player = this.get_player_by_order(order);
-        let c;
+        let c, p;
         if(label == 'init_choice_voie'){
             let effects = this.voies_players[order];
             let still = false;
@@ -240,19 +241,25 @@ module.exports.Game = class {
                 if (effect.element == element
                     && effect.playable) {
                     if (this.state.maitrise) {
-                        c = this.get_player_by_order(order).maitrise;
+                        p = player.get_played_prodigy();
+                        c = p.maitrise;
+                        this.broadcast('Application Maîtrise ' + p.name);
                     } else {
                         c = this.voies[element].capacity;
                         c.owner = this.get_player_by_order(order);
-                        player.socket.emit('text_log', 'Application voie ' + element);
+                        this.broadcast('Application voie ' + element);
                     }
+                    effect.display = false;
+                    player.socket.emit('choices_voies', this.voies_players[order]);
                     let state = c.execute_capacity();
-                    if (state) {
+                    if (state.status != 'done') {
                         this.substate = state;
                         player.socket.emit('capacity_ongoing', state.label);
                     } else {
+                        // TODO mettre à jour l'état de la partie pour les deux joueurs
                         effect.playable = false;
-                        this.state.label = 'init_choice_voie'
+                        this.state.label = 'init_choice_voie';
+                        this.substate = {'label': 'none'};
                         this.apply_voies_players();
                     }
                 }
@@ -299,4 +306,34 @@ module.exports.Game = class {
         }
         return true;
     }
+
+    broadcast(msg) {
+        io.to(this.players[0].room).emit('text_log', msg);
+    }
+
+    get_state_front(id) {
+        let player = players[id];
+        let opp = players[player.opp];
+        let state = {};
+        state.hand = player.hand;
+        state.played_glyphs = player.played_glyphs;
+
+        let prodiges = {};
+        for (let p in player.prodiges) {
+            prodiges[p.name] = {'name': p.name, 'available': p.available};
+        }
+        prodiges[p.played_prodigy].played = true;
+        state.prodiges = prodiges;
+
+        prodiges = {};
+        for (let p in opp.prodiges) {
+            prodiges[p.name] = {'name': p.name, 'available': p.available};
+        }
+        prodiges[p.played_prodigy].played = false;
+        state.prodiges_opp = prodiges;
+
+        state.hand_opp = opp.get_hand_state();
+        state.hp = player.hp;
+        state.hp_opp = opp.hp;
+    }    
 }

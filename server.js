@@ -57,10 +57,16 @@ io.on('connection', function(socket){
             games[rooms[id][0].id] = game;
             games[rooms[id][1].id] = game;
             for (let player of game.players) {
-                let me = {'hand': player.hand,
-                    'prodiges': Object.keys(player.prodiges)};
-                let opp = {'hand': players[player.opp].hand,
-                    'prodiges': Object.keys(players[player.opp].prodiges)};
+                let me = {
+                    'hp': player.hp,
+                    'hand': player.hand,
+                    'prodiges': player.get_prodiges_front()
+                };
+                let opp = {
+                    'hp': players[player.opp].hp,
+                    'hand': players[player.opp].hand,
+                    'prodiges': players[player.opp].get_prodiges_front()
+                };
                 player.socket.emit('init_game', {'me': me, 'opp': opp});
             }
             game.state.label = 'wait_prodige';
@@ -219,7 +225,7 @@ io.on('connection', function(socket){
                 if (data.target_zone == 'empty_voie') {
                     if (player.played_glyphs[element] > 0) {
                         player.socket.emit('text_log', 'Cible choisie');
-                        ss.capacity.choice.push({'element': element, 'value': value});
+                        ss.capacity.choices.push({'element': element, 'value': value});
                         if (talent) game.apply_talents()
                         if (voies) game.apply_voies_players();
                     }
@@ -227,7 +233,7 @@ io.on('connection', function(socket){
                     if (player.hand.includes(value)
                         && value > 0) {
                         player.socket.emit('text_log', 'Cible choisie');
-                        ss.capacity.choice.push(value);
+                        ss.capacity.choices.push(value);
                         if (talent) game.apply_talents()
                         if (voies) game.apply_voies_players();
                     }

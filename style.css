@@ -15,6 +15,7 @@
     background-color: blueviolet;
     justify-content: center;
     align-items: center;
+    flex-direction: column;
 }
 
 .panel_right {
@@ -113,8 +114,30 @@
     height: 8vh;
     width: 8vh;
     background-color: darkorchid;
+    justify-content: space-between;
+    align-items: flex-start;
+    flex-wrap: wrap;
+}
+
+.empty_prodige .puissance, .empty_prodige .degats {
+    display: flex;
+    height: 3vh;
+    width: 3vh;
+    background-color: red;
     justify-content: center;
     align-items: center;
+}
+
+.hand_prodiges .puissance, .hand_prodiges .degats {
+    display: none;
+}
+
+.name {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 3vh;
+    flex-grow: 1;
 }
 
 #hand_prodiges_j1 > .prodige:hover {
@@ -170,8 +193,8 @@
 }
 
 .empty_prodige > .prodige {
-    height: 80%;
-    width: 80%;
+    height: 90%;
+    width: 90%;
 }
 
 #refresh {
@@ -203,9 +226,23 @@
     align-items: center;
 }
 
-.log {
+.panel_left > * {
     width: 90%;
-    height: 70%;
+}
+
+.summary {
+    height: 20%;
+    background-color: grey;
+    display: flex;
+    flex-direction: column;
+}
+
+.summary > * {
+    display: flex;
+}
+
+.log {
+    height: 40%;
     overflow: auto;
     background-color: white;
 }

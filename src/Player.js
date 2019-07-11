@@ -62,7 +62,6 @@ module.exports.Player = class {
 
     create_prodiges(list_names){
         for (let name of list_names) {
-            // A modifier pour créer les objets Prodiges
             this.prodiges[name] = new Prodige(prodige_data[name], this);
         }
     }
@@ -111,5 +110,19 @@ module.exports.Player = class {
             state[g]++;
         }
         return state;
+    }
+
+    get_prodiges_front() {
+        var prodiges = [];
+        let p;
+        for (let name in this.prodiges) {
+            p = this.prodiges[name];
+            prodiges.push({
+                'name': p.name,
+                'p': p.puissance,
+                'd': p.degats
+            });
+        }
+        return prodiges;
     }
 }

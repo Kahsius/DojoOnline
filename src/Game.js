@@ -73,9 +73,9 @@ module.exports.Game = class {
             t = player.get_played_prodigy().talent;
             if (t.priority) {
                 let state = t.execute_capacity(this.turn);
+                this.update_front(state);
                 if (state.status != 'done') {
                     this.substate = state;
-                    player.socket.emit('capacity_ongoing', state.label);
                 } else if (this.state.order == 0) {
                     this.state.order++;
                     this.apply_talents();
@@ -336,4 +336,11 @@ module.exports.Game = class {
         state.hp = player.hp;
         state.hp_opp = opp.hp;
     }    
+
+    update_front(state) {
+        for (let player of this.players) {
+            state.me = (state.owner == player.socket.id) ? true : false;
+            socket.emit('capacity_resolution', state);
+        }
+    }
 }

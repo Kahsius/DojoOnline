@@ -1,13 +1,14 @@
 TODO
 
 EN COURS
-- vérifier que le nouveau status de retour d'execute_capacity a pas tout pété
+- vérifier pourquoi feedback récup est pas fait pour adversaire
+- faire maitrises
+- clean round et recommencer
 
 A FAIRE
-- voir pourquoi la voie du feu ne s'applique pas pour l'adversaire
 - vérifier que le regard s'applique bien
 - mettre à jour les options dispos même quand toutes les voies ont été utilisées
 - switch deux glyphes déjà joués
 - enlever validation glyphes si adverse change glyphe sur regard (les autres osef)
-- mettre à jour le front après execution capacité
 - recoder oppression / pillage / sacrifice
+- mettre à jour capa.value avec capa.modif une seule fois au début du tour

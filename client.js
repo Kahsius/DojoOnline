@@ -368,16 +368,17 @@ socket.on('capacity_resolution', function(state){
     }
     let prodige_opp = document.getElementById('empty_prodige_j0').children[0];
     let p_opp, d_opp;
-    for (let child of prodige.children) {
+    for (let child of prodige_opp.children) {
         if (child.className == 'puissance') p_opp = child;
         if (child.className == 'degats') d_opp = child;
     }
     if (state.status == 'done') {
         if (state.label == 'recuperation') {
+            debugger;
             if (state.target == 'own' && state.me
                 || state.target == 'opp' && !state.me) {
                 for (let item of state.choices) {
-                    voie = document.getElementById('j1_' + item.element);
+                    voie = document.getElementById('j1-' + item.element);
                     id = voie.children[0].getAttribute('id');
                     voie.innerHTML = '';
                     document.getElementById('hand_glyphes_j1').appendChild(create_glyph(item.value));
@@ -392,8 +393,8 @@ socket.on('capacity_resolution', function(state){
                 }
             }
         } else if (state.label == 'modif_degats') {
-            if (state.label == 'own' && state.me
-                || state.label == 'opp' && !state.me) d.innerHTML = parseInt(d.innerHTML) + state.value;
+            if (state.target == 'own' && state.me
+                || state.target == 'opp' && !state.me) d.innerHTML = parseInt(d.innerHTML) + state.value;
             if (state.target == 'opp' && state.me
                 || state.target == 'own' && !state.me) d_opp.innerHTML = parseInt(d_opp.innerHTML) + state.value;
         } else if (state.label == 'modif_puissance') {

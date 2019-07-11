@@ -38,10 +38,10 @@ module.exports.Capacity = class {
     	let o = this.owner;
         let p = o.get_played_prodigy().name;
         let msg = p + ' applique : ' + this.get_string_effect(turn);
-	    if (this.check_condition(o)
-            && !this.stopped
-            && this.available_targets()) {
-	        if (this.cost && !this.cost_paid) {
+	    if (this.check_condition(o) && !this.stopped) {
+	        if (this.cost
+                && !this.cost_paid
+                && this.available_targets()) {
                 let state = {'label': 'paying_cost',
                     'value': this.cost_value,
                     'cost_type': this.cost_type,
@@ -63,7 +63,11 @@ module.exports.Capacity = class {
             this.set_target();
             this.value *= this.get_modification(turn);
             return this.effect(this);
-	    }
+	    } else if (this.check_condition(o)
+            && !this.available_targets()) {
+            this.set_target();
+            return this.effect(this);
+        }
         return false;
 	}
 
@@ -178,12 +182,20 @@ module.exports.Capacity = class {
 	    string = (!d['value']) ? string : string + parseInt(d['value']) * modif;
 	    return string;
 	}
+
+    need_more_targets(){
+        if (this.need_choice) {
+            if (this.choices.length < this.value) {
+                return true;
+            }
+        }
+        return false;
+    }
 }
 
 var effets = {};
 
 effets['recuperation'] = function(capa) {
-    debugger;
     let v = capa.value;
     let t = capa.target;
     let choices = capa.choices;
@@ -459,7 +471,7 @@ effets['vampirism'] = function(capa) {
 effets['regard'] = function(capa) {
     capa.target.has_regard = true;
     return {
-        'label': 'vampirism',
+        'label': 'regard',
         'status': 'done',
 		'target': capa.target_label,
 		'owner': capa.owner.socket.id

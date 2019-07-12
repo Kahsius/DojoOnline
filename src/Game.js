@@ -149,6 +149,11 @@ module.exports.Game = class {
         let p2 = this.get_player_by_order(1);
         let g2 = p2.played_glyphs;
         console.log('Résolution du round');
+
+        // Les joueurs perdent le regard
+        p1.has_regard = false;
+        p2.has_regard = false;
+
         for (let element in g1) {
             let winner = 0;
             if (p1.played_glyphs[element] > p2.played_glyphs[element]) {winner = -1}
@@ -177,7 +182,8 @@ module.exports.Game = class {
 
     get_voies_players(){
         console.log('Application des Voies');
-        let element_ok, not_stopped, effect, p, v, p1_win, p2_win, i, j, scores, effects;
+        let element_ok, not_stopped, effect, p, v
+        let p1_win, p2_win, i, j, scores, effects, check_condition;
 
         scores = this.scores;
         effects = [[],[]];
@@ -193,8 +199,9 @@ module.exports.Game = class {
                     // S'il peut activer sa maîtrise
                     element_ok = (v.element == p.get_played_prodigy().element);
                     not_stopped = !p.get_played_prodigy().maitrise.stopped;
+                    check_condition = p.get_played_prodigy().maitrise.check_condition();
                     effect = {'element': j, 'playable': true, 'display': true};
-                    effect.maitrise = (element_ok && not_stopped) ? true : false
+                    effect.maitrise = (element_ok && not_stopped && check_condition) ? true : false
                     effects[i].push(effect);
                 }
             }
@@ -236,8 +243,7 @@ module.exports.Game = class {
             }
         } else if (label == 'execute_voie') {
             for (let effect of this.voies_players[order]) {
-                if (effect.element == element
-                    && effect.playable) {
+                if (effect.element == element) {
                     if (this.state.maitrise) {
                         p = player.get_played_prodigy();
                         c = p.maitrise;
@@ -253,7 +259,11 @@ module.exports.Game = class {
                     this.update_front(state);
                     if (state.status != 'done') {
                         this.substate = state;
-                        player.socket.emit('capacity_ongoing', state.label);
+                        if (state.cost_type) {
+                            state.capacity.owner.socket.emit('Coût à payer');
+                        } else {
+                            this.broadcast(state.capacity.target.pseudo + ' doit faire un choix');
+                        }
                     } else {
                         // TODO mettre à jour l'état de la partie pour les deux joueurs
                         effect.playable = false;
@@ -307,7 +317,11 @@ module.exports.Game = class {
     }
 
     broadcast(msg) {
-        io.to(this.players[0].socket.room).emit('text_log', msg);
+        this.broadcast_cmd('text_log', msg)
+    }
+
+    broadcast_cmd(cmd, data) {
+        io.to(this.players[0].socket.room).emit(cmd, data);
     }
 
     get_state_front(id) {
@@ -343,7 +357,6 @@ module.exports.Game = class {
                 player.socket.emit('capacity_resolution', state);
             }
         } else {
-            console.log(state);
             state.capacity.owner.socket.emit('capacity_resolution', {'status': state.label});
         }
     }
@@ -395,14 +408,11 @@ module.exports.Game = class {
                 p1.order = 0;
             }
 
-            // On enlève les prodiges joués
-            p0.get_played_prodigy().available = false;
-            p1.get_played_prodigy().available = false;
-            p0.played_prodigy = "";
-            p1.played_prodigy = "";
-
             // On défausse les glyphes joués et on récupère les feintes
             for (let p of this.players) {
+                // On enlève les prodiges joués
+                p.get_played_prodigy().available = false;
+                p.played_prodigy = "";
                 for (let elem in p.played_glyphs) {
                     if (p.played_glyphs[elem] == 0) p.hand.push(0);
                     p.played_glyphs[elem] = -1;
@@ -414,15 +424,41 @@ module.exports.Game = class {
             p1.ready = false;
             this.scores = {};
             this.voies_players = null;
+            for (let elem in this.voies) {
+                this.voies[elem].capacity.target = 'owner';
+            }
             this.turn++;
 
             // Clean front
             p0.socket.emit('clean_round');
             p1.socket.emit('clean_round');
 
+
             // On rentre de nouveau dans l'état d'attente
             this.state = {'label': 'wait_prodige', 'order': 0}
             this.get_player_by_order(0).socket.emit('text_log', 'Choix du Prodige');
         }
+    }
+
+    update_capacites() {
+        let prod;
+        console.log('Mise à jour (im)patience');
+        for (let p of this.players) {
+            prod = p.get_played_prodigy();
+            prod.talent.update_modif(this.turn);
+            prod.maitrise.update_modif(this.turn);
+        }
+    }
+
+    valid_effect(order, data) {
+        let effects = this.voies_players[order];
+        for (let e of effects) {
+            if (data.element == e.element) {
+                if (data.maitrise && e.maitrise || !data.maitrise) {
+                    if (e.playable) return true;
+                }
+            }
+        }
+        return false;
     }
 }

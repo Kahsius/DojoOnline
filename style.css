@@ -262,6 +262,7 @@
 #winners {
     font-family: Georgia, serif;
     font-size: 36px; 
+    display: flex;
     align-items: center;
     justify-content: center;
 }

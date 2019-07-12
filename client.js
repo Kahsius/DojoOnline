@@ -11,14 +11,6 @@ var choix = null;
 var glyphes_clicked = [];
 var id_glyphe = 0;
 
-function status() {
-    console.log('need_click : ' + need_click);
-    console.log('num_need_click : ' + num_need_click);
-    console.log('num_current_click : ' + num_current_click);
-    console.log('need_click_target : ' + need_click_target);
-    console.log('choix : ' + choix);
-}
-
 function drag(ev) {
     ev.dataTransfer.setData("id", ev.target.id);
 }
@@ -36,14 +28,17 @@ function drop(ev) {
     if(drop_srcParent != drop_target_zone) {
         if (drop_src.getAttribute('class') == 'glyphe'
             && ['empty_voie', 'hand_glyphes'].includes(data.target)) {
-            console.log('drop_glyphe');
-            data['value'] = drop_src.getAttribute('valeur');
-            let voie = (data.target) == 'empty_voie' ? drop_target_zone : drop_srcParent;
-            data['voie'] = voie.getAttribute('id').split('-')[1];
+            if (data.source != data.target) {
+                data['value'] = drop_src.getAttribute('valeur');
+                let voie = (data.target) == 'empty_voie' ? drop_target_zone : drop_srcParent;
+                data['voie'] = voie.getAttribute('id').split('-')[1];
+            } else {
+                data.source_elem = drop_srcParent.getAttribute('id').split('-')[1];
+                data.target_elem = drop_target_zone.getAttribute('id').split('-')[1];
+            }
             socket.emit('drop_glyphe', data);
         } else if (drop_src.getAttribute('class') == 'prodige'
             && ['empty_prodige', 'hand_prodiges'].includes(data.target)) {
-            console.log('drop prodige');
             data['name'] = drop_src.getAttribute('id');
             socket.emit('drop_prodige', data);
         }
@@ -57,7 +52,7 @@ function click_glyph(ev) {
     let parent = node.parentNode;
     let value = node.getAttribute('valeur');
     let target_zone = parent.getAttribute('class');
-    let element = target_zone == 'empty_voie' ? parent.getAttribute('id').split('-')[1] : 'hand_glyphes';
+    let element = (target_zone == 'empty_voie') ? parent.getAttribute('id').split('-')[1] : '';
     socket.emit('click', {
         'value': value,
         'target_zone': target_zone,
@@ -352,7 +347,7 @@ socket.on('choices_voies', function(effects){
         if (effect.display) {
             voie = document.getElementById('voie_' + effect.element);
             voie.setAttribute('available', 'true');
-            if (prodige.getAttribute('element') == effect.element) {
+            if (prodige.getAttribute('element') == effect.element && effect.maitrise) {
                 prodige.setAttribute('available', 'true');
             }
         }
@@ -545,14 +540,16 @@ socket.on('clean_round', function() {
         for (let element of ['terre', 'air', 'feu', 'eau']) {
             ev = document.getElementById('j' + i + '-' + element);
             g = ev.children[0];
-            if (g.getAttribute('valeur') == 0) {
-                if (i == 1) document.getElementById('hand_glyphes_j' + i).appendChild(g);
-                if (i == 0) {
-                    document.getElementById('hand_glyphes_j' + i).appendChild(create_glyph(-1));
+            if (g) {
+                if (g.getAttribute('valeur') == 0) {
+                    if (i == 1) document.getElementById('hand_glyphes_j' + i).appendChild(g);
+                    if (i == 0) {
+                        document.getElementById('hand_glyphes_j' + i).appendChild(create_glyph(-1));
+                        g.remove();
+                    }
+                } else {
                     g.remove();
                 }
-            } else {
-                g.remove();
             }
         }
     }

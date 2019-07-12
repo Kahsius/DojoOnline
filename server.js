@@ -200,7 +200,8 @@ io.on('connection', function(socket){
         if (player.order == game.state.order) {
             if (['air', 'feu', 'eau', 'terre'].includes(data.element)
                 && game.state.label == 'choice_voie'
-                && game.substate.label == 'none') {
+                && game.substate.label == 'none'
+                && ['voie', 'prodige'].includes(data.target_zone)) {
                 game.state.label = 'execute_voie';
                 game.state.element = data.element;
                 game.state.maitrise = data.maitrise;
@@ -223,7 +224,8 @@ io.on('connection', function(socket){
                 let value = data.value;
                 let element = data.element;
                 if (data.target_zone == 'empty_voie') {
-                    if (player.played_glyphs[element] > 0) {
+                    if (player.played_glyphs[element] > 0
+                        && ss.capacity.choice_available(element)) {
                         player.socket.emit('text_log', 'Cible choisie');
                         ss.capacity.choices.push({'element': element, 'value': value});
                         if (talent) game.apply_talents()
@@ -231,7 +233,8 @@ io.on('connection', function(socket){
                     }
                 } else if (data.target_zone == 'hand') {
                     if (player.hand.includes(value)
-                        && value > 0) {
+                        && value > 0
+                        && ss.capacity.choice_available(value)) {
                         player.socket.emit('text_log', 'Cible choisie');
                         ss.capacity.choices.push(value);
                         if (talent) game.apply_talents()
@@ -242,12 +245,10 @@ io.on('connection', function(socket){
         }
     });
 
-    // FOR DEBUG ONLY =====================
-    socket.on('cmd', function(data) {
-        // boomerang vers client
-        socket.emit(data.cmd, data.data);
+    socket.on('delete_game', function() {
+        delete players[socket.id];
+        delete games[socket.id];
     });
-    // ====================================
 });
 
 app.use(express.static('.'));

@@ -20,11 +20,7 @@ voie_data = get_json_data('./data/voies.json', 'element');
 module.exports.Game = class {
     constructor(room) {
         this.turn = 0;
-        this.first_player = null;
-        this.choix = 'prodige';
-        this.score_voies = [];
         this.winner = null;
-        this.pause = "nope";
         this.state = {};
         this.scores = {};
         this.voies_players = null;
@@ -48,9 +44,8 @@ module.exports.Game = class {
         players[id1] = player1;
 
         // Création des prodiges
-        // TODO /!\ DRAFT /!\
-        player0.create_prodiges(["Amalrik", "Batsu", "Faine", "Asato"]);
-        player1.create_prodiges(["Alissonne", "Fizz", "Rubis", "Svenn"]);
+        player1.create_prodiges(["Amalrik", "Batsu", "Faine", "Asato"]);
+        player0.create_prodiges(["Alissonne", "Fizz", "Rubis", "Svenn"]);
 
         // Assignation des joueurs à la partie
         this.players = [player0, player1]
@@ -348,17 +343,22 @@ module.exports.Game = class {
                 player.socket.emit('capacity_resolution', state);
             }
         } else {
+            console.log(state);
             state.capacity.owner.socket.emit('capacity_resolution', {'status': state.label});
         }
     }
 
     end_round() {
-        for (let player of this.players) {
+        let player;
+
+        // Le gagnant inflige ses dégâts
+        for (player of this.players) {
             if (player.winner) {
                 let opp = players[player.opp];
                 let prodige = player.get_played_prodigy();
                 let dmg = prodige.degats;
                 opp.hp -= dmg;
+                console.log(prodige.name + ' inflige ' + dmg);
                 let state = {
                     'status': 'done',
                     'label': 'modif_hp',
@@ -371,6 +371,58 @@ module.exports.Game = class {
                 opp.socket.emit('capacity_resolution', state);
                 this.broadcast(prodige.name + ' inflige ' + dmg);
             }
+        }
+
+        let winners = [];
+        for (player of this.players) {
+            if (player.hp <= 0) {
+                winners.push(players[player.opp].pseudo); 
+            }
+        }
+
+        if (winners.length > 0) {
+            for (player of this.players) {
+                player.socket.emit('end_game', winners);
+            }
+        } else {
+            console.log('Clean round ' + this.turn);
+            // On clean le round et on recommence
+            // Détermination du nouveau premier        
+            let p0 = this.get_player_by_order(0);
+            let p1 = this.get_player_by_order(1);
+            if (p0.winner && p1.winner || !p0.winner) {
+                p0.order = 1;
+                p1.order = 0;
+            }
+
+            // On enlève les prodiges joués
+            p0.get_played_prodigy().available = false;
+            p1.get_played_prodigy().available = false;
+            p0.played_prodigy = "";
+            p1.played_prodigy = "";
+
+            // On défausse les glyphes joués et on récupère les feintes
+            for (let p of this.players) {
+                for (let elem in p.played_glyphs) {
+                    if (p.played_glyphs[elem] == 0) p.hand.push(0);
+                    p.played_glyphs[elem] = -1;
+                }
+            }
+
+            // Tour sup' et clean attributs
+            p0.ready = false;
+            p1.ready = false;
+            this.scores = {};
+            this.voies_players = null;
+            this.turn++;
+
+            // Clean front
+            p0.socket.emit('clean_round');
+            p1.socket.emit('clean_round');
+
+            // On rentre de nouveau dans l'état d'attente
+            this.state = {'label': 'wait_prodige', 'order': 0}
+            this.get_player_by_order(0).socket.emit('text_log', 'Choix du Prodige');
         }
     }
 }

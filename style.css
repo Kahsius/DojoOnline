@@ -144,6 +144,10 @@
     border: 5px solid white;
 }
 
+.prodige[playable='false'] {
+    background-color: grey;
+}
+
 .empty_voie {
     display: flex;
     height: 12vh;
@@ -172,6 +176,14 @@
 
 [clicked="true"] {
     border: 5px solid red;
+}
+
+.empty_prodige > .prodige[available="true"] {
+    border: 5px solid red;
+}
+
+.empty_prodige > .prodige[available="true"]:hover {
+    background-color: indigo;
 }
 
 .voie[available="true"] {
@@ -245,4 +257,11 @@
     height: 40%;
     overflow: auto;
     background-color: white;
+}
+
+#winners {
+    font-family: Georgia, serif;
+    font-size: 36px; 
+    align-items: center;
+    justify-content: center;
 }

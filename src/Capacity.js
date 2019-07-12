@@ -95,7 +95,7 @@ module.exports.Capacity = class {
                     targets++;
                 }
             }
-            return (targets - this.choices.length >= this.cost_value);
+            return (targets >= this.cost_value);
         } else {
             // Si le coût a été payé mais qu'il faut quand même une cible
             if (this.data.effect == 'recuperation') {
@@ -105,7 +105,7 @@ module.exports.Capacity = class {
                         targets++;
                     }
                 }
-                return (targets - this.choices.length >= this.value);
+                return (targets - this.choices.length > 0);
             } else if (['oppression', 'pillage'].includes(this.data.effect)) {
                 let value = this.value;
                 for (let glyph of opp.hand) {
@@ -113,7 +113,7 @@ module.exports.Capacity = class {
                         targets++;
                     }
                 }
-                return (targets - this.choices.length >= this.value);
+                return (targets - this.choices.length > 0);
             }
         }
         return true;
@@ -190,6 +190,28 @@ module.exports.Capacity = class {
             }
         }
         return false;
+    }
+
+    choice_available(value){
+        let g;
+        if (['terre', 'eau', 'air', 'feu'].includes(value)){
+            for (let choice of this.choices) {
+                if (choice.element == value) {
+                    return false;
+                }
+            }
+            return true;
+        } else {
+            let count_hand = 0;
+            let count_choices = 0;
+            for (g of this.target.hand) {
+                if (g == value) count_hand++;
+            }
+            for (g of this.choices) {
+                if (g == value) count_choices++;
+            }
+            return count_hand > count_choices;
+        }
     }
 }
 

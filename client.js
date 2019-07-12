@@ -57,7 +57,7 @@ function click_glyph(ev) {
     let parent = node.parentNode;
     let value = node.getAttribute('valeur');
     let target_zone = parent.getAttribute('class');
-    let element = target_zone == 'empty_voie' ? parent.getAttribute('id').split('-')[1] : '';
+    let element = target_zone == 'empty_voie' ? parent.getAttribute('id').split('-')[1] : 'hand_glyphes';
     socket.emit('click', {
         'value': value,
         'target_zone': target_zone,
@@ -68,18 +68,23 @@ function click_glyph(ev) {
 function click_voie(ev) {
     let node = ev.currentTarget;
     let element = node.getAttribute('id').split('_')[1];
-    socket.emit('click', {'element': element, 'maitrise': false});
+    socket.emit('click', {
+        'element': element,
+        'maitrise': false,
+        'target_zone': 'voie'
+    });
 }
 
-function get_num_current_click() {
-    glyphs = document.getElementsByClassName("glyphe")
-    num_current_click = 0;
-    for (let i = 0; i < glyphs.length; i++) {
-        if (glyphs[i].getAttribute("clicked") == "true") {
-            num_current_click++;
-        }
+function click_prodige(ev) {
+    let node = ev.currentTarget;
+    if (node.parentNode.getAttribute('class') == 'empty_prodige') {
+        let element = node.getAttribute('element');
+        socket.emit('click', {
+            'element': element,
+            'maitrise': true,
+            'target_zone': 'prodige'
+        });
     }
-    return num_current_click;
 }
 
 function create_glyph(v) {
@@ -108,6 +113,9 @@ function create_prodige(data, opp=false) {
 
     prodige.setAttribute("id", data.name);
     prodige.setAttribute("class", "prodige");
+    prodige.setAttribute("available", "false");
+    prodige.setAttribute('element', data.element);
+    prodige.setAttribute("onclick", "click_prodige(event);");
     
     puissance.setAttribute("id", "puissance_" + data.name);
     puissance.setAttribute("class", "puissance");
@@ -127,7 +135,7 @@ function create_prodige(data, opp=false) {
     if (!opp) {
         prodige.setAttribute("draggable", "true");
         prodige.setAttribute("ondragstart", "drag(event)");
-        prodige.setAttribute('available', 'true')
+        prodige.setAttribute('available', 'false')
     }
     return prodige;
 }
@@ -338,10 +346,15 @@ socket.on('choices_voies', function(effects){
     for (let node of document.getElementsByClassName('voie')){
         node.setAttribute('available', 'false');
     }
+    let prodige = document.getElementById('empty_prodige_j1').children[0];
+    prodige.setAttribute('available', 'false');
     for (let effect of effects) {
         if (effect.display) {
             voie = document.getElementById('voie_' + effect.element);
             voie.setAttribute('available', 'true');
+            if (prodige.getAttribute('element') == effect.element) {
+                prodige.setAttribute('available', 'true');
+            }
         }
     }
 });
@@ -374,7 +387,6 @@ socket.on('capacity_resolution', function(state){
     }
     if (state.status == 'done') {
         if (state.label == 'recuperation') {
-            debugger;
             if (state.target == 'own' && state.me
                 || state.target == 'opp' && !state.me) {
                 for (let item of state.choices) {
@@ -386,10 +398,10 @@ socket.on('capacity_resolution', function(state){
             } else if (state.target == 'opp' && state.me
                 || state.target == 'own' && !state.me) {
                 for (let item of state.choices) {
-                    voie = document.getElementById('j0_' + item.element);
+                    voie = document.getElementById('j0-' + item.element);
                     id = voie.children[0].getAttribute('id');
                     voie.innerHTML = '';
-                    document.getElementById('hand_glyphes_j1').appendChild(create_glyph(-1));
+                    document.getElementById('hand_glyphes_j0').appendChild(create_glyph(-1));
                 }
             }
         } else if (state.label == 'modif_degats') {
@@ -410,8 +422,8 @@ socket.on('capacity_resolution', function(state){
             }
             if (state.target == 'opp' && state.me
                 || state.target == 'own' && !state.me) {
-                d_opp.innerHTML = parseInt(d.innerHTML) + state.value;
-                p_opp.innerHTML = parseInt(p.innerHTML) + state.value;
+                d_opp.innerHTML = parseInt(d_opp.innerHTML) + state.value;
+                p_opp.innerHTML = parseInt(p_opp.innerHTML) + state.value;
             }
         } else if (state.label == 'modif_hp') {
             if (state.target == 'own' && state.me
@@ -517,3 +529,43 @@ socket.on('capacity_resolution', function(state){
     }
 });
 
+socket.on('clean_round', function() {
+    let ev, g;
+
+    let p0 = document.getElementById('empty_prodige_j0');
+    let p1 = document.getElementById('empty_prodige_j1');
+
+    p0.children[0].setAttribute('playable', 'false');
+    p1.children[0].setAttribute('playable', 'false');
+
+    document.getElementById('hand_prodiges_j0').appendChild(p0.children[0]);
+    document.getElementById('hand_prodiges_j1').appendChild(p1.children[0]);
+
+    for (let i of [0, 1]) {
+        for (let element of ['terre', 'air', 'feu', 'eau']) {
+            ev = document.getElementById('j' + i + '-' + element);
+            g = ev.children[0];
+            if (g.getAttribute('valeur') == 0) {
+                if (i == 1) document.getElementById('hand_glyphes_j' + i).appendChild(g);
+                if (i == 0) {
+                    document.getElementById('hand_glyphes_j' + i).appendChild(create_glyph(-1));
+                    g.remove();
+                }
+            } else {
+                g.remove();
+            }
+        }
+    }
+});
+
+socket.on('end_game', function(winners){
+    document.getElementById('main').style.display = 'none';
+    document.getElementById('end').style.display = 'flex';
+    let win = document.getElementById('winners');
+    if (winners.length == 1) {
+        win.innerHTML = winners[0] + ' est le plus grand Maître de Dojo ! \\o/';
+    } else if (winners.length == 2) {
+        win.innerHTML = 'Vous n\'avez pas réussi à vous départager, try again 8)';
+    }
+    socket.emit('delete_game');
+});

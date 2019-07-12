@@ -1,7 +1,6 @@
 TODO
 
 EN COURS
-- vérifier pourquoi feedback récup est pas fait pour adversaire
 - faire maitrises
 - clean round et recommencer
 
@@ -12,3 +11,4 @@ A FAIRE
 - enlever validation glyphes si adverse change glyphe sur regard (les autres osef)
 - recoder oppression / pillage / sacrifice
 - mettre à jour capa.value avec capa.modif une seule fois au début du tour
+- faire un capa.check_condition(owner) avant de dire que la maitrise est available

@@ -11,7 +11,7 @@ module.exports.Player = class {
         this.played_prodigy = null;
         this.prodiges = {};
         this.hp = settings.BASE_HP;
-        this.has_regard = true;
+        this.has_regard = false;
         this.winner = false;
         this.ready = false;
         this.order = order;
@@ -120,7 +120,8 @@ module.exports.Player = class {
             prodiges.push({
                 'name': p.name,
                 'p': p.puissance,
-                'd': p.degats
+                'd': p.degats,
+                'element': p.element
             });
         }
         return prodiges;

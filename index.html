@@ -11,6 +11,16 @@
         <div id='waiting' style='display: none;'>En attente d'un adversaire</div>
         <div id='main' style='display: none;'>
             <div class='panel_left'>
+                <div class='summary'>
+                    <div>
+                        <div> PV adverses : </div>
+                        <div id='hp_j0'></div>
+                    </div>
+                    <div>
+                        <div> PV : </div>
+                        <div id='hp_j1'></div>
+                    </div>
+                </div>
                 <div class='log'></div>
             </div>
             <div class='panel_right'>
@@ -28,10 +38,10 @@
                         </div>
                         <div class='ligne_centre' style="height: 3vh;"></div>
                         <div class='ligne_centre'>
-                            <div class='voie'>AIR</div>
-                            <div class='voie'>EAU</div>
-                            <div class='voie'>TERRE</div>
-                            <div class='voie'>FEU</div>
+                            <div class='voie' id='voie_air' onclick="click_voie(event)">AIR</div>
+                            <div class='voie' id='voie_eau' onclick="click_voie(event)">EAU</div>
+                            <div class='voie' id='voie_terre' onclick="click_voie(event)">TERRE</div>
+                            <div class='voie' id='voie_feu' onclick="click_voie(event)">FEU</div>
                         </div>
                         <div class='ligne_centre' style="height: 3vh;"></div>
                         <div class='ligne_centre' id='ligne_centre_player'>
@@ -55,6 +65,9 @@
                     <div class='hand_prodiges' id='hand_prodiges_j1' ondrop="drop(event)" ondragover="event.preventDefault();"></div>
                 </div>            
             </div>
+        </div>
+        <div id='end' style='display: none;'>
+            <div id='winners'></div>
         </div>
         <script src="/socket.io/socket.io.js"></script>
         <script src= "./client.js"></script>

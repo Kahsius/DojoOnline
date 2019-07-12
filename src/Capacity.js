@@ -8,6 +8,7 @@ module.exports.Capacity = class {
 		this.owner = owner;
 
 		this.target = (json['target']) ? json['target'] : null;
+        this.target_label = this.target;
         this.condition = (json['condition']) ? json['condition'] : "none";
         this.need_winner = false;
         if ((json['condition'] !== undefined)) {
@@ -27,7 +28,7 @@ module.exports.Capacity = class {
         this.need_choice = (['recuperation', 'oppression',
             'pillage'].includes(json['effect']) || this.cost);
         this.choice_made = false;
-        this.choice = [];
+        this.choices = [];
         this.stopped = false;
         this.data = json;
         this.done = false;
@@ -37,10 +38,10 @@ module.exports.Capacity = class {
     	let o = this.owner;
         let p = o.get_played_prodigy().name;
         let msg = p + ' applique : ' + this.get_string_effect(turn);
-	    if (this.check_condition(o)
-            && !this.stopped
-            && this.available_targets()) {
-	        if (this.cost && !this.cost_paid) {
+	    if (this.check_condition(o) && !this.stopped) {
+	        if (this.cost
+                && !this.cost_paid
+                && this.available_targets()) {
                 let state = {'label': 'paying_cost',
                     'value': this.cost_value,
                     'cost_type': this.cost_type,
@@ -48,49 +49,72 @@ module.exports.Capacity = class {
                 return state;
 	        }
             if (this.need_choice
-                && !this.choice.length != this.value
+                && this.choices.length != this.value
                 && this.available_targets()) {
                 let state = {'label': 'waiting_choice',
                     'value': this.cost_value,
-                    'capacity': this};
+                    'capacity': this,
+                    'target_zone': this.get_target_zone()};
                 return state;
             }
             this.owner.socket.emit('text_log', msg);
             players[this.owner.opp].socket.emit('text_log', msg);
 
             this.set_target();
-            let modif = this.get_modification(turn);
-	        for (let i of range(0, modif)) {
-	            this.effect(this);
-	        }
-	    }
+            this.value *= this.get_modification(turn);
+            return this.effect(this);
+	    } else if (this.check_condition(o)
+            && !this.available_targets()) {
+            this.set_target();
+            return this.effect(this);
+        }
         return false;
 	}
 
+    get_target_zone(){
+        let e = this.data.effect;
+        if (this.data.cost_type == 'glyph' && !this.cost_paid){
+            return 'hand_glyphes';
+        } else {
+            if (['oppression', 'pillage'].includes(e)) {
+                return 'hand_glyphes';
+            } else if (e == 'recuperation') {
+                return 'empty_voie';
+            } 
+        }
+    }
+
     available_targets() {
         let opp = players[this.owner.opp];
+        let own = this.owner;
         let targets = 0;
-        if (this.data.effect == 'recuperation') {
-            for (let element in this.owner.played_glyphs) {
-                if (this.owner.played_glyphs[element] > 0) {
-                    targets++;
-                }
-            }
-            return (targets < this.choice.length);
-        } else if (['oppression', 'pillage'].includes(this.data.effect)) {
-            for (let glyph of opp.hand) {
-                if (glyph > 0) {
-                    targets++;
-                }
-            }
-            return (targets < this.choice.length);
-        } else if (this.data.cost_type == 'glyph') {
+        if (this.data.cost_type == 'glyph' && !this.cost_paid){
+            // Si le coût n'a pas encore été payé
             for (let glyph of this.owner.hand) {
                 if (glyph > 0) {
                     targets++;
                 }
             }
-            return (targets < this.choice.length);
+            return (targets >= this.cost_value);
+        } else {
+            // Si le coût a été payé mais qu'il faut quand même une cible
+            if (this.data.effect == 'recuperation') {
+                let value = this.value;
+                for (let element in own.played_glyphs) {
+                    if (own.played_glyphs[element] > 0) {
+                        targets++;
+                    }
+                }
+                return (targets - this.choices.length > 0);
+            } else if (['oppression', 'pillage'].includes(this.data.effect)) {
+                let value = this.value;
+                for (let glyph of opp.hand) {
+                    if (glyph > 0) {
+                        targets++;
+                    }
+                }
+                return (targets - this.choices.length > 0);
+            }
         }
         return true;
     }
@@ -103,9 +127,11 @@ module.exports.Capacity = class {
         let opp = players[own.opp];
 	    if (t == "opp") {
 	        this.target = (c) ? own : opp;
+            this.target_label = (c) ? 'own' : 'opp';
 	    }
 	    else if (t == "owner") {
 	        this.target = (c) ? opp : own;
+            this.target_label = (c) ? 'opp' : 'own';
 	    }
 	}
 
@@ -156,6 +182,37 @@ module.exports.Capacity = class {
 	    string = (!d['value']) ? string : string + parseInt(d['value']) * modif;
 	    return string;
 	}
+
+    need_more_targets(){
+        if (this.need_choice) {
+            if (this.choices.length < this.value) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    choice_available(value){
+        let g;
+        if (['terre', 'eau', 'air', 'feu'].includes(value)){
+            for (let choice of this.choices) {
+                if (choice.element == value) {
+                    return false;
+                }
+            }
+            return true;
+        } else {
+            let count_hand = 0;
+            let count_choices = 0;
+            for (g of this.target.hand) {
+                if (g == value) count_hand++;
+            }
+            for (g of this.choices) {
+                if (g == value) count_choices++;
+            }
+            return count_hand > count_choices;
+        }
+    }
 }
 
 var effets = {};
@@ -163,58 +220,72 @@ var effets = {};
 effets['recuperation'] = function(capa) {
     let v = capa.value;
     let t = capa.target;
-    let count = 0;
-    let socket = t.socket;
-    let done = false;
-    socket.once('answer_for_glyphs', function(list){
-        if (list.length <= v){
-            let ok = true;
-            for (element of list){
-                if (t.played_glyphs[element] < 1) ok = false;
-            }
-            if (!ok) {
-                // TODO faire les event nok et ok dans client.js
-                socket.emit('nok', 'Certains glyphes ne sont pas valides');
-            } else {
-                socket.emit('ok');
-                for (element of list){
-                    t.hand.push(t.played_glyphs[element]);
-                    t.played_glyphs[element] = -1;
-                }
-                done = true;
-            }
-        } else {
-            socket.emit('nok', 'Trop de glyphes retournés');
-        }
-    });
-    socket.emit('ask_for_glyphs', {'where': 'voie', 'howmany': n});
-    while (!done){
-        setTimeout(function(){}, 500);
+    let choices = capa.choices;
+    for (let c of choices) {
+        t.hand.push(parseInt(c.value));
+        t.played_glyphs[c.element] = -1;
+    }
+    return {
+        'label': 'recuperation',
+        'choices': capa.choices,
+        'status': 'done',
+		'target': capa.target_label,
+        'owner': capa.owner.socket.id
     }
 }
+
 
 effets['modif_degats'] = function(capa) {
     let p = capa.target.get_played_prodigy();
     let v = capa.value;
     p.degats = (p.protected && v < 0) ? p.degats : p.degats + v;
+    return {
+        'label': 'modif_degats',
+        'value': capa.value,
+        'status': 'done',
+		'target': capa.target_label,
+		'owner': capa.owner.socket.id
+    }
 }
+
 
 effets['modif_puissance'] = function(capa) {
     let p = capa.target.get_played_prodigy();
     let v = capa.value;
     p.puissance = (p.protected && v < 0) ? p.puissance : p.puissance + v;
+    return {
+        'label': 'modif_puissance',
+        'value': capa.value,
+        'status': 'done',
+		'target': capa.target_label,
+		'owner': capa.owner.socket.id
+    }
 }
 
 
 effets['modif_puissance_degats'] = function(capa) {
     effets['modif_puissance'](capa);
     effets['modif_degats'](capa);
+    return {
+        'label': 'modif_puissance_degats',
+        'value': capa.value,
+        'status': 'done',
+		'target': capa.target_label,
+		'owner': capa.owner.socket.id
+    }
 }
 
 
 effets['modif_hp'] = function(capa) {
     let p = capa.target;
     p.hp = p.hp + capa.value;
+    return {
+        'label': 'modif_hp',
+        'value': capa.value,
+        'status': 'done',
+		'target': capa.target_label,
+		'owner': capa.owner.socket.id
+    }
 }
 
 
@@ -222,6 +293,12 @@ effets['stop_talent'] = function(capa) {
     let p = capa.target.get_played_prodigy();
     if (!p.protected) {
         p.talent.stopped = true;
+    }
+    return {
+        'label': 'stop_talent',
+        'status': 'done',
+		'target': capa.target_label,
+		'owner': capa.owner.socket.id
     }
 }
 
@@ -231,29 +308,61 @@ effets['stop_maitrise'] = function(capa) {
     if (!p.protected) {
         p.maitrise.stopped = true;
     }
+    return {
+        'label': 'stop_maitrise',
+        'status': 'done',
+		'target': capa.target_label,
+		'owner': capa.owner.socket.id
+    }
 }
 
 
 effets['protection'] = function(capa) {
     capa.target.get_played_prodigy().protected = true;
+    return {
+        'label': 'protection',
+        'status': 'done',
+		'target': capa.target_label,
+		'owner': capa.owner.socket.id
+    }
 }
 
 
 effets['echange_p'] = function(capa) {
     let p1 = capa.target.get_played_prodigy();
     let p2 = capa.target.opp.get_played_prodigy();
-    let pp1 = p1.base_puissance;
-    p1.base_puissance = p2.base_puissance;
-    p2.base_puissance = pp1;
+    let bp1 = p1.base_puissance;
+    let bp2 = p2.base_puissance;
+    p1.base_puissance = bp2;
+    p1.puissance = p1.puissance - bp1 + bp2;
+    p2.base_puissance = bp1;
+    p2.puissance = p2.puissance - bp2 + bp1;
+    return {
+        'label': 'echange_p',
+        'status': 'done',
+        'values' : [p1.puissance, p2.puissance],
+		'target': capa.target_label,
+		'owner': capa.owner.socket.id
+    }
 }
 
 
 effets['echange_d'] = function(capa) {
-    let p1 = capa.target.get_played_prodigy();
-    let p2 = capa.target.opp.get_played_prodigy();
-    let dp1 = p1.base_degats;
-    p1.base_degats = p2.base_degats;
-    p2.base_degats = dp1;
+    let d1 = capa.target.get_played_prodigy();
+    let d2 = capa.target.opp.get_played_prodigy();
+    let bd1 = p1.base_degats;
+    let bd2 = p2.base_degats;
+    d1.base_degats = bd2;
+    d1.degats = d1.degats - bd1 + bd2;
+    d2.base_degats = bp1;
+    d2.degats = d2.degats - bd2 + bd1;
+    return {
+        'label': 'echange_p',
+        'status': 'done',
+        'values' : [p1.degats, p2.degats],
+        'target': capa.target_label,
+		'owner': capa.owner.socket.id
+    }
 }
 
 
@@ -265,6 +374,12 @@ effets['copy_talent'] = function(capa) {
     let json = clone.data;
     clone.target = (json['target']) ? json['target'] : null;
     clone.execute_capacity();
+    return {
+        'label': 'copy_talent',
+        'status': 'done',
+		'target': capa.target_label,
+		'owner': capa.owner.socket.id
+    }
 }
 
 
@@ -276,6 +391,12 @@ effets['copy_maitrise'] = function(capa) {
     let json = clone.data;
     clone.target = (json['target']) ? json['target'] : null;
     clone.execute_capacity();
+    return {
+        'label': 'copy_maitrise',
+        'status': 'done',
+		'target': capa.target_label,
+		'owner': capa.owner.socket.id
+    }
 }
 
 
@@ -294,6 +415,13 @@ effets['oppression'] = function(capa) {
             t.hand.splice(index, 1);
             count = count + 1;
         }
+    }
+    return {
+        'label': 'oppression',
+        'choices': capa.choices,
+        'status': 'done',
+		'target': capa.target_label,
+		'owner': capa.owner.socket.id
     }
 }
 
@@ -315,16 +443,35 @@ effets['pillage'] = function(capa) {
             count = count + 1;
         }
     }
+    return {
+        'label': 'pillage',
+        'choices': capa.choices,
+        'status': 'done',
+		'target': capa.target_label,
+		'owner': capa.owner.socket.id
+    }
 }
 
 
 effets['initiative'] = function(capa) {
     capa.target.get_played_prodigy().initiative = true;
+    return {
+        'label': 'initiative',
+        'status': 'done',
+		'target': capa.target_label,
+		'owner': capa.owner.socket.id
+    }
 }
 
 
 effets['avantage'] = function(capa) {
     capa.target.get_played_prodigy().advantaged = true;
+    return {
+        'label': 'avantage',
+        'status': 'done',
+		'target': capa.target_label,
+		'owner': capa.owner.socket.id
+    }
 }
 
 
@@ -333,12 +480,32 @@ effets['vampirism'] = function(capa) {
     let t = capa.target;
     t.hp = t.hp - v;
     t.opp.hp = t.opp.hp + v;
+    return {
+        'label': 'vampirism',
+        'value': v,
+        'status': 'done',
+		'target': capa.target_label,
+		'owner': capa.owner.socket.id
+    }
 }
 
 
 effets['regard'] = function(capa) {
     capa.target.has_regard = true;
+    return {
+        'label': 'regard',
+        'status': 'done',
+		'target': capa.target_label,
+		'owner': capa.owner.socket.id
+    }
 }
 
 
-effets['nothing'] = function(capa) {}
+effets['nothing'] = function(capa) {
+    return {
+        'label': 'nothing',
+        'status': 'done',
+		'target': capa.target_label,
+		'owner': capa.owner.socket.id
+    }
+}

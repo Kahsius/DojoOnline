@@ -20,18 +20,15 @@ voie_data = get_json_data('./data/voies.json', 'element');
 module.exports.Game = class {
     constructor(room) {
         this.turn = 0;
-        this.first_player = null;
-        this.choix = 'prodige';
-        this.score_voies = [];
         this.winner = null;
-        this.pause = "nope";
         this.state = {};
         this.scores = {};
+        this.voies_players = null;
 
         // Création des voies
-        this.voies = [];
+        this.voies = {};
         for(let element in voie_data) {
-            this.voies.push(new Voie(voie_data[element]));
+            this.voies[element] = new Voie(voie_data[element]);
         }        
 
         // Création des joueurs
@@ -47,9 +44,8 @@ module.exports.Game = class {
         players[id1] = player1;
 
         // Création des prodiges
-        // TODO /!\ DRAFT /!\
-        player0.create_prodiges(["Amalrik", "Batsu", "Faine", "Asato"]);
-        player1.create_prodiges(["Alissonne", "Fizz", "Rubis", "Svenn"]);
+        player1.create_prodiges(["Amalrik", "Batsu", "Faine", "Asato"]);
+        player0.create_prodiges(["Alissonne", "Fizz", "Rubis", "Svenn"]);
 
         // Assignation des joueurs à la partie
         this.players = [player0, player1]
@@ -67,76 +63,80 @@ module.exports.Game = class {
         let t, order, player, p;
 
         if (this.state.label == 'talents:priority') {
-            order = this.state.player;
-            player = this.get_player_by_order(this.state.player);
+            order = this.state.order;
+            player = this.get_player_by_order(order);
             t = player.get_played_prodigy().talent;
             if (t.priority) {
                 let state = t.execute_capacity(this.turn);
-                if (state) {
+                this.update_front(state);
+                if (state.status != 'done') {
                     this.substate = state;
-                    player.socket.emit('capacity_ongoing', state.label);
-                } else if (this.state.player == 0) {
-                    this.state.player++;
+                } else if (this.state.order == 0) {
+                    this.state.order++;
                     this.apply_talents();
                 } else {
                     this.state.label = 'talents:normal';
-                    this.state.player = 0;
+                    this.state.order = 0;
                     this.apply_talents();
                 }
-            } else if (this.state.player == 0) {
-                this.state.player++;
+            } else if (this.state.order == 0) {
+                this.state.order++;
                 this.apply_talents();
             } else {
                 this.state.label = 'talents:normal';
-                this.state.player = 0;
+                this.state.order = 0;
                 this.apply_talents();
             }
         } else if (this.state.label == 'talents:normal') {
-            order = this.state.player;
-            player = this.get_player_by_order(this.state.player);
+            order = this.state.order;
+            player = this.get_player_by_order(this.state.order);
             t = player.get_played_prodigy().talent;
             if (!t.priority && !t.need_winner) {
                 let state = t.execute_capacity(this.turn);
-                if (state) {
+                this.update_front(state);
+                if (state.status != 'done') {
                     this.substate = state;
                     player.socket.emit('capacity_ongoing', state.label);
-                } else if (this.state.player == 0) {
-                    this.state.player++;
+                } else if (this.state.order == 0) {
+                    this.state.order++;
                     this.apply_talents();
                 } else {
                     game.state.label = 'choice_glyphes';
                     io.to(player.socket.room).emit('text_log', 'Choix des Glyphes');
                 }
-            } else if (this.state.player == 0) {
-                this.state.player++;
+            } else if (this.state.order == 0) {
+                this.state.order++;
                 this.apply_talents();
             } else {
                 game.state.label = 'choice_glyphes';
                 io.to(player.socket.room).emit('text_log', 'Choix des Glyphes');
             }
         } else if (this.state.label == 'talents:post_winner') {
-            player = this.get_player_by_order(this.state.player);
+            player = this.get_player_by_order(this.state.order);
             p = player.get_played_prodigy();
             if (p.talent.need_winner){
                 let state = p.talent.execute_capacity(this.turn);
-                if (state) {
+                this.update_front(state);
+                if (state.status != 'done') {
                     this.substate = state;
                     player.socket.emit('capacity_ongoing', state.label);
-                } else if (this.state.player == 0) {
-                    this.state.player++;
+                } else if (this.state.order == 0) {
+                    this.state.order++;
                     this.apply_talents();
                 } else {
                     this.state.label = 'apply_voies';
-                    this.apply_voies();
+                    this.substate = {};            
+                    this.get_voies_players();
                     io.to(player.socket.room).emit('text_log', 'Application des Voies');
                 }
-            } else if (this.state.player == 0) {
-                this.state.player++;
+            } else if (this.state.order == 0) {
+                this.state.order++;
                 this.apply_talents();
             } else {
                 this.state.label = 'apply_voies';
+                this.state.order = 0;
                 io.to(player.socket.room).emit('text_log', 'Application des Voies');
-                this.apply_voies();
+                this.get_voies_players();
             }
         }
     }
@@ -170,50 +170,96 @@ module.exports.Game = class {
         players[(winner + 1) % 2].winner = (winner != 2) ? false : true
 
         // Application des Talents éventuels
-        this.state.labe = 'talents:post_winner';
+        this.state.label = 'talents:post_winner';
+        this.state.order = 0;
         this.apply_talents();
     }
 
-    apply_voies(){
-        // TODO à refondre pour que les joueurs puissent
-        // choisir dans quels ordres ils appliquent les effets
-        // Application des effets des Voies
+    get_voies_players(){
         console.log('Application des Voies');
-        let i, j;
-        let scores = this.scores;
+        let element_ok, not_stopped, effect, p, v, p1_win, p2_win, i, j, scores, effects;
+
+        scores = this.scores;
+        effects = [[],[]];
         for (i of range(0, 2)) {
-            let p = this.get_player_by_order(i);
+            p = this.get_player_by_order(i);
             // On étudie toutes les voies
             for (j in this.voies) {
-                let v = this.voies[j];
-                let p1_win = (scores[v.element] == -1 && i == 0);
-                let p2_win = (scores[v.element] == 1 && i == 1);
+                v = this.voies[j];
+                p1_win = (scores[v.element] == -1 && i == 0);
+                p2_win = (scores[v.element] == 1 && i == 1);
                 if ( p1_win || p2_win ) {
                     console.log(p.get_played_prodigy().name + "_" + p.order + " remporte " + v.element);
                     // S'il peut activer sa maîtrise
-                    let element_ok = (v.element == p.get_played_prodigy().element);
-                    let not_stopped = !p.get_played_prodigy().maitrise.stopped;
-                    if (element_ok && not_stopped) {
-                        // TODO demander choix entre maitrise et voie
-                        console.log("\tet peut appliquer sa Maitrise");
-                        p.socket.once('choix_maitrise_voie', function(choix){
-                            if (choix == 'maitrise'){
-                                p.get_played_prodigy().maitrise.execute_capacity(this.turn);
-                            } else if (choix == 'voie'){
-                                v.capacity.owner = p;
-                                v.capacity.execute_capacity(this.turn);
-                            }
-                            this.pause = "nope";
-                        });
-                        this.pause = 'yep';
-                        socket.emit('choix_maitrise_voie', v);
-                        while (this.pause != 'nope'){
-                            setTimeout(function(){}, 500);
-                        }
+                    element_ok = (v.element == p.get_played_prodigy().element);
+                    not_stopped = !p.get_played_prodigy().maitrise.stopped;
+                    effect = {'element': j, 'playable': true, 'display': true};
+                    effect.maitrise = (element_ok && not_stopped) ? true : false
+                    effects[i].push(effect);
+                }
+            }
+        }
+        this.voies_players = effects;
+        this.state.label = 'init_choice_voie';
+        this.substate = {'label': 'none'};
+        this.apply_voies_players()
+    }
+
+    apply_voies_players(){
+        let label = this.state.label;
+        let order = this.state.order;
+        let element = this.state.element;
+        let player = this.get_player_by_order(order);
+        let c, p;
+        if(label == 'init_choice_voie'){
+            let effects = this.voies_players[order];
+            let still = false;
+            for (let effect of this.voies_players[order]) {
+                if (effect.playable) {
+                    still = true;
+                    break;
+                } 
+            }
+            if (!still) {
+                if(order == 0) {
+                    player.socket.emit('text_log', 'Aucun effet à appliquer');
+                    this.state.order++;
+                    this.apply_voies_players();
+                } else if (order == 1) {
+                    player.socket.emit('text_log', 'Aucun effet à appliquer');
+                    this.state.label = 'end_round';
+                    this.end_round();
+                }
+            } else {
+                this.state.label = 'choice_voie';
+                player.socket.emit('choices_voies', effects);
+            }
+        } else if (label == 'execute_voie') {
+            for (let effect of this.voies_players[order]) {
+                if (effect.element == element
+                    && effect.playable) {
+                    if (this.state.maitrise) {
+                        p = player.get_played_prodigy();
+                        c = p.maitrise;
+                        this.broadcast('Application Maîtrise ' + p.name);
                     } else {
-                        console.log("\tet applique son effet")
-                        v.capacity.owner = p
-                        v.capacity.execute_capacity(this.turn)
+                        c = this.voies[element].capacity;
+                        c.owner = this.get_player_by_order(order);
+                        this.broadcast('Application voie ' + element);
+                    }
+                    effect.display = false;
+                    player.socket.emit('choices_voies', this.voies_players[order]);
+                    let state = c.execute_capacity();
+                    this.update_front(state);
+                    if (state.status != 'done') {
+                        this.substate = state;
+                        player.socket.emit('capacity_ongoing', state.label);
+                    } else {
+                        // TODO mettre à jour l'état de la partie pour les deux joueurs
+                        effect.playable = false;
+                        this.state.label = 'init_choice_voie';
+                        this.substate = {'label': 'none'};
+                        this.apply_voies_players();
                     }
                 }
             }
@@ -258,5 +304,125 @@ module.exports.Game = class {
             }
         }
         return true;
+    }
+
+    broadcast(msg) {
+        io.to(this.players[0].socket.room).emit('text_log', msg);
+    }
+
+    get_state_front(id) {
+        let player = players[id];
+        let opp = players[player.opp];
+        let state = {};
+        state.hand = player.hand;
+        state.played_glyphs = player.played_glyphs;
+
+        let prodiges = {};
+        for (let p in player.prodiges) {
+            prodiges[p.name] = {'name': p.name, 'available': p.available};
+        }
+        prodiges[p.played_prodigy].played = true;
+        state.prodiges = prodiges;
+
+        prodiges = {};
+        for (let p in opp.prodiges) {
+            prodiges[p.name] = {'name': p.name, 'available': p.available};
+        }
+        prodiges[p.played_prodigy].played = false;
+        state.prodiges_opp = prodiges;
+
+        state.hand_opp = opp.get_hand_state();
+        state.hp = player.hp;
+        state.hp_opp = opp.hp;
+    }    
+
+    update_front(state) {
+        if (state.status == 'done') {
+            for (let player of this.players) {
+                state.me = (state.owner == player.socket.id) ? true : false;
+                player.socket.emit('capacity_resolution', state);
+            }
+        } else {
+            console.log(state);
+            state.capacity.owner.socket.emit('capacity_resolution', {'status': state.label});
+        }
+    }
+
+    end_round() {
+        let player;
+
+        // Le gagnant inflige ses dégâts
+        for (player of this.players) {
+            if (player.winner) {
+                let opp = players[player.opp];
+                let prodige = player.get_played_prodigy();
+                let dmg = prodige.degats;
+                opp.hp -= dmg;
+                console.log(prodige.name + ' inflige ' + dmg);
+                let state = {
+                    'status': 'done',
+                    'label': 'modif_hp',
+                    'value': -dmg,
+                    'target': 'opp',
+                    'me': true
+                };
+                player.socket.emit('capacity_resolution', state);
+                state.me = false;
+                opp.socket.emit('capacity_resolution', state);
+                this.broadcast(prodige.name + ' inflige ' + dmg);
+            }
+        }
+
+        let winners = [];
+        for (player of this.players) {
+            if (player.hp <= 0) {
+                winners.push(players[player.opp].pseudo); 
+            }
+        }
+
+        if (winners.length > 0) {
+            for (player of this.players) {
+                player.socket.emit('end_game', winners);
+            }
+        } else {
+            console.log('Clean round ' + this.turn);
+            // On clean le round et on recommence
+            // Détermination du nouveau premier        
+            let p0 = this.get_player_by_order(0);
+            let p1 = this.get_player_by_order(1);
+            if (p0.winner && p1.winner || !p0.winner) {
+                p0.order = 1;
+                p1.order = 0;
+            }
+
+            // On enlève les prodiges joués
+            p0.get_played_prodigy().available = false;
+            p1.get_played_prodigy().available = false;
+            p0.played_prodigy = "";
+            p1.played_prodigy = "";
+
+            // On défausse les glyphes joués et on récupère les feintes
+            for (let p of this.players) {
+                for (let elem in p.played_glyphs) {
+                    if (p.played_glyphs[elem] == 0) p.hand.push(0);
+                    p.played_glyphs[elem] = -1;
+                }
+            }
+
+            // Tour sup' et clean attributs
+            p0.ready = false;
+            p1.ready = false;
+            this.scores = {};
+            this.voies_players = null;
+            this.turn++;
+
+            // Clean front
+            p0.socket.emit('clean_round');
+            p1.socket.emit('clean_round');
+
+            // On rentre de nouveau dans l'état d'attente
+            this.state = {'label': 'wait_prodige', 'order': 0}
+            this.get_player_by_order(0).socket.emit('text_log', 'Choix du Prodige');
+        }
     }
 }

@@ -1,4 +1,5 @@
 const settings = require("../settings");
+const range = require("./utils").range;
 const Prodige = require('./Prodige').Prodige;
 
 module.exports.Player = class {
@@ -10,7 +11,7 @@ module.exports.Player = class {
         this.played_prodigy = null;
         this.prodiges = {};
         this.hp = settings.BASE_HP;
-        this.has_regard = true;
+        this.has_regard = false;
         this.winner = false;
         this.ready = false;
         this.order = order;
@@ -61,7 +62,6 @@ module.exports.Player = class {
 
     create_prodiges(list_names){
         for (let name of list_names) {
-            // A modifier pour créer les objets Prodiges
             this.prodiges[name] = new Prodige(prodige_data[name], this);
         }
     }
@@ -99,5 +99,31 @@ module.exports.Player = class {
             console.log('...non validé (choix invalide ou prodige not in P.prodiges)')
             return({'valid': false, 'text': p.name + ' n\'est pas dans votre main'});
         }
+    }
+
+    get_hand_state() {
+        let state = {};
+        for (let i in range(0, 6)) {
+            state[i] = 0;
+        }
+        for (let g of this.hand) {
+            state[g]++;
+        }
+        return state;
+    }
+
+    get_prodiges_front() {
+        var prodiges = [];
+        let p;
+        for (let name in this.prodiges) {
+            p = this.prodiges[name];
+            prodiges.push({
+                'name': p.name,
+                'p': p.puissance,
+                'd': p.degats,
+                'element': p.element
+            });
+        }
+        return prodiges;
     }
 }

@@ -5,3 +5,4 @@ EN COURS
 - recoder oppression / pillage / sacrifice
 
 A FAIRE
+- liste des status (regard, avantage, initiative)

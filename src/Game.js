@@ -324,30 +324,63 @@ module.exports.Game = class {
         io.to(this.players[0].socket.room).emit(cmd, data);
     }
 
-    get_state_front(id) {
+    get_state(id) {
         let player = players[id];
         let opp = players[player.opp];
         let state = {};
-        state.hand = player.hand;
-        state.played_glyphs = player.played_glyphs;
+
+        state.me = {};
+        state.me.hand = player.hand;
+        state.me.played_glyphs = player.played_glyphs;
+        state.me.has_regard = player.has_regard;
+
+        state.opp = {};
+        state.opp.hand = opp.hand.length;
+        state.opp.played_glyphs = {};
+        for (let elem in opp.played_glyphs) {
+            state.opp.played_glyphs[elem] = (player.has_regard) ? opp.played_glyphs[elem] : -2;
+        }
 
         let prodiges = {};
-        for (let p in player.prodiges) {
-            prodiges[p.name] = {'name': p.name, 'available': p.available};
+        let p;
+        for (let name in player.prodiges) {
+            p = player.prodiges[name];
+            prodiges[p.name] = {'available': p.available};
         }
-        prodiges[p.played_prodigy].played = true;
-        state.prodiges = prodiges;
+        p = prodiges[player.played_prodigy];
+        if (player.played_prodigy) {
+            p.played = true;
+            p.p = player.get_played_prodigy().puissance;
+            p.d = player.get_played_prodigy().degats;
+        }
+        state.me.prodiges = prodiges;
 
         prodiges = {};
-        for (let p in opp.prodiges) {
-            prodiges[p.name] = {'name': p.name, 'available': p.available};
+        for (let name in opp.prodiges) {
+            p = opp.prodiges[name];
+            prodiges[p.name] = {'available': p.available};
         }
-        prodiges[p.played_prodigy].played = false;
-        state.prodiges_opp = prodiges;
+        p = prodiges[opp.played_prodigy];
+        if (opp.played_prodigy) {
+            p.p = opp.get_played_prodigy().puissance;
+            p.d = opp.get_played_prodigy().degats;
+            prodiges[opp.played_prodigy].played = false;
+        }
+        state.opp.prodiges = prodiges;
 
-        state.hand_opp = opp.get_hand_state();
-        state.hp = player.hp;
-        state.hp_opp = opp.hp;
+        state.me.hp = player.hp;
+        state.opp.hp = opp.hp;
+
+        for (let i of ['me', 'opp']) {
+            for (let status of ['protected', 'avantage', 'initiative']) {
+                let p = (i == 'me') ? player : opp;
+                if (p.played_prodigy) {
+                    state[i][status] = p.get_played_prodigy()[status];
+                }
+            }
+        }
+
+        return state;
     }    
 
     update_front(state) {

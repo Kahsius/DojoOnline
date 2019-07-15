@@ -168,13 +168,19 @@ function debug(string) {
     socket.emit('debug', {'cmd': string});
 }
 
-// =========== ONLY FOR DEBUG
 function init() {
     socket.emit('init_debug');
     document.getElementById('room_choice').style.display = 'none';
     document.getElementById('waiting').style.display = 'none';
 }
-// ==========================
+
+function init_backup() {
+    do {
+        var pseudo = prompt('Votre pseudo');
+    } while (pseudo == '');
+    socket.pseudo = pseudo;
+    socket.emit('init', pseudo);
+}
 
 function join_room(id) {
     socket.emit('join_room', id);

@@ -4,13 +4,11 @@ const http = require('http').createServer(app);
 const path = require('path');
 const Game = require('./src/Game').Game;
 
-
-
 global.io = require('socket.io')(http);
 global.players = {};
-global.sockets = {};
 global.games = {};
 global.rooms = {};
+global.players_connections = {};
 
 app.get('/', function(req, res){
     res.sendFile(path.join(__dirname + '/index.html'));
@@ -18,7 +16,6 @@ app.get('/', function(req, res){
 
 io.on('connection', function(socket){
     socket.on('disconnect', function(){
-        // TODO: garder la connection en cas de refresh
         console.log(socket.id + ' disconnected');
     });
 
@@ -28,8 +25,15 @@ io.on('connection', function(socket){
     });
 
     socket.on('init', function(pseudo){
+        if (pseudo in players_connections) {
+            socket.id = players_connections[pseudo];
+            if (players[socket.id]) {
+                socket.emit('reconnect', games[socket.id].get_state());
+            }
+        }
         let list_names = [];
         socket.pseudo = pseudo;
+        players_connections[pseudo] = {'id': socket.id};
         console.log('Récupère liste parties : ' + pseudo)
         for (let key in rooms) {
             if (rooms[key].length == 1){
@@ -44,7 +48,6 @@ io.on('connection', function(socket){
         id = 'banana';
         socket.join(id)
         socket.room = id;
-        sockets[socket.id] =  socket;
         if (!(id in rooms)) {
             socket.pseudo = 'K';
             rooms[id] = [socket];
@@ -83,18 +86,27 @@ io.on('connection', function(socket){
             console.log(socket.pseudo + ' crée une partie');
         } else {
             rooms[id].push(socket);
-            console.log(socket.pseudo + ' affronte ' + sockets[id].pseudo);
+            console.log(socket.pseudo + ' affronte ' + rooms[id][0].pseudo);
             game = new Game(rooms[id]);
-            games[socket.id] = game;
-            games[id] = game;
+            games[rooms[id][0].id] = game;
+            games[rooms[id][1].id] = game;
             for (let player of game.players) {
-                let me = {'hand': player.hand,
-                    'prodiges': Object.keys(player.prodiges)};
-                let opp = {'hand': players[player.opp].hand,
-                    'prodiges': Object.keys(players[player.opp].prodiges)};
+                let me = {
+                    'pseudo': player.pseudo,
+                    'hp': player.hp,
+                    'hand': player.hand,
+                    'prodiges': player.get_prodiges_front()
+                };
+                let opp = {
+                    'hp': players[player.opp].hp,
+                    'hand': players[player.opp].hand,
+                    'prodiges': players[player.opp].get_prodiges_front()
+                };
                 player.socket.emit('init_game', {'me': me, 'opp': opp});
             }
-            game.get_player_by_order(0).socket.emit('init_choix_prodige');
+            game.state.label = 'wait_prodige';
+            game.state.order = 0;
+            game.get_player_by_order(0).socket.emit('text_log', 'Choix du Prodige');
         }
     });
 

@@ -22,7 +22,7 @@ module.exports.Capacity = class {
         this.cost_value = (json['cost_value']) ? json['cost_value'] : 0;
         this.cost_paid = false;
         this.effect = (json['effect']) ? effets[json['effect']] : null;
-        this.priority = (json['effect'] == 'stop_talent') ? true : false;
+        this.priority = (['stop_talent', 'protection'].includes(json['effect'])) ? true : false;
         this.value = (json['value']) ? json['value'] : 0;
         this.contrecoup = (json['contrecoup']) ? json['contrecoup'] : false;
         this.need_choice = (['recuperation', 'oppression',
@@ -55,7 +55,7 @@ module.exports.Capacity = class {
                 let state = {'label': 'waiting_choice',
                     'value': this.cost_value,
                     'capacity': this,
-                    'target': this.target,
+                    'target': this.data.target,
                     'owner': this.owner.socket.id,
                     'target_zone': this.get_target_zone()
                 };
@@ -247,10 +247,10 @@ effets['recuperation'] = function(capa) {
 effets['modif_degats'] = function(capa) {
     let p = capa.target.get_played_prodigy();
     let v = capa.value;
-    p.degats = (p.protected && v < 0) ? p.degats : p.degats + v;
+    p.degats = (p.protected && v < 0) ? p.degats : Math.max(0, p.degats + v);
     return {
         'label': 'modif_degats',
-        'value': capa.value,
+        'value': (p.protected && v < 0) ? 0 : v,
         'status': 'done',
 		'target': capa.target_label,
 		'owner': capa.owner.socket.id
@@ -261,10 +261,10 @@ effets['modif_degats'] = function(capa) {
 effets['modif_puissance'] = function(capa) {
     let p = capa.target.get_played_prodigy();
     let v = capa.value;
-    p.puissance = (p.protected && v < 0) ? p.puissance : p.puissance + v;
+    p.puissance = (p.protected && v < 0) ? p.puissance : Math.max(0, p.puissance + v);
     return {
         'label': 'modif_puissance',
-        'value': capa.value,
+        'value': (p.protected && v < 0) ? 0 : v,
         'status': 'done',
 		'target': capa.target_label,
 		'owner': capa.owner.socket.id
@@ -273,11 +273,13 @@ effets['modif_puissance'] = function(capa) {
 
 
 effets['modif_puissance_degats'] = function(capa) {
+    let p = capa.target.get_played_prodigy();
+    let v = capa.value;
     effets['modif_puissance'](capa);
     effets['modif_degats'](capa);
     return {
         'label': 'modif_puissance_degats',
-        'value': capa.value,
+        'value': (p.protected && v < 0) ? 0 : v,
         'status': 'done',
 		'target': capa.target_label,
 		'owner': capa.owner.socket.id
@@ -343,9 +345,9 @@ effets['echange_p'] = function(capa) {
     let bp1 = p1.base_puissance;
     let bp2 = p2.base_puissance;
     p1.base_puissance = bp2;
-    p1.puissance = p1.puissance - bp1 + bp2;
+    p1.puissance = Math.max(0, p1.puissance - bp1 + bp2);
     p2.base_puissance = bp1;
-    p2.puissance = p2.puissance - bp2 + bp1;
+    p2.puissance = Math.max(0, p2.puissance - bp2 + bp1);
     return {
         'label': 'echange_p',
         'status': 'done',
@@ -362,9 +364,9 @@ effets['echange_d'] = function(capa) {
     let bd1 = p1.base_degats;
     let bd2 = p2.base_degats;
     d1.base_degats = bd2;
-    d1.degats = d1.degats - bd1 + bd2;
+    d1.degats = Math.max(0, d1.degats - bd1 + bd2);
     d2.base_degats = bp1;
-    d2.degats = d2.degats - bd2 + bd1;
+    d2.degats = Math.max(0, d2.degats - bd2 + bd1);
     return {
         'label': 'echange_p',
         'status': 'done',
@@ -414,7 +416,7 @@ effets['oppression'] = function(capa) {
     let t = capa.target;
     let choices = this.choices;
     for (let c of choices) {
-        t.hand.splice(t.hand.indexOf(c.value), 1)
+        t.hand.splice(t.hand.indexOf(c), 1);
     }
     return {
         'label': 'oppression',
@@ -429,26 +431,17 @@ effets['oppression'] = function(capa) {
 effets['pillage'] = function(capa) {
     let v = capa.value;
     let t = capa.target;
-    let l = t.hand.length;
-    let count = 0;
-    for (let i of range(0, l)) {
-        if (count == v) {
-            break;
-        }
-        let index = l - i - 1;
-        // TODO: demander défause à l'adversaire
-        if (t.hand[index] != 0) {
-            t.opp.hand = t.opp.hand + [t.hand[index]];
-            t.hand.splice(index, 1);
-            count = count + 1;
-        }
+    let choices = this.choices;
+    for (let c of choices) {
+        t.hand.splice(t.hand.indexOf(c), 1);
+        players[t.opp].hand.push(c);
     }
     return {
         'label': 'pillage',
         'choices': capa.choices,
         'status': 'done',
-		'target': capa.target_label,
-		'owner': capa.owner.socket.id
+        'target': capa.target_label,
+        'owner': capa.owner.socket.id
     }
 }
 

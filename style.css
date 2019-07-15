@@ -140,10 +140,6 @@
     flex-grow: 1;
 }
 
-#hand_prodiges_j1 > .prodige:hover {
-    border: 5px solid white;
-}
-
 .prodige[playable='false'] {
     background-color: grey;
 }
@@ -251,6 +247,7 @@
 
 .summary > * {
     display: flex;
+    flex-direction: column;
 }
 
 .log {

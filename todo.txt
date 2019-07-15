@@ -1,8 +1,5 @@
 TODO
 
 EN COURS
-- retirer le glyphe de la main dans le front une fois le cout payer
-- recoder oppression / pillage / sacrifice
 
 A FAIRE
-- liste des status (regard, avantage, initiative)

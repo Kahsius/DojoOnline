@@ -45,7 +45,7 @@ module.exports.Game = class {
 
         // Création des prodiges
         player1.create_prodiges(["Amalrik", "Batsu", "Faine", "Asato"]);
-        player0.create_prodiges(["Alissonne", "Fizz", "Rubis", "Svenn"]);
+        player0.create_prodiges(["Alissonne", "Fizz", "Siam", "Svenn"]);
 
         // Assignation des joueurs à la partie
         this.players = [player0, player1]

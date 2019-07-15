@@ -28,8 +28,8 @@ function drop(ev) {
     if(drop_srcParent != drop_target_zone) {
         if (drop_src.getAttribute('class') == 'glyphe'
             && ['empty_voie', 'hand_glyphes'].includes(data.target)) {
+            data['value'] = drop_src.getAttribute('valeur');
             if (data.source != data.target) {
-                data['value'] = drop_src.getAttribute('valeur');
                 let voie = (data.target) == 'empty_voie' ? drop_target_zone : drop_srcParent;
                 data['voie'] = voie.getAttribute('id').split('-')[1];
             } else {
@@ -161,6 +161,7 @@ function init_game(data) {
 
     document.getElementById('hp_j1').innerHTML = me.hp;
     document.getElementById('hp_j0').innerHTML = opp.hp;
+    document.getElementById('pseudo').innerHTML = me.pseudo;
 }
 
 function debug(string) {
@@ -286,6 +287,7 @@ socket.on('retire_glyphe_opp', function(voie){
 socket.on('choix_glyphe_opp', function(data){
     let voie = data['voie'];
     let valeur = data['valeur'];
+    let remove = data['remove'];
     let empty_voie = document.getElementById('j0-' + voie);
     if (data['regard']){
         let glyph = document.createElement("div");
@@ -294,7 +296,7 @@ socket.on('choix_glyphe_opp', function(data){
         glyph.setAttribute("valeur", valeur);
         glyph.innerHTML = valeur;
         let already_played = empty_voie.firstElementChild;
-        if (already_played == null) {
+        if (already_played == null || remove) {
             let hand = document.getElementById('hand_glyphes_j0');
             hand.removeChild(hand.firstElementChild);
         }
@@ -302,9 +304,11 @@ socket.on('choix_glyphe_opp', function(data){
         empty_voie.appendChild(glyph);
     } else {
         let already_played = empty_voie.firstElementChild;
-        if (already_played == null) {
+        if (already_played == null || remove) {
             let glyph = document.getElementById('hand_glyphes_j0').firstElementChild;
             empty_voie.appendChild(glyph);
+        } else {
+
         }
     }
 });
@@ -401,24 +405,24 @@ socket.on('capacity_resolution', function(state){
             }
         } else if (state.label == 'modif_degats') {
             if (state.target == 'own' && state.me
-                || state.target == 'opp' && !state.me) d.innerHTML = parseInt(d.innerHTML) + state.value;
+                || state.target == 'opp' && !state.me) d.innerHTML = Math.max(0, parseInt(d.innerHTML) + state.value);
             if (state.target == 'opp' && state.me
-                || state.target == 'own' && !state.me) d_opp.innerHTML = parseInt(d_opp.innerHTML) + state.value;
+                || state.target == 'own' && !state.me) d_opp.innerHTML = Math.max(0, parseInt(d_opp.innerHTML) + state.value);
         } else if (state.label == 'modif_puissance') {
             if (state.target == 'own' && state.me
-                || state.target == 'opp' && !state.me) p.innerHTML = parseInt(p.innerHTML) + state.value;
+                || state.target == 'opp' && !state.me) p.innerHTML = Math.max(0, parseInt(p.innerHTML) + state.value);
             if (state.target == 'opp' && state.me
-                || state.target == 'own' && !state.me) p_opp.innerHTML = parseInt(p_opp.innerHTML) + state.value;
+                || state.target == 'own' && !state.me) p_opp.innerHTML = Math.max(0, parseInt(p_opp.innerHTML) + state.value);
         } else if (state.label == 'modif_puissance_degats') {
             if (state.target == 'own' && state.me
                 || state.target == 'opp' && !state.me) {
-                d.innerHTML = parseInt(d.innerHTML) + state.value;
-                p.innerHTML = parseInt(p.innerHTML) + state.value;
+                d.innerHTML = Math.max(0, parseInt(d.innerHTML) + state.value);
+                p.innerHTML = Math.max(0, parseInt(p.innerHTML) + state.value);
             }
             if (state.target == 'opp' && state.me
                 || state.target == 'own' && !state.me) {
-                d_opp.innerHTML = parseInt(d_opp.innerHTML) + state.value;
-                p_opp.innerHTML = parseInt(p_opp.innerHTML) + state.value;
+                d_opp.innerHTML = Math.max(0, parseInt(d_opp.innerHTML) + state.value);
+                p_opp.innerHTML = Math.max(0, parseInt(p_opp.innerHTML) + state.value);
             }
         } else if (state.label == 'modif_hp') {
             if (state.target == 'own' && state.me
@@ -430,7 +434,10 @@ socket.on('capacity_resolution', function(state){
         } else if (state.label == 'stop_maitrise') {
             // TODO 
         } else if (state.label == 'protection') {
-            // TODO
+            if (state.target == 'own' && state.me
+                || state.target == 'opp' && !state.me) document.getElementById('protection').style.display = 'flex';
+            if (state.target == 'opp' && state.me
+                || state.target == 'own' && !state.me) document.getElementById('protection_opp').style.display = 'flex';
         } else if (state.label == 'echange_p') {
             if (state.target == 'own' && state.me
                 || state.target == 'opp' && !state.me) {
@@ -463,7 +470,7 @@ socket.on('capacity_resolution', function(state){
                 for (let item of state.choices) {
                     hand = document.getElementById('hand_glyphes_j1');
                     for (let node of hand.children) {
-                        if (node.getAttribute('valeur') == item.value) {
+                        if (node.getAttribute('valeur') == item) {
                             node.remove();
                             break;
                         }
@@ -471,11 +478,9 @@ socket.on('capacity_resolution', function(state){
                 }
             } else if (state.target == 'opp' && state.me
                 || state.target == 'own' && !state.me) {
+                hand = document.getElementById('hand_glyphes_j0');
                 for (let item of state.choices) {
-                    hand = document.getElementById('hand_glyphes_j1');
-                    for (let node of hand.children) {
-                        hand.removeChild(hand.children[0]);
-                    }
+                    hand.removeChild(hand.children[0]);
                 }
             }
         } else if (state.label == 'pillage') {
@@ -485,7 +490,7 @@ socket.on('capacity_resolution', function(state){
                 || state.target == 'opp' && !state.me) {
                 for (let item of state.choices) {
                     for (let node of hand.children) {
-                        if (node.getAttribute('valeur') == item.value) {
+                        if (node.getAttribute('valeur') == item) {
                             node.remove();
                             hand_opp.appendChild(create_glyph(-1));
                             break;
@@ -495,16 +500,20 @@ socket.on('capacity_resolution', function(state){
             } else if (state.target == 'opp' && state.me
                 || state.target == 'own' && !state.me) {
                 for (let item of state.choices) {
-                    for (let node of hand.children) {
-                        hand_opp.removeChild(hand.children[0]);
-                        hand.appendChild(create_glyph(item.value));
-                    }
+                    hand_opp.children[0].remove();
+                    hand.appendChild(create_glyph(item));
                 }
             }
         } else if (state.label == 'initiative') {
-            // TODO
+            if (state.target == 'own' && state.me
+                || state.target == 'opp' && !state.me) document.getElementById('initiative').style.display = 'flex';
+            if (state.target == 'opp' && state.me
+                || state.target == 'own' && !state.me) document.getElementById('initiative_opp').style.display = 'flex';
         } else if (state.label == 'avantage') {
-            // TODO
+            if (state.target == 'own' && state.me
+                || state.target == 'opp' && !state.me) document.getElementById('avantage').style.display = 'flex';
+            if (state.target == 'opp' && state.me
+                || state.target == 'own' && !state.me) document.getElementById('avantage_opp').style.display = 'flex';
         } else if (state.label == 'vampirism') {
             if (state.target == 'own' && state.me
                 || state.target == 'opp' && !state.me) {
@@ -517,7 +526,24 @@ socket.on('capacity_resolution', function(state){
                 hp_opp.innerHTML = parseInt(hp_opp.innerHTML) + state.value;
             }
         } else if (state.label == 'regard') {
-            // TODO           
+            if (state.target == 'own' && state.me
+                || state.target == 'opp' && !state.me) document.getElementById('regard').style.display = 'flex';
+            if (state.target == 'opp' && state.me
+                || state.target == 'own' && !state.me) document.getElementById('regard_opp').style.display = 'flex';
+        } else if (state.label == 'remove_glyph_hand') {
+            if (state.target == 'own' && state.me
+                || state.target == 'opp' && !state.me) {
+                hand = document.getElementById('hand_glyphes_j1');
+                for (g of hand.children) {
+                    if (g.getAttribute('valeur') == state.value) {
+                        g.remove();
+                        break;
+                    }
+                }
+            } else if (state.target == 'opp' && state.me
+                || state.target == 'own' && !state.me) {
+                document.getElementById('hand_glyphes_j0').children[0].remove();
+            }
         }
     } else {
         text_log('En cours : ' + state.status);
@@ -553,6 +579,24 @@ socket.on('clean_round', function() {
             }
         }
     }
+
+    for (let status of ['initiative', 'protection', 'avantage']){
+        document.getElementById(status).style.display = 'none';
+        document.getElementById(status + '_opp').style.display = 'none';
+    }
+
+    let hand = document.getElementById('hand_glyphes_j1');
+    let stack = [];
+    for (let i in [5, 4, 3, 2, 1, 0]) {
+        for (child of hand.children) {
+            if (child.getAttribute('valeur') == i) {
+                stack.push(child);
+            }
+        }
+    }
+    for (let child of stack) {
+        hand.appendChild(child);
+    }
 });
 
 socket.on('end_game', function(winners){
@@ -565,4 +609,8 @@ socket.on('end_game', function(winners){
         win.innerHTML = 'Vous n\'avez pas réussi à vous départager, try again 8)';
     }
     socket.emit('delete_game');
+});
+
+socket.on('clean_regard', function(){
+    document.getElementById('regard').style.display = 'none';
 });

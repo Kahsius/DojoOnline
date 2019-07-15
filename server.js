@@ -58,6 +58,7 @@ io.on('connection', function(socket){
             games[rooms[id][1].id] = game;
             for (let player of game.players) {
                 let me = {
+                    'pseudo': player.pseudo,
                     'hp': player.hp,
                     'hand': player.hand,
                     'prodiges': player.get_prodiges_front()
@@ -106,6 +107,7 @@ io.on('connection', function(socket){
         if (game.both_players_ready()){
             player.socket.emit('reveal', opp.played_glyphs);
             opp.socket.emit('reveal', player.played_glyphs);
+            game.broadcast_cmd('clean_regard');
             game.resolve_round();
         }
     });
@@ -153,7 +155,13 @@ io.on('connection', function(socket){
         if (game.state.label == 'choice_glyphes') {
             if ( target == 'empty_voie'){
                 if (target == data.source) {
-                    player.switch_glyphs(data.source_elem, data.target_elem);
+                    let need_update = player.switch_glyphs(data.source_elem, data.target_elem);
+                    if (need_update) {
+                        let body = {'voie': data.target_elem, 'valeur': valeur, 'remove': false};
+                        body['regard'] = (player.on_opp_regard(data.target_elem)) ? true : false;
+                        opp.socket.emit('choix_glyphe_opp', body);
+                        opp.socket.emit('retire_glyphe_opp', data.source_elem);
+                    }
                     socket.emit('drop_validated');
                 }
                 else {
@@ -210,7 +218,6 @@ io.on('connection', function(socket){
         let ss = (game.substate) ? game.substate : {};
         let talent = (game.state.label.split(':')[0] == 'talents');
         let voies = (game.state.label == 'execute_voie');
-        debugger;
 
         if (player.order == game.state.order) {
             if (['air', 'feu', 'eau', 'terre'].includes(data.element)
@@ -226,12 +233,23 @@ io.on('connection', function(socket){
                 }
             } else if (ss.label == 'paying_cost'
                 && ss.cost_type == 'glyph'
-                && data.target_zone == 'hand_glyphes') {
+                && data.target_zone == 'hand_glyphes'
+                && data.value > 0) {
                 let hand = player.hand;
                 let value = parseInt(data.value);
                 if (hand.includes(value)){
-                    hand.splice(hand.indexOf(value));
-                    player.socket.emit('text_log', 'Coût payé');
+                    hand.splice(hand.indexOf(value), 1);
+                    data = {
+                        'status': 'done',
+                        'label': 'remove_glyph_hand',
+                        'value': value,
+                        'target': 'own',
+                        'me': true
+                    };
+                    game.broadcast('Coût payé');
+                    player.socket.emit('capacity_resolution', data);
+                    data.me = false;
+                    opp.socket.emit('capacity_resolution', data); 
                     ss.capacity.cost_paid = true;
                     if (talent) game.apply_talents();
                     if (voies) game.apply_voies_players();
@@ -263,8 +281,8 @@ io.on('connection', function(socket){
         } else if (ss.target == 'opp'
             && ss.label == "waiting_choice"
             && data.target_zone == ss.target_zone) {
-            let hand = opp.hand;
-            let value = data.value;
+            let hand = player.hand;
+            let value = parseInt(data.value);
             if (hand.includes(value)
                 && value > 0
                 && ss.capacity.choice_available(value)) {

@@ -1,14 +1,5 @@
 TODO
 
 EN COURS
-- faire maitrises
-- clean round et recommencer
 
 A FAIRE
-- vérifier que le regard s'applique bien
-- mettre à jour les options dispos même quand toutes les voies ont été utilisées
-- switch deux glyphes déjà joués
-- enlever validation glyphes si adverse change glyphe sur regard (les autres osef)
-- recoder oppression / pillage / sacrifice
-- mettre à jour capa.value avec capa.modif une seule fois au début du tour
-- faire un capa.check_condition(owner) avant de dire que la maitrise est available

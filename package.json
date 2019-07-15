@@ -6,6 +6,7 @@
   "dependencies": {
     "eslint": "^5.16.0",
     "flow-bin": "^0.102.0-rc",
+    "jquery": "^3.4.1",
     "node-inspect": "^1.11.6"
   },
   "devDependencies": {},

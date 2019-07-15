@@ -126,4 +126,12 @@ module.exports.Player = class {
         }
         return prodiges;
     }
+
+    switch_glyphs(el1, el2) {
+        let i = this.played_glyphs[el1];
+        this.played_glyphs[el1] = this.played_glyphs[el2];
+        this.played_glyphs[el2] = i;
+        if (this.played_glyphs[el1] != -1 && this.played_glyphs[el2] != -1) return false;
+        return true;
+    }
 }

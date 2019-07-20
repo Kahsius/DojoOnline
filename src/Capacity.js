@@ -104,7 +104,7 @@ module.exports.Capacity = class {
             if (this.data.effect == 'recuperation') {
                 let value = this.value;
                 for (let element in own.played_glyphs) {
-                    if (own.played_glyphs[element] > 0) {
+                    if (![0, 5].includes(own.played_glyphs[element])) {
                         targets++;
                     }
                 }
@@ -155,19 +155,21 @@ module.exports.Capacity = class {
 
 	get_modification(turn) {
         let owner = this.owner;
-	    if (this.modification == "patience") {
+	    if (this.modification === "patience") {
 	        return turn;
-	    } else if (this.modification == "acharnement") {
+	    } else if (this.modification === "acharnement") {
 	        return 3 - turn;
-	    } else if (this.modification == "par_glyphe") {
-	        let count = 0;
-	        for (element in owner.played_glyphs) {
-	        	glyph = owner.played_glyphs[element];
-	            if (glyph == 0) {
-	                count = count + 1;
-	            }
-	        }
-	        return count;
+	    } else if (this.modification === "par_glyphe") {
+            let count = 0;
+            for (element in owner.played_glyphs) {
+                glyph = owner.played_glyphs[element];
+                if (glyph == 0) {
+                    count = count + 1;
+                }
+            }
+            return count;
+        } else if (this.modification === "per_glyph_hand") {
+	        return owner.hand.map(x => x > 0).reduce((x, y) => x+y);
 	    } else {
 	        return 1;
 	    }
@@ -222,7 +224,7 @@ module.exports.Capacity = class {
     update_modif(turn){
         this.value *= this.get_modification(turn);
     }
-}
+};
 
 var effets = {};
 
@@ -241,35 +243,35 @@ effets['recuperation'] = function(capa) {
 		'target': capa.target_label,
         'owner': capa.owner.socket.id
     }
-}
+};
 
 
 effets['modif_degats'] = function(capa) {
     let p = capa.target.get_played_prodigy();
     let v = capa.value;
-    p.degats = (p.protected && v < 0) ? p.degats : Math.max(0, p.degats + v);
+    p.degats = (p.protection && v < 0) ? p.degats : Math.max(0, p.degats + v);
     return {
         'label': 'modif_degats',
-        'value': (p.protected && v < 0) ? 0 : v,
+        'value': (p.protection && v < 0) ? 0 : v,
         'status': 'done',
 		'target': capa.target_label,
 		'owner': capa.owner.socket.id
     }
-}
+};
 
 
 effets['modif_puissance'] = function(capa) {
     let p = capa.target.get_played_prodigy();
     let v = capa.value;
-    p.puissance = (p.protected && v < 0) ? p.puissance : Math.max(0, p.puissance + v);
+    p.puissance = (p.protection && v < 0) ? p.puissance : Math.max(0, p.puissance + v);
     return {
         'label': 'modif_puissance',
-        'value': (p.protected && v < 0) ? 0 : v,
+        'value': (p.protection && v < 0) ? 0 : v,
         'status': 'done',
 		'target': capa.target_label,
 		'owner': capa.owner.socket.id
     }
-}
+};
 
 
 effets['modif_puissance_degats'] = function(capa) {
@@ -279,12 +281,12 @@ effets['modif_puissance_degats'] = function(capa) {
     effets['modif_degats'](capa);
     return {
         'label': 'modif_puissance_degats',
-        'value': (p.protected && v < 0) ? 0 : v,
+        'value': (p.protection && v < 0) ? 0 : v,
         'status': 'done',
 		'target': capa.target_label,
 		'owner': capa.owner.socket.id
     }
-}
+};
 
 
 effets['modif_hp'] = function(capa) {
@@ -297,12 +299,12 @@ effets['modif_hp'] = function(capa) {
 		'target': capa.target_label,
 		'owner': capa.owner.socket.id
     }
-}
+};
 
 
 effets['stop_talent'] = function(capa) {
     let p = capa.target.get_played_prodigy();
-    if (!p.protected) {
+    if (!p.protection) {
         p.talent.stopped = true;
     }
     return {
@@ -311,12 +313,12 @@ effets['stop_talent'] = function(capa) {
 		'target': capa.target_label,
 		'owner': capa.owner.socket.id
     }
-}
+};
 
 
 effets['stop_maitrise'] = function(capa) {
     let p = capa.target.get_played_prodigy();
-    if (!p.protected) {
+    if (!p.protection) {
         p.maitrise.stopped = true;
     }
     return {
@@ -325,18 +327,18 @@ effets['stop_maitrise'] = function(capa) {
 		'target': capa.target_label,
 		'owner': capa.owner.socket.id
     }
-}
+};
 
 
 effets['protection'] = function(capa) {
-    capa.target.get_played_prodigy().protected = true;
+    capa.target.get_played_prodigy().protection = true;
     return {
         'label': 'protection',
         'status': 'done',
 		'target': capa.target_label,
 		'owner': capa.owner.socket.id
     }
-}
+};
 
 
 effets['echange_p'] = function(capa) {
@@ -355,7 +357,7 @@ effets['echange_p'] = function(capa) {
 		'target': capa.target_label,
 		'owner': capa.owner.socket.id
     }
-}
+};
 
 
 effets['echange_d'] = function(capa) {
@@ -374,7 +376,7 @@ effets['echange_d'] = function(capa) {
         'target': capa.target_label,
 		'owner': capa.owner.socket.id
     }
-}
+};
 
 
 effets['copy_talent'] = function(capa) {
@@ -391,7 +393,7 @@ effets['copy_talent'] = function(capa) {
 		'target': capa.target_label,
 		'owner': capa.owner.socket.id
     }
-}
+};
 
 
 effets['copy_maitrise'] = function(capa) {
@@ -408,7 +410,7 @@ effets['copy_maitrise'] = function(capa) {
 		'target': capa.target_label,
 		'owner': capa.owner.socket.id
     }
-}
+};
 
 
 effets['oppression'] = function(capa) {
@@ -425,7 +427,7 @@ effets['oppression'] = function(capa) {
 		'target': capa.target_label,
 		'owner': capa.owner.socket.id
     }
-}
+};
 
 
 effets['pillage'] = function(capa) {
@@ -443,7 +445,7 @@ effets['pillage'] = function(capa) {
         'target': capa.target_label,
         'owner': capa.owner.socket.id
     }
-}
+};
 
 
 effets['initiative'] = function(capa) {
@@ -454,7 +456,7 @@ effets['initiative'] = function(capa) {
 		'target': capa.target_label,
 		'owner': capa.owner.socket.id
     }
-}
+};
 
 
 effets['avantage'] = function(capa) {
@@ -465,7 +467,7 @@ effets['avantage'] = function(capa) {
 		'target': capa.target_label,
 		'owner': capa.owner.socket.id
     }
-}
+};
 
 
 effets['vampirism'] = function(capa) {
@@ -480,7 +482,7 @@ effets['vampirism'] = function(capa) {
 		'target': capa.target_label,
 		'owner': capa.owner.socket.id
     }
-}
+};
 
 
 effets['regard'] = function(capa) {
@@ -491,7 +493,7 @@ effets['regard'] = function(capa) {
 		'target': capa.target_label,
 		'owner': capa.owner.socket.id
     }
-}
+};
 
 
 effets['nothing'] = function(capa) {
@@ -501,4 +503,4 @@ effets['nothing'] = function(capa) {
 		'target': capa.target_label,
 		'owner': capa.owner.socket.id
     }
-}
+};

@@ -5,4 +5,4 @@ module.exports.Voie = class {
 		this.element = data['element'];
 		this.capacity = new Capacity(data['capacity'], null);
 	}
-}
+};

@@ -20,7 +20,7 @@ io.on('connection', function(socket){
     });
 
     socket.on('debug', function(cmd){
-        console.log('Get debug cmd : ' + cmd)
+        console.log('Get debug cmd : ' + cmd);
         socket.emit('debug', eval(cmd));
     });
 
@@ -34,19 +34,19 @@ io.on('connection', function(socket){
         let list_names = [];
         socket.pseudo = pseudo;
         players_connections[pseudo] = {'id': socket.id};
-        console.log('Récupère liste parties : ' + pseudo)
+        console.log('Récupère liste parties : ' + pseudo);
         for (let key in rooms) {
-            if (rooms[key].length == 1){
+            if (rooms[key].length === 1){
                 list_names.push({'id': key, 'pseudo': rooms[key][0].pseudo})
             }
         }
-        list_names.push({'id': socket.id, 'pseudo': 'Nouvelle partie'})
+        list_names.push({'id': socket.id, 'pseudo': 'Nouvelle partie'});
         socket.emit('list_rooms', list_names);
     });
 
     socket.on('init_debug', function() {
         id = 'banana';
-        socket.join(id)
+        socket.join(id);
         socket.room = id;
         if (!(id in rooms)) {
             socket.pseudo = 'K';
@@ -73,6 +73,7 @@ io.on('connection', function(socket){
                 };
                 player.socket.emit('init_game', {'me': me, 'opp': opp});
             }
+            game.update_lists_glyphs();
             game.state.label = 'wait_prodige';
             game.state.order = 0;
             game.get_player_by_order(0).socket.emit('text_log', 'Choix du Prodige');
@@ -80,8 +81,8 @@ io.on('connection', function(socket){
     });
 
     socket.on('join_room', function(id){
-        socket.join(id)
-        if (id == socket.id) {
+        socket.join(id);
+        if (id === socket.id) {
             rooms[id] = [socket];
             console.log(socket.pseudo + ' crée une partie');
         } else {
@@ -104,6 +105,7 @@ io.on('connection', function(socket){
                 };
                 player.socket.emit('init_game', {'me': me, 'opp': opp});
             }
+            game.update_lists_glyphs();
             game.state.label = 'wait_prodige';
             game.state.order = 0;
             game.get_player_by_order(0).socket.emit('text_log', 'Choix du Prodige');
@@ -113,7 +115,7 @@ io.on('connection', function(socket){
     socket.on('validate_glyphes', function(){
         let player = players[socket.id];
         let opp = players[player.opp];
-        let game = games[socket.id]
+        let game = games[socket.id];
         player.ready = true;
         socket.emit('validate_button', false);
         if (game.both_players_ready()){
@@ -130,18 +132,18 @@ io.on('connection', function(socket){
         let opp = players[player.opp];
         let prodige = data.name;
         // If game is waiting for a prodige to be chosen
-        if (game.state.label == 'wait_prodige'
-            && game.state.order == player.order) {
+        if (game.state.label === 'wait_prodige'
+            && game.state.order === player.order) {
             // If the prodige is played
-            if (data.source == "hand_prodiges"
-                && data.target == "empty_prodige") {
+            if (data.source === "hand_prodiges"
+                && data.target === "empty_prodige") {
                 console.log(player.pseudo + ' joue ' + prodige);
                 let test = player.valide_choix_prodige(prodige);
                 if (test.valid) {
                     // Display le choix du Prodige pour l'adversaire
                     opp.socket.emit('choix_prodige_adverse', prodige);
                     socket.emit('drop_validated');
-                    if (game.state.order == 0) {
+                    if (game.state.order === 0) {
                         game.state.order++;
                         opp.socket.emit('text_log', 'Choix du Prodige');
                     } else {
@@ -164,9 +166,9 @@ io.on('connection', function(socket){
         let voie = data.voie;
         let valeur = parseInt(data.value);
         let target = data.target;
-        if (game.state.label == 'choice_glyphes') {
-            if ( target == 'empty_voie'){
-                if (target == data.source) {
+        if (game.state.label === 'choice_glyphes') {
+            if ( target === 'empty_voie'){
+                if (target === data.source) {
                     let need_update = player.switch_glyphs(data.source_elem, data.target_elem);
                     if (need_update) {
                         let body = {'voie': data.target_elem, 'valeur': valeur, 'remove': false};
@@ -180,17 +182,17 @@ io.on('connection', function(socket){
                     console.log(player.pseudo + ' joue ' + valeur + ' sur ' + voie);
 
                     // Est-ce que le glyphe est valide ?
-                    let valid = player.valide_choix_glyphe(voie, valeur)
+                    let valid = player.valide_choix_glyphe(voie, valeur);
                     if (valid) {
                         socket.emit('drop_validated');
                         // Est-ce que l'adversaire peut voir le glyphe ?
-                        let body = {'voie': voie, 'valeur': valeur, 'regard': false}
+                        let body = {'voie': voie, 'valeur': valeur, 'regard': false};
                         if (player.on_opp_regard(voie)) body['regard'] = true;
                         opp.socket.emit('choix_glyphe_opp', body);
                     }
                     else socket.emit('drop_not_validated', 'Choix invalide');
                 }
-            } else if ( target == 'hand_glyphes') {
+            } else if ( target === 'hand_glyphes') {
                 // Le joueur retire un glyphe
                 console.log(player.pseudo + ' retire '
                     + player.played_glyphs[voie] + ' de la voie ' + voie);
@@ -198,7 +200,7 @@ io.on('connection', function(socket){
                 if (valid) {
                     if (opp.ready
                         && opp.has_regard
-                        && opp.get_played_prodigy().element == voie) {
+                        && opp.get_played_prodigy().element === voie) {
                         opp.ready = false;
                         opp.socket.emit('validate_button', true);
                     }
@@ -219,7 +221,7 @@ io.on('connection', function(socket){
                 notEmpty++;
             }
         }
-        let validate = notEmpty == 4;
+        let validate = notEmpty === 4;
         socket.emit('validate_button', validate);
     });
 
@@ -228,13 +230,13 @@ io.on('connection', function(socket){
         let player = players[socket.id];
         let opp = players[player.opp];
         let ss = (game.substate) ? game.substate : {};
-        let talent = (game.state.label.split(':')[0] == 'talents');
-        let voies = (game.state.label == 'execute_voie');
+        let talent = (game.state.label.split(':')[0] === 'talents');
+        let voies = (game.state.label === 'execute_voie');
 
-        if (player.order == game.state.order) {
+        if (player.order === game.state.order) {
             if (['air', 'feu', 'eau', 'terre'].includes(data.element)
-                && game.state.label == 'choice_voie'
-                && game.substate.label == 'none'
+                && game.state.label === 'choice_voie'
+                && game.substate.label === 'none'
                 && ['voie', 'prodige'].includes(data.target_zone)) {
                 if (game.voies_players[player.order].map(x => x.element).includes(data.element)
                     && game.valid_effect(player.order, data)){
@@ -243,9 +245,9 @@ io.on('connection', function(socket){
                     game.state.maitrise = data.maitrise;
                     game.apply_voies_players();
                 }
-            } else if (ss.label == 'paying_cost'
-                && ss.cost_type == 'glyph'
-                && data.target_zone == 'hand_glyphes'
+            } else if (ss.label === 'paying_cost'
+                && ss.cost_type === 'glyph'
+                && data.target_zone === 'hand_glyphes'
                 && data.value > 0) {
                 let hand = player.hand;
                 let value = parseInt(data.value);
@@ -266,33 +268,34 @@ io.on('connection', function(socket){
                     if (talent) game.apply_talents();
                     if (voies) game.apply_voies_players();
                 }
-            } else if (ss.label == 'waiting_choice'
-                && data.target_zone == ss.target_zone) {
+            } else if (ss.label === 'waiting_choice'
+                && data.target_zone === ss.target_zone) {
                 let hand = player.hand;
                 let value = data.value;
                 let element = data.element;
-                if (data.target_zone == 'empty_voie') {
+                if (data.target_zone === 'empty_voie') {
                     if (player.played_glyphs[element] > 0
+                        && player.played_glyphs[element] < 5
                         && ss.capacity.choice_available(element)) {
                         player.socket.emit('text_log', 'Cible choisie');
                         ss.capacity.choices.push({'element': element, 'value': value});
-                        if (talent) game.apply_talents()
+                        if (talent) game.apply_talents();
                         if (voies) game.apply_voies_players();
                     }
-                } else if (data.target_zone == 'hand') {
+                } else if (data.target_zone === 'hand') {
                     if (player.hand.includes(value)
                         && value > 0
                         && ss.capacity.choice_available(value)) {
                         player.socket.emit('text_log', 'Cible choisie');
                         ss.capacity.choices.push(value);
-                        if (talent) game.apply_talents()
+                        if (talent) game.apply_talents();
                         if (voies) game.apply_voies_players();
                     }
                 }
             }
-        } else if (ss.target == 'opp'
-            && ss.label == "waiting_choice"
-            && data.target_zone == ss.target_zone) {
+        } else if (ss.target === 'opp'
+            && ss.label === "waiting_choice"
+            && data.target_zone === ss.target_zone) {
             let hand = player.hand;
             let value = parseInt(data.value);
             if (hand.includes(value)
@@ -300,7 +303,7 @@ io.on('connection', function(socket){
                 && ss.capacity.choice_available(value)) {
                 game.broadcast('Cible choisie');
                 ss.capacity.choices.push(value);
-                if (talent) game.apply_talents()
+                if (talent) game.apply_talents();
                 if (voies) game.apply_voies_players();
             }
         }

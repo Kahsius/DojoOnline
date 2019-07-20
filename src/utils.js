@@ -4,10 +4,10 @@ module.exports.shuffle = function(a) {
         [a[i], a[j]] = [a[j], a[i]];
     }
     return a;
-}
+};
 
 module.exports.range = function*(start, end) {
     for (let i = start; i < end; i++) {
         yield i;
     }
-}
+};

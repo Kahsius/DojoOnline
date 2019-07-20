@@ -29,5 +29,15 @@
             "value": 1,
             "effect": "recuperation"
         }
+    },
+    {
+        "element": "terre3",
+        "capacity": {
+            "target": "owner",
+            "value": 1,
+            "effect": "modif_hp",
+            "modification": "per_glyph_hand"
+        }
+
     }
 ]

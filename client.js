@@ -1,15 +1,12 @@
-var socket = io();
+const socket = io();
 
-var need_click = false;
-var num_need_click = 0;
-var num_current_click = 0;
-var need_click_target = "none";
-var drop_src = null;
-var drop_srcParent = null;
-var drop_target_zone = null;
-var choix = null;
-var glyphes_clicked = [];
-var id_glyphe = 0;
+let num_need_click = 0;
+let need_click_target = "none";
+let drop_src = null;
+let drop_srcParent = null;
+let drop_target_zone = null;
+let choix = null;
+let id_glyphe = 0;
 
 function drag(ev) {
     ev.dataTransfer.setData("id", ev.target.id);
@@ -25,19 +22,19 @@ function drop(ev) {
         'target': drop_target_zone.getAttribute('class')
     };
 
-    if(drop_srcParent != drop_target_zone) {
-        if (drop_src.getAttribute('class') == 'glyphe'
+    if(drop_srcParent !== drop_target_zone) {
+        if (drop_src.getAttribute('class') === 'glyphe'
             && ['empty_voie', 'hand_glyphes'].includes(data.target)) {
             data['value'] = drop_src.getAttribute('valeur');
-            if (data.source != data.target) {
-                let voie = (data.target) == 'empty_voie' ? drop_target_zone : drop_srcParent;
+            if (data.source !== data.target) {
+                let voie = (data.target) === 'empty_voie' ? drop_target_zone : drop_srcParent;
                 data['voie'] = voie.getAttribute('id').split('-')[1];
             } else {
                 data.source_elem = drop_srcParent.getAttribute('id').split('-')[1];
                 data.target_elem = drop_target_zone.getAttribute('id').split('-')[1];
             }
             socket.emit('drop_glyphe', data);
-        } else if (drop_src.getAttribute('class') == 'prodige'
+        } else if (drop_src.getAttribute('class') === 'prodige'
             && ['empty_prodige', 'hand_prodiges'].includes(data.target)) {
             data['name'] = drop_src.getAttribute('id');
             socket.emit('drop_prodige', data);
@@ -52,7 +49,7 @@ function click_glyph(ev) {
     let parent = node.parentNode;
     let value = node.getAttribute('valeur');
     let target_zone = parent.getAttribute('class');
-    let element = (target_zone == 'empty_voie') ? parent.getAttribute('id').split('-')[1] : '';
+    let element = (target_zone === 'empty_voie') ? parent.getAttribute('id').split('-')[1] : '';
     socket.emit('click', {
         'value': value,
         'target_zone': target_zone,
@@ -72,7 +69,7 @@ function click_voie(ev) {
 
 function click_prodige(ev) {
     let node = ev.currentTarget;
-    if (node.parentNode.getAttribute('class') == 'empty_prodige') {
+    if (node.parentNode.getAttribute('class') === 'empty_prodige') {
         let element = node.getAttribute('element');
         socket.emit('click', {
             'element': element,
@@ -83,8 +80,8 @@ function click_prodige(ev) {
 }
 
 function create_glyph(v) {
-    var glyph = document.createElement("div");
-    if (v != -1) {
+    const glyph = document.createElement("div");
+    if (v !== -1) {
         glyph.setAttribute("draggable", "true");
         glyph.setAttribute("ondragstart", "drag(event)");
         glyph.setAttribute("class", "glyphe");
@@ -101,10 +98,10 @@ function create_glyph(v) {
 }
 
 function create_prodige(data, opp=false) {
-    var prodige = document.createElement("div");
-    var puissance = document.createElement("div");
-    var degats = document.createElement("div");
-    var name = document.createElement("div");
+    const prodige = document.createElement("div");
+    const puissance = document.createElement("div");
+    const degats = document.createElement("div");
+    const name = document.createElement("div");
 
     prodige.setAttribute("id", data.name);
     prodige.setAttribute("class", "prodige");
@@ -139,22 +136,22 @@ function init_game(data) {
     me = data['me'];
     opp = data['opp'];
 
-    var hand_player = document.getElementById('hand_glyphes_j1');
-    var hand_opp = document.getElementById('hand_glyphes_j0');
-    var hand_prodiges_player = document.getElementById('hand_prodiges_j1');
-    var hand_prodiges_opp = document.getElementById('hand_prodiges_j0');
+    const hand_player = document.getElementById('hand_glyphes_j1');
+    const hand_opp = document.getElementById('hand_glyphes_j0');
+    const hand_prodiges_player = document.getElementById('hand_prodiges_j1');
+    const hand_prodiges_opp = document.getElementById('hand_prodiges_j0');
 
-    var glyphes = me.hand;
-    var prodiges = me.prodiges;
-    var prodiges_opp = opp.prodiges;
+    const glyphes = me.hand;
+    const prodiges = me.prodiges;
+    const prodiges_opp = opp.prodiges;
 
-    for (var prodige of prodiges) {
+    for (let prodige of prodiges) {
         hand_prodiges_player.appendChild(create_prodige(prodige));
     }
-    for (var prodige of prodiges_opp) {
+    for (let prodige of prodiges_opp) {
         hand_prodiges_opp.appendChild(create_prodige(prodige, true));
     }
-    for (var i = 0; i < glyphes.length; i++) {
+    for (let i = 0; i < glyphes.length; i++) {
         hand_player.appendChild(create_glyph(glyphes[i]));
         hand_opp.appendChild(create_glyph(-1));
     }
@@ -162,10 +159,6 @@ function init_game(data) {
     document.getElementById('hp_j1').innerHTML = me.hp;
     document.getElementById('hp_j0').innerHTML = opp.hp;
     document.getElementById('pseudo').innerHTML = me.pseudo;
-}
-
-function debug(string) {
-    socket.emit('debug', {'cmd': string});
 }
 
 function init() {
@@ -176,8 +169,8 @@ function init() {
 
 function init_backup() {
     do {
-        var pseudo = prompt('Votre pseudo');
-    } while (pseudo == '');
+        let pseudo = prompt('Votre pseudo');
+    } while (pseudo === '');
     socket.pseudo = pseudo;
     socket.emit('init', pseudo);
 }
@@ -197,7 +190,7 @@ function refresh(id) {
 }
 
 function text_log(string){
-    log = document.getElementsByClassName('log')[0]
+    log = document.getElementsByClassName('log')[0];
     node = document.createElement('p');
     node.innerHTML = string;
     log.appendChild(node);
@@ -278,8 +271,8 @@ socket.on('init_choix_glyphes', function() {
 
 socket.on('choix_prodige_adverse', function(id){
     text_log('L\'adversaire joue ' + id);
-    var prodige = document.getElementById(id);
-    var empty_prodige = document.getElementById('empty_prodige_j0');
+    const prodige = document.getElementById(id);
+    const empty_prodige = document.getElementById('empty_prodige_j0');
     empty_prodige.appendChild(prodige);
 });
 
@@ -331,8 +324,8 @@ socket.on('choix_maitrise_voix', function(){
 
 socket.on('validate_button', function(validate){
     // Activation ou non du bouton "Valider"
-    var btn = document.getElementById('validate_button');
-    var false_btn = document.getElementById('false_button');
+    const btn = document.getElementById('validate_button');
+    const false_btn = document.getElementById('false_button');
     if (validate) {
         btn.style.display = 'flex';
         false_btn.style.display = 'none';
@@ -357,7 +350,7 @@ socket.on('choices_voies', function(effects){
         if (effect.display) {
             voie = document.getElementById('voie_' + effect.element);
             voie.setAttribute('available', 'true');
-            if (prodige.getAttribute('element') == effect.element && effect.maitrise) {
+            if (prodige.getAttribute('element') === effect.element && effect.maitrise) {
                 prodige.setAttribute('available', 'true');
             }
         }
@@ -381,27 +374,27 @@ socket.on('capacity_resolution', function(state){
     let p, d;
     let node, id, hand;
     for (let child of prodige.children) {
-        if (child.className == 'puissance') p = child;
-        if (child.className == 'degats') d = child;
+        if (child.className === 'puissance') p = child;
+        if (child.className === 'degats') d = child;
     }
     let prodige_opp = document.getElementById('empty_prodige_j0').children[0];
     let p_opp, d_opp;
     for (let child of prodige_opp.children) {
-        if (child.className == 'puissance') p_opp = child;
-        if (child.className == 'degats') d_opp = child;
+        if (child.className === 'puissance') p_opp = child;
+        if (child.className === 'degats') d_opp = child;
     }
-    if (state.status == 'done') {
-        if (state.label == 'recuperation') {
-            if (state.target == 'own' && state.me
-                || state.target == 'opp' && !state.me) {
+    if (state.status === 'done') {
+        if (state.label === 'recuperation') {
+            if (state.target === 'own' && state.me
+                || state.target === 'opp' && !state.me) {
                 for (let item of state.choices) {
                     voie = document.getElementById('j1-' + item.element);
                     id = voie.children[0].getAttribute('id');
                     voie.innerHTML = '';
                     document.getElementById('hand_glyphes_j1').appendChild(create_glyph(item.value));
                 }
-            } else if (state.target == 'opp' && state.me
-                || state.target == 'own' && !state.me) {
+            } else if (state.target === 'opp' && state.me
+                || state.target === 'own' && !state.me) {
                 for (let item of state.choices) {
                     voie = document.getElementById('j0-' + item.element);
                     id = voie.children[0].getAttribute('id');
@@ -409,145 +402,145 @@ socket.on('capacity_resolution', function(state){
                     document.getElementById('hand_glyphes_j0').appendChild(create_glyph(-1));
                 }
             }
-        } else if (state.label == 'modif_degats') {
-            if (state.target == 'own' && state.me
-                || state.target == 'opp' && !state.me) d.innerHTML = Math.max(0, parseInt(d.innerHTML) + state.value);
-            if (state.target == 'opp' && state.me
-                || state.target == 'own' && !state.me) d_opp.innerHTML = Math.max(0, parseInt(d_opp.innerHTML) + state.value);
-        } else if (state.label == 'modif_puissance') {
-            if (state.target == 'own' && state.me
-                || state.target == 'opp' && !state.me) p.innerHTML = Math.max(0, parseInt(p.innerHTML) + state.value);
-            if (state.target == 'opp' && state.me
-                || state.target == 'own' && !state.me) p_opp.innerHTML = Math.max(0, parseInt(p_opp.innerHTML) + state.value);
-        } else if (state.label == 'modif_puissance_degats') {
-            if (state.target == 'own' && state.me
-                || state.target == 'opp' && !state.me) {
+        } else if (state.label === 'modif_degats') {
+            if (state.target === 'own' && state.me
+                || state.target === 'opp' && !state.me) d.innerHTML = Math.max(0, parseInt(d.innerHTML) + state.value);
+            if (state.target === 'opp' && state.me
+                || state.target === 'own' && !state.me) d_opp.innerHTML = Math.max(0, parseInt(d_opp.innerHTML) + state.value);
+        } else if (state.label === 'modif_puissance') {
+            if (state.target === 'own' && state.me
+                || state.target === 'opp' && !state.me) p.innerHTML = Math.max(0, parseInt(p.innerHTML) + state.value);
+            if (state.target === 'opp' && state.me
+                || state.target === 'own' && !state.me) p_opp.innerHTML = Math.max(0, parseInt(p_opp.innerHTML) + state.value);
+        } else if (state.label === 'modif_puissance_degats') {
+            if (state.target === 'own' && state.me
+                || state.target === 'opp' && !state.me) {
                 d.innerHTML = Math.max(0, parseInt(d.innerHTML) + state.value);
                 p.innerHTML = Math.max(0, parseInt(p.innerHTML) + state.value);
             }
-            if (state.target == 'opp' && state.me
-                || state.target == 'own' && !state.me) {
+            if (state.target === 'opp' && state.me
+                || state.target === 'own' && !state.me) {
                 d_opp.innerHTML = Math.max(0, parseInt(d_opp.innerHTML) + state.value);
                 p_opp.innerHTML = Math.max(0, parseInt(p_opp.innerHTML) + state.value);
             }
-        } else if (state.label == 'modif_hp') {
-            if (state.target == 'own' && state.me
-                || state.target == 'opp' && !state.me) hp.innerHTML = parseInt(hp.innerHTML) + state.value;
-            if (state.target == 'opp' && state.me
-                || state.target == 'own' && !state.me) hp_opp.innerHTML = parseInt(hp_opp.innerHTML) + state.value;
-        } else if (state.label == 'stop_talent') {
+        } else if (state.label === 'modif_hp') {
+            if (state.target === 'own' && state.me
+                || state.target === 'opp' && !state.me) hp.innerHTML = parseInt(hp.innerHTML) + state.value;
+            if (state.target === 'opp' && state.me
+                || state.target === 'own' && !state.me) hp_opp.innerHTML = parseInt(hp_opp.innerHTML) + state.value;
+        } else if (state.label === 'stop_talent') {
             // TODO
-        } else if (state.label == 'stop_maitrise') {
+        } else if (state.label === 'stop_maitrise') {
             // TODO 
-        } else if (state.label == 'protection') {
-            if (state.target == 'own' && state.me
-                || state.target == 'opp' && !state.me) document.getElementById('protection').style.display = 'flex';
-            if (state.target == 'opp' && state.me
-                || state.target == 'own' && !state.me) document.getElementById('protection_opp').style.display = 'flex';
-        } else if (state.label == 'echange_p') {
-            if (state.target == 'own' && state.me
-                || state.target == 'opp' && !state.me) {
+        } else if (state.label === 'protection') {
+            if (state.target === 'own' && state.me
+                || state.target === 'opp' && !state.me) document.getElementById('protection').style.display = 'flex';
+            if (state.target === 'opp' && state.me
+                || state.target === 'own' && !state.me) document.getElementById('protection_opp').style.display = 'flex';
+        } else if (state.label === 'echange_p') {
+            if (state.target === 'own' && state.me
+                || state.target === 'opp' && !state.me) {
                 p.innerHTML = state.values[0];
                 p_opp.innerHTML = state.values[1];
             }
-            if (state.target == 'opp' && state.me
-                || state.target == 'own' && !state.me) {
+            if (state.target === 'opp' && state.me
+                || state.target === 'own' && !state.me) {
                 p.innerHTML = state.values[1];
                 p_opp.innerHTML = state.values[0];
             }
-        } else if (state.label == 'echange_d') {
-            if (state.target == 'own' && state.me
-                || state.target == 'opp' && !state.me) {
+        } else if (state.label === 'echange_d') {
+            if (state.target === 'own' && state.me
+                || state.target === 'opp' && !state.me) {
                 d.innerHTML = state.values[0];
                 d_opp.innerHTML = state.values[1];
             }
-            if (state.target == 'opp' && state.me
-                || state.target == 'own' && !state.me) {
+            if (state.target === 'opp' && state.me
+                || state.target === 'own' && !state.me) {
                 d.innerHTML = state.values[1];
                 d_opp.innerHTML = state.values[0];
             }
-        } else if (state.label == 'copy_talent') {
+        } else if (state.label === 'copy_talent') {
             // TODO 
-        } else if (state.label == 'copy_maitrise') {
+        } else if (state.label === 'copy_maitrise') {
             // TODO
-        } else if (state.label == 'oppression') {
-            if (state.target == 'own' && state.me
-                || state.target == 'opp' && !state.me) {
+        } else if (state.label === 'oppression') {
+            if (state.target === 'own' && state.me
+                || state.target === 'opp' && !state.me) {
                 for (let item of state.choices) {
                     hand = document.getElementById('hand_glyphes_j1');
                     for (let node of hand.children) {
-                        if (node.getAttribute('valeur') == item) {
+                        if (node.getAttribute('valeur') === item) {
                             node.remove();
                             break;
                         }
                     }
                 }
-            } else if (state.target == 'opp' && state.me
-                || state.target == 'own' && !state.me) {
+            } else if (state.target === 'opp' && state.me
+                || state.target === 'own' && !state.me) {
                 hand = document.getElementById('hand_glyphes_j0');
                 for (let item of state.choices) {
                     hand.removeChild(hand.children[0]);
                 }
             }
-        } else if (state.label == 'pillage') {
+        } else if (state.label === 'pillage') {
             hand = document.getElementById('hand_glyphes_j1');
             hand_opp = document.getElementById('hand_glyphes_j0');
-            if (state.target == 'own' && state.me
-                || state.target == 'opp' && !state.me) {
+            if (state.target === 'own' && state.me
+                || state.target === 'opp' && !state.me) {
                 for (let item of state.choices) {
                     for (let node of hand.children) {
-                        if (node.getAttribute('valeur') == item) {
+                        if (node.getAttribute('valeur') === item) {
                             node.remove();
                             hand_opp.appendChild(create_glyph(-1));
                             break;
                         }
                     }
                 }
-            } else if (state.target == 'opp' && state.me
-                || state.target == 'own' && !state.me) {
+            } else if (state.target === 'opp' && state.me
+                || state.target === 'own' && !state.me) {
                 for (let item of state.choices) {
                     hand_opp.children[0].remove();
                     hand.appendChild(create_glyph(item));
                 }
             }
-        } else if (state.label == 'initiative') {
-            if (state.target == 'own' && state.me
-                || state.target == 'opp' && !state.me) document.getElementById('initiative').style.display = 'flex';
-            if (state.target == 'opp' && state.me
-                || state.target == 'own' && !state.me) document.getElementById('initiative_opp').style.display = 'flex';
-        } else if (state.label == 'avantage') {
-            if (state.target == 'own' && state.me
-                || state.target == 'opp' && !state.me) document.getElementById('avantage').style.display = 'flex';
-            if (state.target == 'opp' && state.me
-                || state.target == 'own' && !state.me) document.getElementById('avantage_opp').style.display = 'flex';
-        } else if (state.label == 'vampirism') {
-            if (state.target == 'own' && state.me
-                || state.target == 'opp' && !state.me) {
+        } else if (state.label === 'initiative') {
+            if (state.target === 'own' && state.me
+                || state.target === 'opp' && !state.me) document.getElementById('initiative').style.display = 'flex';
+            if (state.target === 'opp' && state.me
+                || state.target === 'own' && !state.me) document.getElementById('initiative_opp').style.display = 'flex';
+        } else if (state.label === 'avantage') {
+            if (state.target === 'own' && state.me
+                || state.target === 'opp' && !state.me) document.getElementById('avantage').style.display = 'flex';
+            if (state.target === 'opp' && state.me
+                || state.target === 'own' && !state.me) document.getElementById('avantage_opp').style.display = 'flex';
+        } else if (state.label === 'vampirism') {
+            if (state.target === 'own' && state.me
+                || state.target === 'opp' && !state.me) {
                 hp.innerHTML = parseInt(hp.innerHTML) + state.value;
                 hp_opp.innerHTML = parseInt(hp_opp.innerHTML) - state.value;
             }
-            if (state.target == 'opp' && state.me
-                || state.target == 'own' && !state.me) {
+            if (state.target === 'opp' && state.me
+                || state.target === 'own' && !state.me) {
                 hp.innerHTML = parseInt(hp.innerHTML) - state.value;
                 hp_opp.innerHTML = parseInt(hp_opp.innerHTML) + state.value;
             }
-        } else if (state.label == 'regard') {
-            if (state.target == 'own' && state.me
-                || state.target == 'opp' && !state.me) document.getElementById('regard').style.display = 'flex';
-            if (state.target == 'opp' && state.me
-                || state.target == 'own' && !state.me) document.getElementById('regard_opp').style.display = 'flex';
-        } else if (state.label == 'remove_glyph_hand') {
-            if (state.target == 'own' && state.me
-                || state.target == 'opp' && !state.me) {
+        } else if (state.label === 'regard') {
+            if (state.target === 'own' && state.me
+                || state.target === 'opp' && !state.me) document.getElementById('regard').style.display = 'flex';
+            if (state.target === 'opp' && state.me
+                || state.target === 'own' && !state.me) document.getElementById('regard_opp').style.display = 'flex';
+        } else if (state.label === 'remove_glyph_hand') {
+            if (state.target === 'own' && state.me
+                || state.target === 'opp' && !state.me) {
                 hand = document.getElementById('hand_glyphes_j1');
                 for (g of hand.children) {
-                    if (g.getAttribute('valeur') == state.value) {
+                    if (g.getAttribute('valeur') === state.value) {
                         g.remove();
                         break;
                     }
                 }
-            } else if (state.target == 'opp' && state.me
-                || state.target == 'own' && !state.me) {
+            } else if (state.target === 'opp' && state.me
+                || state.target === 'own' && !state.me) {
                 document.getElementById('hand_glyphes_j0').children[0].remove();
             }
         }
@@ -573,9 +566,9 @@ socket.on('clean_round', function() {
             ev = document.getElementById('j' + i + '-' + element);
             g = ev.children[0];
             if (g) {
-                if (g.getAttribute('valeur') == 0) {
-                    if (i == 1) document.getElementById('hand_glyphes_j' + i).appendChild(g);
-                    if (i == 0) {
+                if (g.getAttribute('valeur') === '0') {
+                    if (i === 1) document.getElementById('hand_glyphes_j' + i).appendChild(g);
+                    if (i === 0) {
                         document.getElementById('hand_glyphes_j' + i).appendChild(create_glyph(-1));
                         g.remove();
                     }
@@ -595,7 +588,7 @@ socket.on('clean_round', function() {
     let stack = [];
     for (let i in [5, 4, 3, 2, 1, 0]) {
         for (child of hand.children) {
-            if (child.getAttribute('valeur') == i) {
+            if (child.getAttribute('valeur') === i) {
                 stack.push(child);
             }
         }
@@ -609,9 +602,9 @@ socket.on('end_game', function(winners){
     document.getElementById('main').style.display = 'none';
     document.getElementById('end').style.display = 'flex';
     let win = document.getElementById('winners');
-    if (winners.length == 1) {
+    if (winners.length === 1) {
         win.innerHTML = winners[0] + ' est le plus grand Maître de Dojo ! \\o/';
-    } else if (winners.length == 2) {
+    } else if (winners.length === 2) {
         win.innerHTML = 'Vous n\'avez pas réussi à vous départager, try again 8)';
     }
     socket.emit('delete_game');
@@ -620,3 +613,78 @@ socket.on('end_game', function(winners){
 socket.on('clean_regard', function(){
     document.getElementById('regard').style.display = 'none';
 });
+
+socket.on('reconnect', function(state){
+    let me = state.me;
+    let opp = state.opp;
+    let hand = document.getElementById('hand_glyphes_j0');
+    
+    // Glyphes
+    for (let glyph of me.hand){
+        document.getElementById('hand_glyphes_j1');
+        document.appendChild(create_glyph(glyph));
+    }
+    for (let elem in me.played_glyphs){
+        let g = me.played_glyphs[elem];
+        if (g > -1) document.getElementById('j1-' + elem).appendChild(g);
+        else if (g === -2) document.getElementById('j1-' + elem).appendChild(-1);
+    }
+
+    for (let i = 0; i < opp.hand; i++){
+        document.getElementById('hand_glyphes_j0').appendChild(create_glyph(-1));
+    }
+
+    for (let elem in opp.played_glyphs){
+        let g = opp.played_glyphs[elem];
+        if (g > -2) document.getElementById('j1-' + elem).appendChild(g);
+    }
+
+    // Prodiges
+    for (let prodige in me.prodiges){
+        let p = me.prodiges[prodige];
+        let data = {'name': prodige, 'p': p.p, 'd': p.d};
+        if (p.played) {
+            document.getElementById('empty_prodige_j1').appendChild(create_prodige(data));
+        } else if (!p.available) {
+            let p = create_prodige(data);
+            p.setAttribute('available', 'false');
+            document.getElementById('hand_prodiges_j1').appendChild(p);
+        } else {
+            let p = create_prodige(data);
+            document.getElementById('hand_prodiges_j1').appendChild(p);
+        }
+    }
+    for (let prodige in opp.prodiges){
+        let p = opp.prodiges[prodige];
+        let data = {'name': prodige, 'p': p.p, 'd': p.d};
+        if (p.played) {
+            document.getElementById('empty_prodige_j0').appendChild(create_prodige(data));
+        } else if (!p.available) {
+            let p = create_prodige(data);
+            p.setAttribute('available', 'false');
+            document.getElementById('hand_prodiges_j0').appendChild(p);
+        } else {
+            let p = create_prodige(data);
+            document.getElementById('hand_prodiges_j0').appendChild(p);
+        }
+    }
+
+
+    // Status
+    document.getElementById('hp_j0').innerHTML = opp.hp;
+    document.getElementById('hp_j1').innerHTML = me.hp;
+    for (let status of ['protection', 'avantage', 'initiative']){
+        if (me[status]) document.getElementById(status).innerHTML = status;
+        if (opp[status]) document.getElementById(status + '_opp').innerHTML = status;
+    }
+});
+
+socket.on('list_glyphs_opp', function (list) {
+    console.log('update turn');
+    let values = [1, 2, 3, 4, 5];
+    let res;
+    res = values.map(x => list.map(y => y === x).reduce((a, b) => a + b));
+    for (let i of values) {
+        document.getElementById('list_' + i).innerText = res[i-1];
+    }
+})

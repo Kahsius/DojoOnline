@@ -11,5 +11,6 @@ module.exports.Prodige = class {
         this.element = params['element'];
         this.talent = new Capacity(params['talent'], owner);
         this.maitrise = new Capacity(params['maitrise'], owner);
+        this.protection = false;
     }
-}
+};

@@ -17,7 +17,7 @@ module.exports.Player = class {
         this.order = order;
         this.opp = null;
 
-        let glyph = order == 0 ? 5 : 4
+        let glyph = order === 0 ? 5 : 4;
         this.hand.push(glyph);
     }
 
@@ -34,7 +34,7 @@ module.exports.Player = class {
 
     valide_choix_glyphe(voie, valeur){
         if (this.hand.includes(valeur)){
-            let g = this.played_glyphs[voie]
+            let g = this.played_glyphs[voie];
             let offset = (g != -1) ? g : 0;
             if (this.sum_played_glyphs() + valeur - offset 
                 <= this.get_played_prodigy().puissance){
@@ -43,7 +43,7 @@ module.exports.Player = class {
                 if (g >= 0){
                     this.hand.push(g);
                 }
-                this.played_glyphs[voie] = valeur
+                this.played_glyphs[voie] = valeur;
                 return true;
             } else {
                 return false;
@@ -57,7 +57,7 @@ module.exports.Player = class {
 
     on_opp_regard(voie){
         let opp = players[this.opp];
-        return (opp.has_regard && voie == opp.get_played_prodigy().element) ? true : false;
+        return (opp.has_regard && voie === opp.get_played_prodigy().element);
     }
 
     create_prodiges(list_names){
@@ -67,7 +67,7 @@ module.exports.Player = class {
     }
 
     retire_glyphe(voie){
-        if (this.played_glyphs[voie] != -1) {
+        if (this.played_glyphs[voie] !== -1) {
             this.hand.push(this.played_glyphs[voie]);
             this.played_glyphs[voie] = -1;
             return true;
@@ -82,21 +82,21 @@ module.exports.Player = class {
 
     valide_choix_prodige(prodige){
         if (prodige in this.prodiges) {
-            let p = this.prodiges[prodige]
+            let p = this.prodiges[prodige];
             if (p.available) {
                 if (this.get_played_prodigy() != null){
                     this.get_played_prodigy().available = true;
                 }
                 this.played_prodigy = prodige;
                 p.available = false;
-                console.log('... validé')
+                console.log('... validé');
                 return({'valid': true});
             } else {
-                console.log('...non validé (!available)')
+                console.log('...non validé (!available)');
                 return({'valid': false, 'text': p.name + ' n\'est plus disponible'});
             }
         } else {
-            console.log('...non validé (choix invalide ou prodige not in P.prodiges)')
+            console.log('...non validé (choix invalide ou prodige not in P.prodiges)');
             return({'valid': false, 'text': p.name + ' n\'est pas dans votre main'});
         }
     }
@@ -134,4 +134,4 @@ module.exports.Player = class {
         if (this.played_glyphs[el1] != -1 && this.played_glyphs[el2] != -1) return false;
         return true;
     }
-}
+};

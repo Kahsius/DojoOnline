@@ -50,7 +50,7 @@
   },
   {
       "name": "Amalrik",
-      "puissance": 6,
+      "puissance": 5,
       "degats": 1,
       "talent": {
           "target": "owner",

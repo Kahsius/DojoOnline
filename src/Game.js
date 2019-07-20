@@ -53,7 +53,7 @@ module.exports.Game = class {
 
     get_player_by_order(order){
         for (let player of this.players){
-            if (player.order == order) {
+            if (player.order === order) {
                 return player;
             }
         }
@@ -62,7 +62,7 @@ module.exports.Game = class {
     apply_talents(){
         let t, order, player, p;
 
-        if (this.state.label == 'talents:priority') {
+        if (this.state.label === 'talents:priority') {
             order = this.state.order;
             player = this.get_player_by_order(order);
             t = player.get_played_prodigy().talent;
@@ -71,7 +71,7 @@ module.exports.Game = class {
                 this.update_front(state);
                 if (state.status != 'done') {
                     this.substate = state;
-                } else if (this.state.order == 0) {
+                } else if (this.state.order === 0) {
                     this.state.order++;
                     this.apply_talents();
                 } else {
@@ -79,7 +79,7 @@ module.exports.Game = class {
                     this.state.order = 0;
                     this.apply_talents();
                 }
-            } else if (this.state.order == 0) {
+            } else if (this.state.order === 0) {
                 this.state.order++;
                 this.apply_talents();
             } else {
@@ -87,7 +87,7 @@ module.exports.Game = class {
                 this.state.order = 0;
                 this.apply_talents();
             }
-        } else if (this.state.label == 'talents:normal') {
+        } else if (this.state.label === 'talents:normal') {
             order = this.state.order;
             player = this.get_player_by_order(this.state.order);
             t = player.get_played_prodigy().talent;
@@ -97,21 +97,21 @@ module.exports.Game = class {
                 if (state.status != 'done') {
                     this.substate = state;
                     player.socket.emit('capacity_ongoing', state.label);
-                } else if (this.state.order == 0) {
+                } else if (this.state.order === 0) {
                     this.state.order++;
                     this.apply_talents();
                 } else {
                     game.state.label = 'choice_glyphes';
                     io.to(player.socket.room).emit('text_log', 'Choix des Glyphes');
                 }
-            } else if (this.state.order == 0) {
+            } else if (this.state.order === 0) {
                 this.state.order++;
                 this.apply_talents();
             } else {
                 game.state.label = 'choice_glyphes';
                 io.to(player.socket.room).emit('text_log', 'Choix des Glyphes');
             }
-        } else if (this.state.label == 'talents:post_winner') {
+        } else if (this.state.label === 'talents:post_winner') {
             player = this.get_player_by_order(this.state.order);
             p = player.get_played_prodigy();
             if (p.talent.need_winner){
@@ -120,7 +120,7 @@ module.exports.Game = class {
                 if (state.status != 'done') {
                     this.substate = state;
                     player.socket.emit('capacity_ongoing', state.label);
-                } else if (this.state.order == 0) {
+                } else if (this.state.order === 0) {
                     this.state.order++;
                     this.apply_talents();
                 } else {
@@ -129,7 +129,7 @@ module.exports.Game = class {
                     this.get_voies_players();
                     io.to(player.socket.room).emit('text_log', 'Application des Voies');
                 }
-            } else if (this.state.order == 0) {
+            } else if (this.state.order === 0) {
                 this.state.order++;
                 this.apply_talents();
             } else {
@@ -171,8 +171,8 @@ module.exports.Game = class {
 
         // Attribution du statut de victoire
         let players = [p1, p2];
-        players[winner % 2].winner = true
-        players[(winner + 1) % 2].winner = (winner != 2) ? false : true
+        players[winner % 2].winner = true;
+        players[(winner + 1) % 2].winner = (winner != 2) ? false : true;
 
         // Application des Talents éventuels
         this.state.label = 'talents:post_winner';
@@ -182,7 +182,7 @@ module.exports.Game = class {
 
     get_voies_players(){
         console.log('Application des Voies');
-        let element_ok, not_stopped, effect, p, v
+        let element_ok, not_stopped, effect, p, v;
         let p1_win, p2_win, i, j, scores, effects, check_condition;
 
         scores = this.scores;
@@ -192,16 +192,16 @@ module.exports.Game = class {
             // On étudie toutes les voies
             for (j in this.voies) {
                 v = this.voies[j];
-                p1_win = (scores[v.element] == -1 && i == 0);
-                p2_win = (scores[v.element] == 1 && i == 1);
+                p1_win = (scores[v.element] === -1 && i === 0);
+                p2_win = (scores[v.element] === 1 && i === 1);
                 if ( p1_win || p2_win ) {
                     console.log(p.get_played_prodigy().name + "_" + p.order + " remporte " + v.element);
                     // S'il peut activer sa maîtrise
-                    element_ok = (v.element == p.get_played_prodigy().element);
+                    element_ok = (v.element === p.get_played_prodigy().element);
                     not_stopped = !p.get_played_prodigy().maitrise.stopped;
                     check_condition = p.get_played_prodigy().maitrise.check_condition();
                     effect = {'element': j, 'playable': true, 'display': true};
-                    effect.maitrise = (element_ok && not_stopped && check_condition) ? true : false
+                    effect.maitrise = (element_ok && not_stopped && check_condition) ? true : false;
                     effects[i].push(effect);
                 }
             }
@@ -218,7 +218,7 @@ module.exports.Game = class {
         let element = this.state.element;
         let player = this.get_player_by_order(order);
         let c, p;
-        if(label == 'init_choice_voie'){
+        if(label === 'init_choice_voie'){
             let effects = this.voies_players[order];
             let still = false;
             for (let effect of this.voies_players[order]) {
@@ -228,11 +228,11 @@ module.exports.Game = class {
                 } 
             }
             if (!still) {
-                if(order == 0) {
+                if(order === 0) {
                     player.socket.emit('text_log', 'Aucun effet à appliquer');
                     this.state.order++;
                     this.apply_voies_players();
-                } else if (order == 1) {
+                } else if (order === 1) {
                     player.socket.emit('text_log', 'Aucun effet à appliquer');
                     this.state.label = 'end_round';
                     this.end_round();
@@ -241,9 +241,9 @@ module.exports.Game = class {
                 this.state.label = 'choice_voie';
                 player.socket.emit('choices_voies', effects);
             }
-        } else if (label == 'execute_voie') {
+        } else if (label === 'execute_voie') {
             for (let effect of this.voies_players[order]) {
-                if (effect.element == element) {
+                if (effect.element === element) {
                     if (this.state.maitrise) {
                         p = player.get_played_prodigy();
                         c = p.maitrise;
@@ -324,40 +324,85 @@ module.exports.Game = class {
         io.to(this.players[0].socket.room).emit(cmd, data);
     }
 
-    get_state_front(id) {
+    get_state(id) {
         let player = players[id];
         let opp = players[player.opp];
         let state = {};
-        state.hand = player.hand;
-        state.played_glyphs = player.played_glyphs;
+
+        state.me = {};
+        state.me.hand = player.hand;
+        state.me.played_glyphs = player.played_glyphs;
+        state.me.has_regard = player.has_regard;
+
+        state.opp = {};
+        state.opp.hand = opp.hand.length;
+        state.opp.played_glyphs = {};
+        for (let elem in opp.played_glyphs) {
+            let g = state.opp.played_glyphs[elem];
+            if (player.on_opp_regard(elem) && g !== -1) state.opp.played_glyphs[elem] = g;
+            else if (g !== -1) state.opp.played_glyphs[elem] = -1;
+            else state.opp.played_glyphs[elem] = -2;
+        }
 
         let prodiges = {};
-        for (let p in player.prodiges) {
-            prodiges[p.name] = {'name': p.name, 'available': p.available};
+        let p;
+        for (let name in player.prodiges) {
+            p = player.prodiges[name];
+            prodiges[p.name] = {
+                'available': p.available,
+                'p': p.puissance,
+                'd': p.degats,
+                'element': p.element
+            };
         }
-        prodiges[p.played_prodigy].played = true;
-        state.prodiges = prodiges;
+        if (player.played_prodigy) {
+            p = prodiges[player.played_prodigy];
+            p.played = true;
+        }
+        state.me.prodiges = prodiges;
 
         prodiges = {};
-        for (let p in opp.prodiges) {
-            prodiges[p.name] = {'name': p.name, 'available': p.available};
+        for (let name in opp.prodiges) {
+            p = opp.prodiges[name];
+            prodiges[p.name] = {'available': p.available};
         }
-        prodiges[p.played_prodigy].played = false;
-        state.prodiges_opp = prodiges;
+        p = prodiges[opp.played_prodigy];
+        if (opp.played_prodigy) {
+            p.p = opp.get_played_prodigy().puissance;
+            p.d = opp.get_played_prodigy().degats;
+            prodiges[opp.played_prodigy].played = false;
+        }
+        state.opp.prodiges = prodiges;
 
-        state.hand_opp = opp.get_hand_state();
-        state.hp = player.hp;
-        state.hp_opp = opp.hp;
+        state.me.hp = player.hp;
+        state.opp.hp = opp.hp;
+
+        for (let i of ['me', 'opp']) {
+            for (let status of ['protection', 'avantage', 'initiative']) {
+                let p = (i === 'me') ? player : opp;
+                if (p.played_prodigy) {
+                    state[i][status] = p.get_played_prodigy()[status];
+                }
+            }
+        }
+
+        return state;
     }    
 
     update_front(state) {
-        if (state.status == 'done') {
+        if (state.status !== 'done') {
+            state.capacity.owner.socket.emit('capacity_resolution', {'status': state.label});
+        } else {
             for (let player of this.players) {
-                state.me = (state.owner == player.socket.id) ? true : false;
+                state.me = (state.owner === player.socket.id);
                 player.socket.emit('capacity_resolution', state);
             }
-        } else {
-            state.capacity.owner.socket.emit('capacity_resolution', {'status': state.label});
+        }
+    }
+
+    update_lists_glyphs() {
+        for (let player of this.players) {
+            player.socket.emit('list_glyphs_opp', players[player.opp].hand);
         }
     }
 
@@ -414,7 +459,7 @@ module.exports.Game = class {
                 p.get_played_prodigy().available = false;
                 p.played_prodigy = "";
                 for (let elem in p.played_glyphs) {
-                    if (p.played_glyphs[elem] == 0) p.hand.push(0);
+                    if (p.played_glyphs[elem] === 0) p.hand.push(0);
                     p.played_glyphs[elem] = -1;
                 }
             }
@@ -428,14 +473,25 @@ module.exports.Game = class {
                 this.voies[elem].capacity.target = 'owner';
             }
             this.turn++;
+            // Modification de la Voie de la Terre au dernier tour
+            if (this.turn === 3) this.voies.terre = this.voies.terre3;
+            else if (this.turn === 4) {
+                let hps = this.players.map(x => x.hp);
+                if (hps[0] !== hps[1]) {
+                    let winner = [this.players[hps.indexOf(Math.min(hps))].socket];
+                } else {
+                    this.broadcast('')
+                }
+            }
+
 
             // Clean front
             p0.socket.emit('clean_round');
             p1.socket.emit('clean_round');
-
+            this.update_lists_glyphs();
 
             // On rentre de nouveau dans l'état d'attente
-            this.state = {'label': 'wait_prodige', 'order': 0}
+            this.state = {'label': 'wait_prodige', 'order': 0};
             this.get_player_by_order(0).socket.emit('text_log', 'Choix du Prodige');
         }
     }
@@ -453,7 +509,7 @@ module.exports.Game = class {
     valid_effect(order, data) {
         let effects = this.voies_players[order];
         for (let e of effects) {
-            if (data.element == e.element) {
+            if (data.element === e.element) {
                 if (data.maitrise && e.maitrise || !data.maitrise) {
                     if (e.playable) return true;
                 }
@@ -461,4 +517,4 @@ module.exports.Game = class {
         }
         return false;
     }
-}
+};

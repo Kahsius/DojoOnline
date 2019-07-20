@@ -263,3 +263,18 @@
     align-items: center;
     justify-content: center;
 }
+
+#list_glyphs_opp {
+    display: flex;
+    flex-direction: row;
+}
+
+#list_glyphs_opp > div {
+    display: flex;
+    flex-direction: row;
+    width: 33%;
+}
+
+#list_glyphs_opp > div > div {
+    width: 50%;
+}

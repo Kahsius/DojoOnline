@@ -1,5 +1,7 @@
 TODO
 
 EN COURS
+- finir système reconnection
+- vérifier que terre3 s'applique comme il faut
 
 A FAIRE

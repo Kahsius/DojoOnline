@@ -27,13 +27,23 @@ module.exports.Game = class {
 
         // Création des voies
         this.voies = {};
+        this.voies_sup = {};
         for(let element in voie_data) {
-            this.voies[element] = new Voie(voie_data[element]);
-        }        
+            if (['terre', 'eau', 'feu', 'air'].includes(element)) {
+                this.voies[element] = new Voie(voie_data[element]);
+            } else {
+                this.voies_sup[element] = new Voie(voie_data[element]);
+            }
+        }
 
         // Création des joueurs
-        let id0 = room[0].id;
-        let id1 = room[1].id;
+        let id0 = room[0].pseudo;
+        let id1 = room[1].pseudo;
+        let room_name = id0 + ' VS ' + id1;
+        this.room = room_name;
+        for (let socket of room) {
+            socket.join(room_name);
+        }
 
         var player0 = new Player(room[0], 0);
         player0.opp = id1;
@@ -69,7 +79,7 @@ module.exports.Game = class {
             if (t.priority) {
                 let state = t.execute_capacity(this.turn);
                 this.update_front(state);
-                if (state.status != 'done') {
+                if (state.status !== 'done') {
                     this.substate = state;
                 } else if (this.state.order === 0) {
                     this.state.order++;
@@ -94,7 +104,7 @@ module.exports.Game = class {
             if (!t.priority && !t.need_winner) {
                 let state = t.execute_capacity(this.turn);
                 this.update_front(state);
-                if (state.status != 'done') {
+                if (state.status !== 'done') {
                     this.substate = state;
                     player.socket.emit('capacity_ongoing', state.label);
                 } else if (this.state.order === 0) {
@@ -117,7 +127,7 @@ module.exports.Game = class {
             if (p.talent.need_winner){
                 let state = p.talent.execute_capacity(this.turn);
                 this.update_front(state);
-                if (state.status != 'done') {
+                if (state.status !== 'done') {
                     this.substate = state;
                     player.socket.emit('capacity_ongoing', state.label);
                 } else if (this.state.order === 0) {
@@ -172,7 +182,7 @@ module.exports.Game = class {
         // Attribution du statut de victoire
         let players = [p1, p2];
         players[winner % 2].winner = true;
-        players[(winner + 1) % 2].winner = (winner != 2) ? false : true;
+        players[(winner + 1) % 2].winner = (winner !== 2) ? false : true;
 
         // Application des Talents éventuels
         this.state.label = 'talents:post_winner';
@@ -201,7 +211,7 @@ module.exports.Game = class {
                     not_stopped = !p.get_played_prodigy().maitrise.stopped;
                     check_condition = p.get_played_prodigy().maitrise.check_condition();
                     effect = {'element': j, 'playable': true, 'display': true};
-                    effect.maitrise = (element_ok && not_stopped && check_condition) ? true : false;
+                    effect.maitrise = (element_ok && not_stopped && check_condition);
                     effects[i].push(effect);
                 }
             }
@@ -257,7 +267,7 @@ module.exports.Game = class {
                     player.socket.emit('choices_voies', this.voies_players[order]);
                     let state = c.execute_capacity();
                     this.update_front(state);
-                    if (state.status != 'done') {
+                    if (state.status !== 'done') {
                         this.substate = state;
                         if (state.cost_type) {
                             state.capacity.owner.socket.emit('Coût à payer');
@@ -321,7 +331,7 @@ module.exports.Game = class {
     }
 
     broadcast_cmd(cmd, data) {
-        io.to(this.players[0].socket.room).emit(cmd, data);
+        io.to(this.room).emit(cmd, data);
     }
 
     get_state(id) {
@@ -330,15 +340,18 @@ module.exports.Game = class {
         let state = {};
 
         state.me = {};
+        state.me.pseudo = player.pseudo;
         state.me.hand = player.hand;
         state.me.played_glyphs = player.played_glyphs;
         state.me.has_regard = player.has_regard;
 
         state.opp = {};
         state.opp.hand = opp.hand.length;
+        state.opp.hand_hist = [1,2,3,4,5].map(x => opp.hand.map( y => y === x)
+            .reduce((a,b) => a+b));
         state.opp.played_glyphs = {};
         for (let elem in opp.played_glyphs) {
-            let g = state.opp.played_glyphs[elem];
+            let g = opp.played_glyphs[elem];
             if (player.on_opp_regard(elem) && g !== -1) state.opp.played_glyphs[elem] = g;
             else if (g !== -1) state.opp.played_glyphs[elem] = -1;
             else state.opp.played_glyphs[elem] = -2;
@@ -364,13 +377,16 @@ module.exports.Game = class {
         prodiges = {};
         for (let name in opp.prodiges) {
             p = opp.prodiges[name];
-            prodiges[p.name] = {'available': p.available};
+            prodiges[p.name] = {
+                'available': p.available,
+                'p': p.puissance,
+                'd': p.degats,
+                'element': p.element
+            };
         }
-        p = prodiges[opp.played_prodigy];
         if (opp.played_prodigy) {
-            p.p = opp.get_played_prodigy().puissance;
-            p.d = opp.get_played_prodigy().degats;
-            prodiges[opp.played_prodigy].played = false;
+            p = prodiges[opp.played_prodigy];
+            p.played = true;
         }
         state.opp.prodiges = prodiges;
 
@@ -394,7 +410,7 @@ module.exports.Game = class {
             state.capacity.owner.socket.emit('capacity_resolution', {'status': state.label});
         } else {
             for (let player of this.players) {
-                state.me = (state.owner === player.socket.id);
+                state.me = (state.owner === player.socket.pseudo);
                 player.socket.emit('capacity_resolution', state);
             }
         }
@@ -474,16 +490,28 @@ module.exports.Game = class {
             }
             this.turn++;
             // Modification de la Voie de la Terre au dernier tour
-            if (this.turn === 3) this.voies.terre = this.voies.terre3;
+            if (this.turn === 3) this.voies.terre = this.voies_sup.terre3;
             else if (this.turn === 4) {
                 let hps = this.players.map(x => x.hp);
+                let winner;
                 if (hps[0] !== hps[1]) {
-                    let winner = [this.players[hps.indexOf(Math.min(hps))].socket];
+                    winner = [this.players[hps.indexOf(Math.min.apply(null, hps))].pseudo];
+                    this.broadcast_cmd('end_game', winner);
                 } else {
-                    this.broadcast('')
+                    this.broadcast_cmd('end_game', this.players.map(p => p.pseudo));
                 }
             }
 
+            // Update round de chaque capacité
+            for (let p of this.players) {
+                for (let prod in p.prodiges) {
+                    p.prodiges[prod].talent.turn = this.turn;
+                    p.prodiges[prod].maitrise.turn = this.turn;
+                }
+            }
+            for (let v in this.voies) {
+                this.voies[v].capacity.turn = this.turn;
+            }
 
             // Clean front
             p0.socket.emit('clean_round');
@@ -493,16 +521,6 @@ module.exports.Game = class {
             // On rentre de nouveau dans l'état d'attente
             this.state = {'label': 'wait_prodige', 'order': 0};
             this.get_player_by_order(0).socket.emit('text_log', 'Choix du Prodige');
-        }
-    }
-
-    update_capacites() {
-        let prod;
-        console.log('Mise à jour (im)patience');
-        for (let p of this.players) {
-            prod = p.get_played_prodigy();
-            prod.talent.update_modif(this.turn);
-            prod.maitrise.update_modif(this.turn);
         }
     }
 

@@ -43,8 +43,6 @@ function drop(ev) {
 }
 
 function click_glyph(ev) {
-    // TODO à refondre
-    // doit renvoyer data = {'value': valeur, 'target_zone': zone du glyphe, 'element': si sur voie}
     let node = ev.currentTarget;
     let parent = node.parentNode;
     let value = node.getAttribute('valeur');
@@ -161,15 +159,16 @@ function init_game(data) {
     document.getElementById('pseudo').innerHTML = me.pseudo;
 }
 
-function init() {
+function init_debug() {
     socket.emit('init_debug');
     document.getElementById('room_choice').style.display = 'none';
     document.getElementById('waiting').style.display = 'none';
 }
 
-function init_backup() {
+function init() {
+    let pseudo;
     do {
-        let pseudo = prompt('Votre pseudo');
+        pseudo = prompt('Votre pseudo');
     } while (pseudo === '');
     socket.pseudo = pseudo;
     socket.emit('init', pseudo);
@@ -237,7 +236,7 @@ socket.on('drop_validated', function(){
     if (['hand_glyphes', 'hand_prodiges'].includes(target.getAttributeNode("class").value)) {
         target.appendChild(src)
     } else {
-        if (target.firstElementChild != null) {
+        if (target.firstElementChild !== null) {
             // S'il y a déjà quelque chose dans la case
             t = target.firstElementChild;
             target.replaceChild(src, t);
@@ -295,7 +294,7 @@ socket.on('choix_glyphe_opp', function(data){
         glyph.setAttribute("valeur", valeur);
         glyph.innerHTML = valeur;
         let already_played = empty_voie.firstElementChild;
-        if (already_played == null || remove) {
+        if (already_played === null || remove) {
             let hand = document.getElementById('hand_glyphes_j0');
             hand.removeChild(hand.firstElementChild);
         }
@@ -303,7 +302,7 @@ socket.on('choix_glyphe_opp', function(data){
         empty_voie.appendChild(glyph);
     } else {
         let already_played = empty_voie.firstElementChild;
-        if (already_played == null || remove) {
+        if (already_played === null || remove) {
             let glyph = document.getElementById('hand_glyphes_j0').firstElementChild;
             empty_voie.appendChild(glyph);
         } else {
@@ -615,62 +614,65 @@ socket.on('clean_regard', function(){
 });
 
 socket.on('reconnect', function(state){
+
+    // Show playing screen
+    document.getElementById('room_choice').style.display = 'none';
+    document.getElementById('waiting').style.display = 'none';
+    document.getElementById('end').style.display = 'none';
+    document.getElementById('main').style.display = 'flex';
+
     let me = state.me;
     let opp = state.opp;
-    let hand = document.getElementById('hand_glyphes_j0');
-    
+
     // Glyphes
+    let hand = document.getElementById('hand_glyphes_j1');
     for (let glyph of me.hand){
-        document.getElementById('hand_glyphes_j1');
-        document.appendChild(create_glyph(glyph));
+        hand.appendChild(create_glyph(glyph));
     }
     for (let elem in me.played_glyphs){
         let g = me.played_glyphs[elem];
-        if (g > -1) document.getElementById('j1-' + elem).appendChild(g);
-        else if (g === -2) document.getElementById('j1-' + elem).appendChild(-1);
+        if (g > -1) document.getElementById('j1-' + elem).appendChild(create_glyph(g));
     }
 
+    for (let i = 0; i < opp.hand_hist.length; i++) {
+        document.getElementById('list_'+ (i+1)).innerText = opp.hand_hist[i];
+    }
+
+    hand = document.getElementById('hand_glyphes_j0');
     for (let i = 0; i < opp.hand; i++){
-        document.getElementById('hand_glyphes_j0').appendChild(create_glyph(-1));
+        hand.appendChild(create_glyph(-1));
     }
-
     for (let elem in opp.played_glyphs){
         let g = opp.played_glyphs[elem];
-        if (g > -2) document.getElementById('j1-' + elem).appendChild(g);
+        if (g > -2) document.getElementById('j0-' + elem).appendChild(create_glyph(g));
     }
 
     // Prodiges
     for (let prodige in me.prodiges){
         let p = me.prodiges[prodige];
         let data = {'name': prodige, 'p': p.p, 'd': p.d};
+        let prod = create_prodige(data);
         if (p.played) {
-            document.getElementById('empty_prodige_j1').appendChild(create_prodige(data));
-        } else if (!p.available) {
-            let p = create_prodige(data);
-            p.setAttribute('available', 'false');
-            document.getElementById('hand_prodiges_j1').appendChild(p);
+            document.getElementById('empty_prodige_j1').appendChild(prod);
         } else {
-            let p = create_prodige(data);
-            document.getElementById('hand_prodiges_j1').appendChild(p);
+            if (!p.available) prod.setAttribute('available', 'false');
+            document.getElementById('hand_prodiges_j1').appendChild(prod);
         }
     }
     for (let prodige in opp.prodiges){
         let p = opp.prodiges[prodige];
         let data = {'name': prodige, 'p': p.p, 'd': p.d};
+        let prod = create_prodige(data);
         if (p.played) {
-            document.getElementById('empty_prodige_j0').appendChild(create_prodige(data));
-        } else if (!p.available) {
-            let p = create_prodige(data);
-            p.setAttribute('available', 'false');
-            document.getElementById('hand_prodiges_j0').appendChild(p);
+            document.getElementById('empty_prodige_j0').appendChild(prod);
         } else {
-            let p = create_prodige(data);
-            document.getElementById('hand_prodiges_j0').appendChild(p);
+            if (!p.available) prod.setAttribute('available', 'false');
+            document.getElementById('hand_prodiges_j0').appendChild(prod);
         }
     }
 
-
     // Status
+    document.getElementById('pseudo').innerText = state.me.pseudo;
     document.getElementById('hp_j0').innerHTML = opp.hp;
     document.getElementById('hp_j1').innerHTML = me.hp;
     for (let status of ['protection', 'avantage', 'initiative']){
@@ -680,11 +682,18 @@ socket.on('reconnect', function(state){
 });
 
 socket.on('list_glyphs_opp', function (list) {
-    console.log('update turn');
     let values = [1, 2, 3, 4, 5];
     let res;
     res = values.map(x => list.map(y => y === x).reduce((a, b) => a + b));
     for (let i of values) {
         document.getElementById('list_' + i).innerText = res[i-1];
     }
-})
+});
+
+socket.on('error_reconnection', function() {
+    document.getElementById('room_choice').style.display = 'none';
+    document.getElementById('end').style.display = 'none';
+    document.getElementById('main').style.display = 'none';
+    document.getElementById('waiting').style.display = 'flex';
+    document.getElementById('waiting').innerText = 'Erreur lors de la reconnexion';
+});

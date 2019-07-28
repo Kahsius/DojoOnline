@@ -32,6 +32,7 @@ module.exports.Capacity = class {
         this.stopped = false;
         this.data = json;
         this.done = false;
+        this.turn = 0;
 	}
 
     execute_capacity(turn) {
@@ -50,22 +51,24 @@ module.exports.Capacity = class {
                 return state;
 	        }
             if (this.need_choice
-                && this.choices.length != this.value
+                && this.choices.length !== this.value
                 && this.available_targets()) {
                 let state = {'label': 'waiting_choice',
                     'value': this.cost_value,
                     'capacity': this,
                     'target': this.data.target,
-                    'owner': this.owner.socket.id,
+                    'owner': this.owner.socket.pseudo,
                     'target_zone': this.get_target_zone()
                 };
                 return state;
             }
             this.owner.socket.emit('text_log', msg);
             players[this.owner.opp].socket.emit('text_log', msg);
+            this.value *= this.get_modification(this.turn);
             return this.effect(this);
 	    } else if (this.check_condition()
             && !this.available_targets()) {
+            this.value *= this.get_modification(this.turn);
             return this.effect(this);
         }
         return {
@@ -76,12 +79,12 @@ module.exports.Capacity = class {
 
     get_target_zone(){
         let e = this.data.effect;
-        if (this.data.cost_type == 'glyph' && !this.cost_paid){
+        if (this.data.cost_type === 'glyph' && !this.cost_paid){
             return 'hand_glyphes';
         } else {
             if (['oppression', 'pillage'].includes(e)) {
                 return 'hand_glyphes';
-            } else if (e == 'recuperation') {
+            } else if (e === 'recuperation') {
                 return 'empty_voie';
             } 
         }
@@ -91,7 +94,7 @@ module.exports.Capacity = class {
         let opp = players[this.owner.opp];
         let own = this.owner;
         let targets = 0;
-        if (this.data.cost_type == 'glyph' && !this.cost_paid){
+        if (this.data.cost_type === 'glyph' && !this.cost_paid){
             // Si le coût n'a pas encore été payé
             for (let glyph of this.owner.hand) {
                 if (glyph > 0) {
@@ -101,7 +104,7 @@ module.exports.Capacity = class {
             return (targets >= this.cost_value);
         } else {
             // Si le coût a été payé mais qu'il faut quand même une cible
-            if (this.data.effect == 'recuperation') {
+            if (this.data.effect === 'recuperation') {
                 let value = this.value;
                 for (let element in own.played_glyphs) {
                     if (![0, 5].includes(own.played_glyphs[element])) {
@@ -128,11 +131,11 @@ module.exports.Capacity = class {
 	    let t = this.target;
 	    let own = this.owner;
         let opp = players[own.opp];
-	    if (t == "opp") {
+	    if (t === "opp") {
 	        this.target = (c) ? own : opp;
             this.target_label = (c) ? 'own' : 'opp';
 	    }
-	    else if (t == "owner") {
+	    else if (t === "owner") {
 	        this.target = (c) ? opp : own;
             this.target_label = (c) ? 'opp' : 'own';
 	    }
@@ -140,12 +143,12 @@ module.exports.Capacity = class {
 
 	check_condition() {
         let owner = this.owner;
-	    let victoire = this.condition == "victoire" && owner.winner;
-	    let defaite = this.condition == "defaite" && !owner.winner;
-	    let courage = this.condition == "courage" && owner.order == 0;
-	    let riposte = this.condition == "riposte" && owner.order == 1;
-	    let none = this.condition == "none";
-        let smthg_to_do = this.data.effect != "nothing";
+	    let victoire = this.condition === "victoire" && owner.winner;
+	    let defaite = this.condition === "defaite" && !owner.winner;
+	    let courage = this.condition === "courage" && owner.order === 0;
+	    let riposte = this.condition === "riposte" && owner.order === 1;
+	    let none = this.condition === "none";
+        let smthg_to_do = this.data.effect !== "nothing";
 	    if ((victoire || defaite || courage || riposte || none) && smthg_to_do) {
 	        return true;
 	    } else {
@@ -155,15 +158,16 @@ module.exports.Capacity = class {
 
 	get_modification(turn) {
         let owner = this.owner;
+        let glyph;
 	    if (this.modification === "patience") {
 	        return turn;
 	    } else if (this.modification === "acharnement") {
 	        return 3 - turn;
 	    } else if (this.modification === "par_glyphe") {
             let count = 0;
-            for (element in owner.played_glyphs) {
+            for (let element in owner.played_glyphs) {
                 glyph = owner.played_glyphs[element];
-                if (glyph == 0) {
+                if (glyph === 0) {
                     count = count + 1;
                 }
             }
@@ -203,7 +207,7 @@ module.exports.Capacity = class {
         let g;
         if (['terre', 'eau', 'air', 'feu'].includes(value)){
             for (let choice of this.choices) {
-                if (choice.element == value) {
+                if (choice.element === value) {
                     return false;
                 }
             }
@@ -212,10 +216,10 @@ module.exports.Capacity = class {
             let count_hand = 0;
             let count_choices = 0;
             for (g of this.target.hand) {
-                if (g == value) count_hand++;
+                if (g === value) count_hand++;
             }
             for (g of this.choices) {
-                if (g == value) count_choices++;
+                if (g === value) count_choices++;
             }
             return count_hand > count_choices;
         }
@@ -241,7 +245,7 @@ effets['recuperation'] = function(capa) {
         'choices': capa.choices,
         'status': 'done',
 		'target': capa.target_label,
-        'owner': capa.owner.socket.id
+        'owner': capa.owner.socket.pseudo
     }
 };
 
@@ -255,7 +259,7 @@ effets['modif_degats'] = function(capa) {
         'value': (p.protection && v < 0) ? 0 : v,
         'status': 'done',
 		'target': capa.target_label,
-		'owner': capa.owner.socket.id
+		'owner': capa.owner.socket.pseudo
     }
 };
 
@@ -269,7 +273,7 @@ effets['modif_puissance'] = function(capa) {
         'value': (p.protection && v < 0) ? 0 : v,
         'status': 'done',
 		'target': capa.target_label,
-		'owner': capa.owner.socket.id
+		'owner': capa.owner.socket.pseudo
     }
 };
 
@@ -284,7 +288,7 @@ effets['modif_puissance_degats'] = function(capa) {
         'value': (p.protection && v < 0) ? 0 : v,
         'status': 'done',
 		'target': capa.target_label,
-		'owner': capa.owner.socket.id
+		'owner': capa.owner.socket.pseudo
     }
 };
 
@@ -297,7 +301,7 @@ effets['modif_hp'] = function(capa) {
         'value': capa.value,
         'status': 'done',
 		'target': capa.target_label,
-		'owner': capa.owner.socket.id
+		'owner': capa.owner.socket.pseudo
     }
 };
 
@@ -311,7 +315,7 @@ effets['stop_talent'] = function(capa) {
         'label': 'stop_talent',
         'status': 'done',
 		'target': capa.target_label,
-		'owner': capa.owner.socket.id
+		'owner': capa.owner.socket.pseudo
     }
 };
 
@@ -325,7 +329,7 @@ effets['stop_maitrise'] = function(capa) {
         'label': 'stop_maitrise',
         'status': 'done',
 		'target': capa.target_label,
-		'owner': capa.owner.socket.id
+		'owner': capa.owner.socket.pseudo
     }
 };
 
@@ -336,7 +340,7 @@ effets['protection'] = function(capa) {
         'label': 'protection',
         'status': 'done',
 		'target': capa.target_label,
-		'owner': capa.owner.socket.id
+		'owner': capa.owner.socket.pseudo
     }
 };
 
@@ -355,7 +359,7 @@ effets['echange_p'] = function(capa) {
         'status': 'done',
         'values' : [p1.puissance, p2.puissance],
 		'target': capa.target_label,
-		'owner': capa.owner.socket.id
+		'owner': capa.owner.socket.pseudo
     }
 };
 
@@ -374,7 +378,7 @@ effets['echange_d'] = function(capa) {
         'status': 'done',
         'values' : [p1.degats, p2.degats],
         'target': capa.target_label,
-		'owner': capa.owner.socket.id
+		'owner': capa.owner.socket.pseudo
     }
 };
 
@@ -391,7 +395,7 @@ effets['copy_talent'] = function(capa) {
         'label': 'copy_talent',
         'status': 'done',
 		'target': capa.target_label,
-		'owner': capa.owner.socket.id
+		'owner': capa.owner.socket.pseudo
     }
 };
 
@@ -408,7 +412,7 @@ effets['copy_maitrise'] = function(capa) {
         'label': 'copy_maitrise',
         'status': 'done',
 		'target': capa.target_label,
-		'owner': capa.owner.socket.id
+		'owner': capa.owner.socket.pseudo
     }
 };
 
@@ -425,7 +429,7 @@ effets['oppression'] = function(capa) {
         'choices': capa.choices,
         'status': 'done',
 		'target': capa.target_label,
-		'owner': capa.owner.socket.id
+		'owner': capa.owner.socket.pseudo
     }
 };
 
@@ -443,7 +447,7 @@ effets['pillage'] = function(capa) {
         'choices': capa.choices,
         'status': 'done',
         'target': capa.target_label,
-        'owner': capa.owner.socket.id
+        'owner': capa.owner.socket.pseudo
     }
 };
 
@@ -454,7 +458,7 @@ effets['initiative'] = function(capa) {
         'label': 'initiative',
         'status': 'done',
 		'target': capa.target_label,
-		'owner': capa.owner.socket.id
+		'owner': capa.owner.socket.pseudo
     }
 };
 
@@ -465,7 +469,7 @@ effets['avantage'] = function(capa) {
         'label': 'avantage',
         'status': 'done',
 		'target': capa.target_label,
-		'owner': capa.owner.socket.id
+		'owner': capa.owner.socket.pseudo
     }
 };
 
@@ -480,7 +484,7 @@ effets['vampirism'] = function(capa) {
         'value': v,
         'status': 'done',
 		'target': capa.target_label,
-		'owner': capa.owner.socket.id
+		'owner': capa.owner.socket.pseudo
     }
 };
 
@@ -491,7 +495,7 @@ effets['regard'] = function(capa) {
         'label': 'regard',
         'status': 'done',
 		'target': capa.target_label,
-		'owner': capa.owner.socket.id
+		'owner': capa.owner.socket.pseudo
     }
 };
 
@@ -501,6 +505,6 @@ effets['nothing'] = function(capa) {
         'label': 'nothing',
         'status': 'done',
 		'target': capa.target_label,
-		'owner': capa.owner.socket.id
+		'owner': capa.owner.socket.pseudo
     }
 };

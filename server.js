@@ -16,7 +16,8 @@ app.get('/', function(req, res){
 
 io.on('connection', function(socket){
     socket.on('disconnect', function(){
-        console.log(socket.id + ' disconnected');
+        console.log(socket.pseudo + ' disconnected');
+        if (players[socket.pseudo]) players[socket.pseudo].disconnected = true;
     });
 
     socket.on('debug', function(cmd){
@@ -25,23 +26,29 @@ io.on('connection', function(socket){
     });
 
     socket.on('init', function(pseudo){
-        if (pseudo in players_connections) {
-            socket.id = players_connections[pseudo];
-            if (players[socket.id]) {
-                socket.emit('reconnect', games[socket.id].get_state());
-            }
-        }
-        let list_names = [];
         socket.pseudo = pseudo;
-        players_connections[pseudo] = {'id': socket.id};
-        console.log('Récupère liste parties : ' + pseudo);
-        for (let key in rooms) {
-            if (rooms[key].length === 1){
-                list_names.push({'id': key, 'pseudo': rooms[key][0].pseudo})
+        if (pseudo in games) {
+            if (players[pseudo].disconnected){
+                players[pseudo].disconnected = false;
+                console.log(socket.pseudo + ' : reconnection');
+                players[pseudo].socket = socket;
+                socket.emit('reconnect', games[socket.pseudo].get_state(socket.pseudo));
+                return;
+            } else {
+                socket.emit('error_reconnection');
             }
+        } else {
+            let list_names = [];
+            console.log('Récupère liste parties : ' + pseudo);
+            for (let key in rooms) {
+                if (rooms[key].length === 1){
+                    let pseudo = rooms[key][0].pseudo;
+                    list_names.push({'id': pseudo, 'pseudo': pseudo});
+                }
+            }
+            list_names.push({'id': socket.pseudo, 'pseudo': 'Nouvelle partie'});
+            socket.emit('list_rooms', list_names);
         }
-        list_names.push({'id': socket.id, 'pseudo': 'Nouvelle partie'});
-        socket.emit('list_rooms', list_names);
     });
 
     socket.on('init_debug', function() {
@@ -57,8 +64,8 @@ io.on('connection', function(socket){
             rooms[id].push(socket);
             console.log(socket.pseudo + ' affronte ' + rooms[id][0].pseudo);
             game = new Game(rooms[id]);
-            games[rooms[id][0].id] = game;
-            games[rooms[id][1].id] = game;
+            games[rooms[id][0].pseudo] = game;
+            games[rooms[id][1].pseudo] = game;
             for (let player of game.players) {
                 let me = {
                     'pseudo': player.pseudo,
@@ -82,15 +89,19 @@ io.on('connection', function(socket){
 
     socket.on('join_room', function(id){
         socket.join(id);
-        if (id === socket.id) {
+        if (id === socket.pseudo) {
             rooms[id] = [socket];
             console.log(socket.pseudo + ' crée une partie');
         } else {
             rooms[id].push(socket);
+            p1 = rooms[id][0];
+            p2 = rooms[id][1];
+            players_connections[p1.pseudo] = {'id': p1.id};
+            players_connections[p2.pseudo] = {'id': p2.id};
             console.log(socket.pseudo + ' affronte ' + rooms[id][0].pseudo);
             game = new Game(rooms[id]);
-            games[rooms[id][0].id] = game;
-            games[rooms[id][1].id] = game;
+            games[rooms[id][0].pseudo] = game;
+            games[rooms[id][1].pseudo] = game;
             for (let player of game.players) {
                 let me = {
                     'pseudo': player.pseudo,
@@ -113,9 +124,9 @@ io.on('connection', function(socket){
     });
 
     socket.on('validate_glyphes', function(){
-        let player = players[socket.id];
+        let player = players[socket.pseudo];
         let opp = players[player.opp];
-        let game = games[socket.id];
+        let game = games[socket.pseudo];
         player.ready = true;
         socket.emit('validate_button', false);
         if (game.both_players_ready()){
@@ -127,8 +138,8 @@ io.on('connection', function(socket){
     });
 
     socket.on('drop_prodige', function(data){
-        let game = games[socket.id];
-        let player = players[socket.id];
+        let game = games[socket.pseudo];
+        let player = players[socket.pseudo];
         let opp = players[player.opp];
         let prodige = data.name;
         // If game is waiting for a prodige to be chosen
@@ -149,7 +160,6 @@ io.on('connection', function(socket){
                     } else {
                         game.state = {'label': 'talents:priority', 'order': 0};
                         io.to(player.socket.room).emit('text_log', 'Application des Talents');
-                        game.update_capacites(); // Modifications des capacités avec Patience/Impatience
                         game.apply_talents();
                     }
                 }
@@ -159,8 +169,8 @@ io.on('connection', function(socket){
     });
 
     socket.on('drop_glyphe', function(data){
-        let game = games[socket.id];
-        let player = players[socket.id];
+        let game = games[socket.pseudo];
+        let player = players[socket.pseudo];
         let hand = player.hand;
         let opp = players[player.opp];
         let voie = data.voie;
@@ -172,7 +182,7 @@ io.on('connection', function(socket){
                     let need_update = player.switch_glyphs(data.source_elem, data.target_elem);
                     if (need_update) {
                         let body = {'voie': data.target_elem, 'valeur': valeur, 'remove': false};
-                        body['regard'] = (player.on_opp_regard(data.target_elem)) ? true : false;
+                        body['regard'] = (player.on_opp_regard(data.target_elem));
                         opp.socket.emit('choix_glyphe_opp', body);
                         opp.socket.emit('retire_glyphe_opp', data.source_elem);
                     }
@@ -212,12 +222,12 @@ io.on('connection', function(socket){
     });
 
     socket.on('check_validate_button', function(){
-        let pg = players[socket.id].played_glyphs;
+        let pg = players[socket.pseudo].played_glyphs;
 
         // Est-ce que toutes les voies sont pleines
         let notEmpty = 0;
         for ( let element in pg) {
-            if ( pg[element] != -1) {
+            if ( pg[element] !== -1) {
                 notEmpty++;
             }
         }
@@ -226,8 +236,8 @@ io.on('connection', function(socket){
     });
 
     socket.on('click', function(data){
-        let game = games[socket.id];
-        let player = players[socket.id];
+        let game = games[socket.pseudo];
+        let player = players[socket.pseudo];
         let opp = players[player.opp];
         let ss = (game.substate) ? game.substate : {};
         let talent = (game.state.label.split(':')[0] === 'talents');
@@ -310,8 +320,8 @@ io.on('connection', function(socket){
     });
 
     socket.on('delete_game', function() {
-        delete players[socket.id];
-        delete games[socket.id];
+        delete players[socket.pseudo];
+        delete games[socket.pseudo];
     });
 });
 

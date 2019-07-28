@@ -16,6 +16,7 @@ module.exports.Player = class {
         this.ready = false;
         this.order = order;
         this.opp = null;
+        this.disconnected = false;
 
         let glyph = order === 0 ? 5 : 4;
         this.hand.push(glyph);
@@ -25,7 +26,7 @@ module.exports.Player = class {
         let g = this.played_glyphs;
         let sum = 0;
         for (let voie in g){
-            if (g[voie] != -1){
+            if (g[voie] !== -1){
                 sum += g[voie];
             }
         }
@@ -35,7 +36,7 @@ module.exports.Player = class {
     valide_choix_glyphe(voie, valeur){
         if (this.hand.includes(valeur)){
             let g = this.played_glyphs[voie];
-            let offset = (g != -1) ? g : 0;
+            let offset = (g !== -1) ? g : 0;
             if (this.sum_played_glyphs() + valeur - offset 
                 <= this.get_played_prodigy().puissance){
                 console.log('... validé');
@@ -46,12 +47,12 @@ module.exports.Player = class {
                 this.played_glyphs[voie] = valeur;
                 return true;
             } else {
-                return false;
                 console.log('... non valide ( > puissance)');
+                return false;
             }
         } else {
-            return false;
             console.log('... non validé (pas dans p.hand)');
+            return false;
         }
     }
 
@@ -76,7 +77,8 @@ module.exports.Player = class {
     }
 
     get_played_prodigy(){
-        return this.prodiges[this.played_prodigy];
+        let p = this.prodiges[this.played_prodigy];
+        return p ? p : null;
     }
 
 
@@ -84,7 +86,7 @@ module.exports.Player = class {
         if (prodige in this.prodiges) {
             let p = this.prodiges[prodige];
             if (p.available) {
-                if (this.get_played_prodigy() != null){
+                if (this.get_played_prodigy() !== null){
                     this.get_played_prodigy().available = true;
                 }
                 this.played_prodigy = prodige;
@@ -131,7 +133,7 @@ module.exports.Player = class {
         let i = this.played_glyphs[el1];
         this.played_glyphs[el1] = this.played_glyphs[el2];
         this.played_glyphs[el2] = i;
-        if (this.played_glyphs[el1] != -1 && this.played_glyphs[el2] != -1) return false;
+        if (this.played_glyphs[el1] !== -1 && this.played_glyphs[el2] !== -1) return false;
         return true;
     }
 };

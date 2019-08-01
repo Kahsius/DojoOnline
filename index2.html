@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <link rel='stylesheet' href="style2.css">
+</head>
+<body onload="socket.emit('init_debug');">
+<div id='room_choice' style="display: none">
+    <div id='room_choice_list'></div>
+    <div id='refresh' onclick='refresh();'>Actualiser</div>
+</div>
+<div id='waiting' style='display: none;'>En attente d'un adversaire</div>
+<div id='main' style='display: none;'>
+    <div id="header"></div>
+    <div id="loading"></div>
+    <div id="main_game">
+        <div id="battlefield">
+            <div id="hand_glyphes_j0" class="hand_glyphes">
+                <div id="hand_glyphes_j0_01"></div>
+                <div id="hand_glyphes_j0_2345"></div>
+            </div>
+            <div id="pseudos_and_voies">
+                <div id="pseudos">
+                    <div id="pseudo0"></div>
+                    <div id="pseudo1"></div>
+                </div>
+                <div id="voies_all">
+                    <div class="empty_voies">
+                        <div id="empty_voies_j0">
+                            <div class='empty_voie empty_voie_j0' id='j0-air'></div>
+                            <div class='empty_voie empty_voie_j0' id='j0-eau'></div>
+                            <div class='empty_voie empty_voie_j0' id='j0-terre'></div>
+                            <div class='empty_voie empty_voie_j0' id='j0-feu'></div>
+                        </div>
+                        <div id="voies0"></div>
+                    </div>
+                    <div id="voies_positioned">
+                        <img src="images/Voie_Sulimo.png" class="img_voie"/>
+                        <img src="images/Voie_Ulmo.png" class="img_voie"/>
+                        <img src="images/Voie_Wilwar.png" class="img_voie"/>
+                        <img src="images/Voie_Anar.png" class="img_voie"/>
+                    </div>
+                    <div class="empty_voies">
+                        <div id="voies1"></div>
+                        <div id="empty_voies_j1">
+                            <div class='empty_voie empty_voie_j1' id='j1-air' ondrop="drop(event)" ondragover="event.preventDefault();"></div>
+                            <div class='empty_voie empty_voie_j1' id='j1-eau' ondrop="drop(event)" ondragover="event.preventDefault();"></div>
+                            <div class='empty_voie empty_voie_j1' id='j1-terre' ondrop="drop(event)" ondragover="event.preventDefault();"></div>
+                            <div class='empty_voie empty_voie_j1' id='j1-feu' ondrop="drop(event)" ondragover="event.preventDefault();"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div id="hand_glyphes_j1" class="hand_glyphes" ondrop="drop(event)" ondragover="event.preventDefault();">
+                <div id="hand_glyphes_j1_2345"></div>
+                <div id="hand_glyphes_j1_01"></div>
+            </div>
+        </div>
+        <div id="prodiges">
+            <div class="prodiges" id="prodiges_j0">
+                <div id="empty_prodige_j0"></div>
+                <div id="hand_prodiges_j0"></div>
+            </div>
+            <div class="prodiges" id="prodiges_j1">
+                <div id="empty_prodige_j1" ondrop="drop(event)" ondragover="event.preventDefault();"></div>
+                <div id="hand_prodiges_j1" ondrop="drop(event)" ondragover="event.preventDefault();"></div>
+            </div>
+        </div>
+        <div id="infos">
+            <div id="glyphs_opp">
+                <div class="defausse">
+                    <div id="defausse_1"><img class="img_defausse" src="images/Defausse_01.png"/></div>
+                    <div class="text_white text_centered">x </div>
+                    <div class="text_white text_centered" id="list_1"></div>
+                </div>
+                <div class="defausse">
+                    <div id="defausse_2"><img class="img_defausse" src="images/Defausse_02.png"/></div>
+                    <div class="text_white text_centered">x </div>
+                    <div class="text_white text_centered" id="list_2"></div>
+                </div>
+                <div class="defausse">
+                    <div id="defausse_3"><img class="img_defausse" src="images/Defausse_03.png"/></div>
+                    <div class="text_white text_centered">x </div>
+                    <div class="text_white text_centered" id="list_3"></div>
+                </div>
+                <div class="defausse">
+                    <div id="defausse_4"><img class="img_defausse" src="images/Defausse_04.png"/></div>
+                    <div class="text_white text_centered">x </div>
+                    <div class="text_white text_centered" id="list_4"></div>
+                </div>
+                <div class="defausse">
+                    <div id="defausse_5"><img class="img_defausse" src="images/Defausse_05.png"/></div>
+                    <div class="text_white text_centered">x </div>
+                    <div class="text_white text_centered" id="list_5"></div>
+                </div>
+            </div>
+            <div id="logs">
+                <div class='log text_white'></div>
+            </div>
+            <div id="preview">
+                <div id="preview_zone"></div>
+            </div>
+        </div>
+    </div>
+    <div id='end' style='display: none;'>
+        <div id='winners'></div>
+    </div>
+    <script src="/socket.io/socket.io.js"></script>
+    <script src= "./client.js"></script>
+</body>
+</html>
+

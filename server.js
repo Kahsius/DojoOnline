@@ -3,6 +3,8 @@ const app = express();
 const http = require('http').createServer(app);
 const path = require('path');
 const Game = require('./src/Game').Game;
+const fs = require('fs');
+const images_path = path.join(__dirname, 'images');
 
 global.io = require('socket.io')(http);
 global.players = {};
@@ -11,7 +13,7 @@ global.rooms = {};
 global.players_connections = {};
 
 app.get('/', function(req, res){
-    res.sendFile(path.join(__dirname + '/index.html'));
+    res.sendFile(path.join(__dirname + '/index2.html'));
 });
 
 io.on('connection', function(socket){
@@ -322,6 +324,16 @@ io.on('connection', function(socket){
     socket.on('delete_game', function() {
         delete players[socket.pseudo];
         delete games[socket.pseudo];
+    });
+
+    socket.on('get_list_images', function() {
+        fs.readdir(images_path, function(err, files) {
+            if (err) console.log('impossible to read ' + images_path);
+            else {
+                files = files.map(x => 'images/' + x);
+                socket.emit('list_images', files);
+            }
+        });
     });
 });
 

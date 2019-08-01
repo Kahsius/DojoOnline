@@ -1,0 +1,286 @@
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+#main {
+    height: 100vh;
+    display: flex;
+    flex-direction: column;
+}
+
+#header {
+    height: 8%;
+    background-color: black;
+}
+
+#main_game {
+    height: 92%;
+    display: flex;
+    flex-direction: row;
+}
+
+#main_game > div {
+    height: 100%;
+    display: flex;
+}
+
+#battlefield {
+    width: 60%;
+    flex-direction: column;
+}
+
+#battlefield > div {
+    display: flex;
+}
+
+#prodiges {
+    width: 20%;
+    flex-direction: column;
+    display: flex;
+}
+
+#infos {
+    width: 20%;
+    display: flex;
+    flex-direction: column;
+}
+
+.hand_glyphes {
+    height: 25%;
+}
+
+#hand_glyphes_j1, #empty_voies_j1, #pseudo1, #prodiges_j1, #voies1, .log{
+    background-color: #3e403f;
+}
+
+#hand_glyphes_j0, #empty_voies_j0, #pseudo0, #prodiges_j0, #voies0{
+    background-color: white;
+}
+
+#pseudos_and_voies {
+    height: 50%;
+}
+
+#pseudos {
+    width: 33%;
+    display: flex;
+    flex-direction: column;
+}
+
+#voies_all {
+    width: 67%;
+    display: flex;
+    flex-direction: column;
+}
+
+.empty_voies {
+    height: 50%;
+    display: flex;
+    flex-direction: column;
+}
+
+#pseudo0, #pseudo1, #empty_voies_j0, #empty_voies_j1, #voies0, #voies1{
+    height: 50%;
+}
+
+#prodiges > div {
+    height: 50%;
+}
+
+#glyphs_opp {
+    height: 8%;
+}
+
+#logs {
+    height: 23%;
+}
+
+#preview {
+    height: 69%;
+}
+
+#preview, #glyphs_opp, #logs {
+    background-color: darkgrey;
+}
+
+.prodiges {
+    display: flex;
+    flex-direction: row;
+}
+
+#empty_prodige_j0, #empty_prodige_j1 {
+    width: 60%;
+}
+
+#hand_prodiges_j0, #hand_prodiges_j1 {
+    width: 40%;
+}
+
+#empty_voies_j0, #empty_voies_j1 {
+    display: flex;
+    flex-direction: row;
+    justify-content: space-around;
+    align-items: center;
+}
+
+.empty_voie {
+    display: flex;
+    height: 8vh;
+    width: 8vh;
+    border-radius: 5px;
+    justify-content: center;
+    align-items: center;
+}
+
+.empty_voie_j0 {
+    border: 2px solid #3e403f;
+}
+
+.empty_voie_j1 {
+    border: 2px solid white;
+}
+
+#logs {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.log {
+    border-radius: 8px;
+    width: 80%;
+    height: 80%;
+}
+
+#refresh {
+    height: 3vh;
+    width: 20vh;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    background-color: green;
+}
+
+.btn_room_choice {
+    height: 3vh;
+    width: 20vh;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    background-color: aquamarine;
+}
+
+.btn_room_choice:hover {
+    background-color: CadetBlue;
+}
+
+#waiting {
+    display: flex;
+    height: 100vh;
+    justify-content: center;
+    align-items: center;
+}
+
+#glyphs_opp {
+    display: flex;
+    flex-direction: row;
+    justify-content: space-around;
+    align-items: center;
+    padding-right: 10%;
+    padding-left: 10%;
+}
+
+.text_white {
+    color: white;
+}
+
+.text_small {
+    font-size: 13px;
+}
+
+.text_centered {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    padding-bottom: 15%;
+}
+
+.defausse {
+    display: flex;
+    flex-direction: row;
+}
+
+.log {
+    padding: 5%;
+}
+
+#preview_zone {
+    border-radius: 8px;
+    width: 80%;
+    height: 90%;
+    background-image: url('images/Carte_DOJO.png');
+    background-repeat: no-repeat;
+    background-size: contain;
+    background-position: center;
+}
+
+#preview {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.glyphe, .glyphe_opp {
+    border-radius: 8px;
+    height: 8vh;
+    width: 8vh;
+    background-repeat: no-repeat;
+    background-size: contain;
+    background-position: center;
+    margin: 2px;
+}
+
+.hand_glyphes {
+    padding-left: 3%;
+    padding-bottom: 1%;
+    padding-top: 1%;
+    display: flex;
+}
+
+#hand_glyphes_j0 {
+    flex-direction: column;
+}
+
+#hand_glyphes_j1 {
+    flex-direction: column-reverse;
+}
+
+.hand_glyphes > div {
+    width: 100%;
+    display: flex;
+    justify-content: left;
+    align-items: center;
+}
+
+#voies_positioned {
+    display: flex;
+    flex-direction: row;
+    justify-content: space-around;
+    align-items: center;
+    position: absolute;
+    top: 44%;
+    left: 20%;
+    width: 40%;
+    height: 20%;
+}
+
+.img_defausse {
+    width: 30px;
+    height: 30px;
+}
+
+.img_voie {
+    width: 20vh;
+}

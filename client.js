@@ -7,9 +7,14 @@ let drop_srcParent = null;
 let drop_target_zone = null;
 let choix = null;
 let id_glyphe = 0;
+let data_game = null;
 
 function drag(ev) {
     ev.dataTransfer.setData("id", ev.target.id);
+}
+
+function get_list_images() {
+    socket.emit('get_list_images');
 }
 
 function drop(ev) {
@@ -88,9 +93,11 @@ function create_glyph(v) {
         glyph.setAttribute("valeur", v);
         glyph.setAttribute("onclick", "click_glyph(event);");
         glyph.setAttribute("clicked", "false");
-        glyph.innerHTML = v;
+        let path = 'images/Glyphe_' + ( (v === 0) ? 'Feinte.png' : '0' + v + '.png');
+        glyph.style.backgroundImage = "url(" + path + ")";
     } else {
         glyph.setAttribute("class", "glyphe_opp");
+        glyph.style.backgroundImage = "url('images/Glyphe_Dos.png')";
     }
     return glyph;
 }
@@ -106,19 +113,19 @@ function create_prodige(data, opp=false) {
     prodige.setAttribute("available", "false");
     prodige.setAttribute('element', data.element);
     prodige.setAttribute("onclick", "click_prodige(event);");
-    
+
     puissance.setAttribute("id", "puissance_" + data.name);
     puissance.setAttribute("class", "puissance");
     puissance.innerHTML = data.p;
-    
+
     degats.setAttribute("id", "degats_" + data.name);
     degats.setAttribute("class", "degats");
     degats.innerHTML = data.d;
-    
+
     name.setAttribute("class", "name");
     name.setAttribute("id", "name_" + data.name);
     name.innerHTML = data.name;
-    
+
     prodige.appendChild(puissance);
     prodige.appendChild(name);
     prodige.appendChild(degats);
@@ -130,12 +137,24 @@ function create_prodige(data, opp=false) {
     return prodige;
 }
 
+// function init_ui() {
+//     [1, 2, 3, 4, 5].forEach(function(x) {
+//         let img = document.createElement('img');
+//         img.src = 'images/Defausse_0' + x + '.png';
+//         img.width = 30;
+//         img.height = 30;
+//         document.getElementById('defausse_' + x).appendChild(img);
+//     });
+// }
+
 function init_game(data) {
     me = data['me'];
     opp = data['opp'];
 
-    const hand_player = document.getElementById('hand_glyphes_j1');
-    const hand_opp = document.getElementById('hand_glyphes_j0');
+    const hand_player_01 = document.getElementById('hand_glyphes_j1_01');
+    const hand_player_2345 = document.getElementById('hand_glyphes_j1_2345');
+    const hand_opp_01 = document.getElementById('hand_glyphes_j0_01');
+    const hand_opp_2345 = document.getElementById('hand_glyphes_j0_2345');
     const hand_prodiges_player = document.getElementById('hand_prodiges_j1');
     const hand_prodiges_opp = document.getElementById('hand_prodiges_j0');
 
@@ -143,20 +162,31 @@ function init_game(data) {
     const prodiges = me.prodiges;
     const prodiges_opp = opp.prodiges;
 
-    for (let prodige of prodiges) {
-        hand_prodiges_player.appendChild(create_prodige(prodige));
-    }
-    for (let prodige of prodiges_opp) {
-        hand_prodiges_opp.appendChild(create_prodige(prodige, true));
+    // for (let prodige of prodiges) {
+    //     hand_prodiges_player.appendChild(create_prodige(prodige));
+    // }
+    // for (let prodige of prodiges_opp) {
+    //     hand_prodiges_opp.appendChild(create_prodige(prodige, true));
+    // }
+    for (let i = 0; i < glyphes.length; i++) {
+        if ([0, 1].includes(glyphes[i])) {
+            hand_player_01.appendChild(create_glyph(glyphes[i]));
+        } else {
+            hand_player_2345.appendChild(create_glyph(glyphes[i]));
+        }
     }
     for (let i = 0; i < glyphes.length; i++) {
-        hand_player.appendChild(create_glyph(glyphes[i]));
-        hand_opp.appendChild(create_glyph(-1));
+        let g = create_glyph(-1);
+        if (i < 7) {
+            hand_opp_01.appendChild(g);
+        } else {
+            hand_opp_2345.appendChild(g);
+        }
     }
 
-    document.getElementById('hp_j1').innerHTML = me.hp;
-    document.getElementById('hp_j0').innerHTML = opp.hp;
-    document.getElementById('pseudo').innerHTML = me.pseudo;
+    // document.getElementById('hp_j1').innerHTML = me.hp;
+    // document.getElementById('hp_j0').innerHTML = opp.hp;
+    // document.getElementById('pseudo').innerHTML = me.pseudo;
 }
 
 function init_debug() {
@@ -217,10 +247,10 @@ socket.on('list_rooms', function(data){
 });
 
 socket.on('init_game', function(data){
+    data_game = data;
+    console.log('Chargement des images');
+    socket.emit('get_list_images');
     text_log('Création de la partie');
-    document.getElementById('waiting').style.display = 'none';
-    document.getElementById('main').style.display = 'flex';
-    init_game(data);
 });
 
 socket.on('text_log', function(data){
@@ -231,7 +261,7 @@ socket.on('drop_validated', function(){
     let src = drop_src;
     let srcParent = drop_srcParent;
     let target = drop_target_zone;
-        
+
     // Si on vise la main, on ne fait pas de remplacement
     if (['hand_glyphes', 'hand_prodiges'].includes(target.getAttributeNode("class").value)) {
         target.appendChild(src)
@@ -331,7 +361,7 @@ socket.on('validate_button', function(validate){
     } else {
         btn.style.display = 'none';
         false_btn.style.display = 'flex';
-    }   
+    }
 });
 
 socket.on('debug', function(str){
@@ -696,4 +726,21 @@ socket.on('error_reconnection', function() {
     document.getElementById('main').style.display = 'none';
     document.getElementById('waiting').style.display = 'flex';
     document.getElementById('waiting').innerText = 'Erreur lors de la reconnexion';
+});
+
+socket.on('list_images', function(list) {
+    let images_to_load = list.length;
+    for (let name of list) {
+        let img = new Image();
+        img.onload = function() {
+            console.log(name + ' loaded');
+            images_to_load--;
+            if (images_to_load === 0) {
+                document.getElementById('waiting').style.display = 'none';
+                document.getElementById('main').style.display = 'flex';
+                init_game(data_game);
+            }
+        }
+        img.src = name;
+    }
 });

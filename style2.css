@@ -27,7 +27,7 @@
 }
 
 #battlefield {
-    width: 60%;
+    width: 55%;
     flex-direction: column;
 }
 
@@ -36,7 +36,7 @@
 }
 
 #prodiges {
-    width: 20%;
+    width: 25%;
     flex-direction: column;
     display: flex;
 }
@@ -64,13 +64,13 @@
 }
 
 #pseudos {
-    width: 33%;
+    width: 40%;
     display: flex;
     flex-direction: column;
 }
 
 #voies_all {
-    width: 67%;
+    width: 60%;
     display: flex;
     flex-direction: column;
 }
@@ -111,11 +111,18 @@
 }
 
 #empty_prodige_j0, #empty_prodige_j1 {
-    width: 60%;
+    display: flex;
+    align-items: center;
+    justify-content: right;
+    width: 70%;
 }
 
-#hand_prodiges_j0, #hand_prodiges_j1 {
-    width: 40%;
+.hand_prodiges {
+    width: 30%;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-around;
+    align-items: center;
 }
 
 #empty_voies_j0, #empty_voies_j1 {
@@ -233,13 +240,12 @@
 }
 
 .glyphe, .glyphe_opp {
-    border-radius: 8px;
     height: 8vh;
     width: 8vh;
     background-repeat: no-repeat;
     background-size: contain;
     background-position: center;
-    margin: 2px;
+    margin: 4px;
 }
 
 .hand_glyphes {
@@ -267,11 +273,11 @@
 #voies_positioned {
     display: flex;
     flex-direction: row;
-    justify-content: space-around;
+    justify-content: center;
     align-items: center;
     position: absolute;
     top: 44%;
-    left: 20%;
+    left: 18.5%;
     width: 40%;
     height: 20%;
 }
@@ -282,5 +288,37 @@
 }
 
 .img_voie {
-    width: 20vh;
+    width: 16vh;
+    margin: 5px;
+}
+
+.empty_prodige {
+    width: 60%;
+    height: 80%;
+    border-radius: 5px;
+    margin-right: 20px;
+}
+
+#empty_prodige_j0 > .empty_prodige {
+    border: 2px solid #3e403f;
+}
+
+#empty_prodige_j1 > .empty_prodige {
+    border: 2px solid white;
+}
+
+.hand_prodiges .puissance, .hand_prodiges .degats {
+    display: none;
+}
+
+.prodige {
+    display: flex;
+    height: 8vh;
+    width: 8vh;
+    background-color: grey;
+    justify-content: space-between;
+    align-items: flex-start;
+    padding-top: 7%;
+    padding-bottom: 7%;
+    flex-wrap: wrap;
 }

@@ -1,4 +1,8 @@
 const socket = io();
+const COL_EAU = "blue";
+const COL_TERRE = "green";
+const COL_FEU = "red";
+const COL_AIR = "orange";
 
 let num_need_click = 0;
 let need_click_target = "none";
@@ -18,6 +22,7 @@ function get_list_images() {
 }
 
 function drop(ev) {
+    debugger;
     ev.preventDefault();
     drop_src = document.getElementById(ev.dataTransfer.getData("id"));
     drop_srcParent = drop_src.parentNode;
@@ -114,6 +119,15 @@ function create_prodige(data, opp=false) {
     prodige.setAttribute('element', data.element);
     prodige.setAttribute("onclick", "click_prodige(event);");
 
+    let color = "";
+    if (data.element === "air") color = COL_AIR;
+    else if (data.element === "eau") color = COL_EAU;
+    else if (data.element === "terre") color = COL_TERRE;
+    else if (data.element === "feu") color = COL_FEU;
+    prodige.style.border = "3px solid";
+    prodige.style.borderRadius = "5px";
+    prodige.style.borderColor = color;
+
     puissance.setAttribute("id", "puissance_" + data.name);
     puissance.setAttribute("class", "puissance");
     puissance.innerHTML = data.p;
@@ -137,16 +151,6 @@ function create_prodige(data, opp=false) {
     return prodige;
 }
 
-// function init_ui() {
-//     [1, 2, 3, 4, 5].forEach(function(x) {
-//         let img = document.createElement('img');
-//         img.src = 'images/Defausse_0' + x + '.png';
-//         img.width = 30;
-//         img.height = 30;
-//         document.getElementById('defausse_' + x).appendChild(img);
-//     });
-// }
-
 function init_game(data) {
     me = data['me'];
     opp = data['opp'];
@@ -162,12 +166,14 @@ function init_game(data) {
     const prodiges = me.prodiges;
     const prodiges_opp = opp.prodiges;
 
-    // for (let prodige of prodiges) {
-    //     hand_prodiges_player.appendChild(create_prodige(prodige));
-    // }
-    // for (let prodige of prodiges_opp) {
-    //     hand_prodiges_opp.appendChild(create_prodige(prodige, true));
-    // }
+    for (let prodige of prodiges) {
+        hand_prodiges_player.appendChild(create_prodige(prodige));
+    }
+
+    for (let prodige of prodiges_opp) {
+        hand_prodiges_opp.appendChild(create_prodige(prodige, true));
+    }
+
     for (let i = 0; i < glyphes.length; i++) {
         if ([0, 1].includes(glyphes[i])) {
             hand_player_01.appendChild(create_glyph(glyphes[i]));

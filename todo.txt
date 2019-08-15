@@ -1,8 +1,10 @@
 TODO
 
 EN COURS
-- finir système reconnection
-- vérifier que terre3 s'applique comme il faut
+- vérifier drop glyphes
+- vérifier drop prodiges
 
 A FAIRE
-- UI everywhere !
+- voies qui se déplacent lorsques gagnées
+- feedback element clickable
+

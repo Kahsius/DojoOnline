@@ -2,7 +2,7 @@ TODO
 
 EN COURS
 - vérifier drop glyphes
-- vérifier drop prodiges
+- changer fond carte quand drop
 
 A FAIRE
 - voies qui se déplacent lorsques gagnées

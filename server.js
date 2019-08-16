@@ -154,7 +154,11 @@ io.on('connection', function(socket){
                 let test = player.valide_choix_prodige(prodige);
                 if (test.valid) {
                     // Display le choix du Prodige pour l'adversaire
-                    opp.socket.emit('choix_prodige_adverse', prodige);
+                    let data = {
+                        'id': prodige,
+                        'element': test.prodige.element
+                    }
+                    opp.socket.emit('choix_prodige_adverse', data);
                     socket.emit('drop_validated');
                     if (game.state.order === 0) {
                         game.state.order++;

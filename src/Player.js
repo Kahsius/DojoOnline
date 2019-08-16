@@ -92,7 +92,10 @@ module.exports.Player = class {
                 this.played_prodigy = prodige;
                 p.available = false;
                 console.log('... validé');
-                return({'valid': true});
+                return({
+                    'valid': true,
+                    'prodige': p
+                });
             } else {
                 console.log('...non validé (!available)');
                 return({'valid': false, 'text': p.name + ' n\'est plus disponible'});

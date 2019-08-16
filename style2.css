@@ -123,6 +123,8 @@
     flex-direction: column;
     justify-content: space-around;
     align-items: center;
+    padding-top: 7%;
+    padding-bottom: 7%;
 }
 
 #empty_voies_j0, #empty_voies_j1 {
@@ -293,8 +295,8 @@
 }
 
 .empty_prodige {
-    width: 60%;
-    height: 80%;
+    width: 20vh;
+    height: 37vh;
     border-radius: 5px;
     margin-right: 20px;
 }
@@ -318,7 +320,51 @@
     background-color: grey;
     justify-content: space-between;
     align-items: flex-start;
-    padding-top: 7%;
-    padding-bottom: 7%;
-    flex-wrap: wrap;
+    /*flex-wrap: wrap;*/
+}
+
+.empty_prodige > .prodige {
+    display: flex;
+    height: 100%;
+    width: 100%;
+    background-color: transparent;
+    background-repeat: no-repeat;
+    background-size: contain;
+    background-position: center;
+    border: none;
+    display: flex;
+}
+
+.empty_prodige .puissance, .empty_prodige .degats {
+    display: flex;
+    width: 5vh;
+    height: 4vh;
+    justify-content: center;
+    align-items: center;
+    background-color: red;
+}
+
+.empty_prodige .name {
+    display: flex;
+    width: 10vh;
+    height: 4vh;
+    justify-content: center;
+    align-items: center;
+    background-color: blue;
+}
+
+.empty_prodige .img {
+    width: 30vh;
+    height: 22vh;
+    background-color: orange;
+}
+
+.empty_prodige .capacity {
+    width: 30vh;
+    height: 5.5vh;
+}
+
+.hand_prodiges .prodige {
+    border-radius: 5px;
+    border: 3px solid;
 }

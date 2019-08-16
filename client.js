@@ -22,7 +22,6 @@ function get_list_images() {
 }
 
 function drop(ev) {
-    debugger;
     ev.preventDefault();
     drop_src = document.getElementById(ev.dataTransfer.getData("id"));
     drop_srcParent = drop_src.parentNode;
@@ -112,6 +111,9 @@ function create_prodige(data, opp=false) {
     const puissance = document.createElement("div");
     const degats = document.createElement("div");
     const name = document.createElement("div");
+    const img = document.createElement("div");
+    const talent = document.createElement("div");
+    const maitrise = document.createElement("div");
 
     prodige.setAttribute("id", data.name);
     prodige.setAttribute("class", "prodige");
@@ -304,10 +306,19 @@ socket.on('init_choix_glyphes', function() {
     }
 });
 
-socket.on('choix_prodige_adverse', function(id){
+socket.on('choix_prodige_adverse', function(data){
+    let id = data.id;
+    let elem = data.element;
     text_log('L\'adversaire joue ' + id);
+
     const prodige = document.getElementById(id);
-    const empty_prodige = document.getElementById('empty_prodige_j0');
+    if (elem === 'feu') elem = 'Anar';
+    else if (elem === 'eau') elem = 'Ulmo';
+    else if (elem === 'air') elem = 'Sulimo';
+    else if (elem === 'terre') elem = 'Wilwar';
+    prodige.style.backgroundImage = "url('images/Fond_Carte_" + elem + ".png')"
+
+    const empty_prodige = document.querySelector('#empty_prodige_j0 > .empty_prodige');
     empty_prodige.appendChild(prodige);
 });
 

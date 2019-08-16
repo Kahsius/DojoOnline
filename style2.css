@@ -93,10 +93,6 @@
     height: 8%;
 }
 
-#logs {
-    height: 23%;
-}
-
 #preview {
     height: 69%;
 }
@@ -152,12 +148,15 @@
 }
 
 #logs {
+    height: 23%;
     display: flex;
     align-items: center;
     justify-content: center;
 }
 
 .log {
+    padding: 5%;
+    overflow: auto;
     border-radius: 8px;
     width: 80%;
     height: 80%;
@@ -219,10 +218,6 @@
 .defausse {
     display: flex;
     flex-direction: row;
-}
-
-.log {
-    padding: 5%;
 }
 
 #preview_zone {
@@ -309,7 +304,10 @@
     border: 2px solid white;
 }
 
-.hand_prodiges .puissance, .hand_prodiges .degats {
+.hand_prodiges .puissance,
+.hand_prodiges .degats,
+.hand_prodiges .img,
+.hand_prodiges .capacity {
     display: none;
 }
 
@@ -320,7 +318,7 @@
     background-color: grey;
     justify-content: space-between;
     align-items: flex-start;
-    /*flex-wrap: wrap;*/
+    flex-wrap: wrap;
 }
 
 .empty_prodige > .prodige {
@@ -331,17 +329,21 @@
     background-repeat: no-repeat;
     background-size: contain;
     background-position: center;
-    border: none;
+    border: medium none;
     display: flex;
 }
 
 .empty_prodige .puissance, .empty_prodige .degats {
     display: flex;
-    width: 5vh;
+    width: 4.5vh;
     height: 4vh;
     justify-content: center;
     align-items: center;
-    background-color: red;
+    background-color: transparent;
+    background-repeat: no-repeat;
+    background-size: contain;
+    background-position: center;
+    color: white;
 }
 
 .empty_prodige .name {
@@ -350,13 +352,11 @@
     height: 4vh;
     justify-content: center;
     align-items: center;
-    background-color: blue;
 }
 
 .empty_prodige .img {
     width: 30vh;
-    height: 22vh;
-    background-color: orange;
+    height: 21vh;
 }
 
 .empty_prodige .capacity {

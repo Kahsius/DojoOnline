@@ -2,7 +2,9 @@ TODO
 
 EN COURS
 - vérifier drop glyphes
-- changer fond carte quand drop
+- mettre bouton valider
+- réduire la taille du symbôle puissance et réorganiser l'espace entre les
+  éléments du titre du prodige
 
 A FAIRE
 - voies qui se déplacent lorsques gagnées

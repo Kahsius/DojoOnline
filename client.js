@@ -13,6 +13,19 @@ let choix = null;
 let id_glyphe = 0;
 let data_game = null;
 
+function get_full_art_prodige(id) {
+    const prodige = document.getElementById(id);
+    let elem = prodige.getAttribute('element');
+
+    if (elem === 'feu') elem = 'Anar';
+    else if (elem === 'eau') elem = 'Ulmo';
+    else if (elem === 'air') elem = 'Sulimo';
+    else if (elem === 'terre') elem = 'Wilwar';
+    prodige.style.backgroundImage = "url('images/Fond_Carte_" + elem + ".png')"
+
+    return prodige;
+}
+
 function drag(ev) {
     ev.dataTransfer.setData("id", ev.target.id);
 }
@@ -126,25 +139,41 @@ function create_prodige(data, opp=false) {
     else if (data.element === "eau") color = COL_EAU;
     else if (data.element === "terre") color = COL_TERRE;
     else if (data.element === "feu") color = COL_FEU;
-    prodige.style.border = "3px solid";
-    prodige.style.borderRadius = "5px";
     prodige.style.borderColor = color;
 
     puissance.setAttribute("id", "puissance_" + data.name);
     puissance.setAttribute("class", "puissance");
+    puissance.style.backgroundImage = "url('images/Carte_Puissance.png')";
     puissance.innerHTML = data.p;
 
     degats.setAttribute("id", "degats_" + data.name);
     degats.setAttribute("class", "degats");
+    degats.style.backgroundImage = "url('images/Carte_Degat.png')";
     degats.innerHTML = data.d;
 
     name.setAttribute("class", "name");
     name.setAttribute("id", "name_" + data.name);
+    name.style.color = color;
     name.innerHTML = data.name;
+
+    img.setAttribute("class", "img");
+    img.setAttribute("id", "img_" + data.name);
+
+    talent.setAttribute("class", "capacity");
+    talent.setAttribute("id", "talent_" + data.name);
+    talent.innerHTML = "Talent";
+
+    maitrise.setAttribute("class", "capacity");
+    maitrise.setAttribute("id", "maitrise_" + data.name);
+    maitrise.innerHTML = "Maitrise";
 
     prodige.appendChild(puissance);
     prodige.appendChild(name);
     prodige.appendChild(degats);
+    prodige.appendChild(img);
+    prodige.appendChild(talent);
+    prodige.appendChild(maitrise);
+
     if (!opp) {
         prodige.setAttribute("draggable", "true");
         prodige.setAttribute("ondragstart", "drag(event)");
@@ -281,6 +310,9 @@ socket.on('drop_validated', function(){
             srcParent.appendChild(t);
         } else {
             // Sinon
+            if (target.getAttributeNode("class").value === 'empty_prodige') {
+                src = get_full_art_prodige(src.getAttributeNode('id').value);
+            }
             target.appendChild(src);
         }
     }
@@ -306,18 +338,9 @@ socket.on('init_choix_glyphes', function() {
     }
 });
 
-socket.on('choix_prodige_adverse', function(data){
-    let id = data.id;
-    let elem = data.element;
+socket.on('choix_prodige_adverse', function(id){
     text_log('L\'adversaire joue ' + id);
-
-    const prodige = document.getElementById(id);
-    if (elem === 'feu') elem = 'Anar';
-    else if (elem === 'eau') elem = 'Ulmo';
-    else if (elem === 'air') elem = 'Sulimo';
-    else if (elem === 'terre') elem = 'Wilwar';
-    prodige.style.backgroundImage = "url('images/Fond_Carte_" + elem + ".png')"
-
+    let prodige = get_full_art_prodige(id);
     const empty_prodige = document.querySelector('#empty_prodige_j0 > .empty_prodige');
     empty_prodige.appendChild(prodige);
 });
@@ -416,14 +439,14 @@ socket.on('reveal', function(pg){
 socket.on('capacity_resolution', function(state){
     let hp = document.getElementById('hp_j1');
     let hp_opp = document.getElementById('hp_j0');
-    let prodige = document.getElementById('empty_prodige_j1').children[0];
+    let prodige = document.querySelector('#empty_prodige_j1 .prodige')
     let p, d;
     let node, id, hand;
     for (let child of prodige.children) {
         if (child.className === 'puissance') p = child;
         if (child.className === 'degats') d = child;
     }
-    let prodige_opp = document.getElementById('empty_prodige_j0').children[0];
+    let prodige_opp = document.querySelector('#empty_prodige_j0 .prodige')
     let p_opp, d_opp;
     for (let child of prodige_opp.children) {
         if (child.className === 'puissance') p_opp = child;

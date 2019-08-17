@@ -390,3 +390,7 @@
     align-items: center;
     border-radius: 8px;
 }
+
+.empty_voie > .glyphe, .empty_voie > .glyphe_opp {
+    margin: 0;
+}

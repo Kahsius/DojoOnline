@@ -13,6 +13,31 @@ let choix = null;
 let id_glyphe = 0;
 let data_game = null;
 
+function add_glyph_to_hand(glyph) {
+    let value = glyph.getAttribute('valeur');
+    if (value <= 1) {
+        let hand = document.querySelector('#hand_glyphes_j1_01');
+    } else if (valeur > 1) {
+        let hand = document.querySelector('#hand_glyphes_j1_2345');
+    }
+    hand.appendChild(glyph);
+}
+
+function update_borders_empty_voies() {
+    let lst = document.querySelectorAll('.empty_voie');
+    for (let item of lst) {
+        if (item.hasChildNodes()) {
+            item.style.border = "medium none";
+        } else {
+            if (item.getAttribute('class').includes('j0')) {
+                item.style.border = "2px solid #3e403f";
+            } else if (item.getAttribute('class').includes('j1')) {
+                item.style.border = "2px solid white";
+            }        
+        }
+    }
+}
+
 function get_full_art_prodige(id) {
     const prodige = document.getElementById(id);
     let elem = prodige.getAttribute('element');
@@ -41,13 +66,14 @@ function drop(ev) {
     drop_target_zone = ev.currentTarget;
     // Drop _item to avoid drop problems
     let data = {
-        'source': drop_srcParent.getAttribute('class').split('_item')[0],
+        'source': drop_srcParent.getAttribute('class').split(' ')[0].split('_item')[0],
         'target': drop_target_zone.getAttribute('class').split(' ')[0].split('_item')[0]
     };
     let elem = drop_src.getAttribute('class');
     if (elem === 'glyphe') {
         if (data.source === 'empty_voie') data.source_elem = drop_srcParent.getAttribute('id').split('-')[1];
         if (data.target === 'empty_voie') data.target_elem = drop_target_zone.getAttribute('id').split('-')[1];
+        data.value = drop_src.getAttribute('valeur');
         socket.emit('drop_glyphe', data);
     } else if (elem === 'prodige') {
         data['name'] = drop_src.getAttribute('id');
@@ -286,27 +312,33 @@ socket.on('text_log', function(data){
 });
 
 socket.on('drop_validated', function(){
+    let t;
     let src = drop_src;
     let srcParent = drop_srcParent;
     let target = drop_target_zone;
+    let target_class = target.getAttribute('class');
+    let srcParent_class = srcParent.getAttribute('class');
 
     // Si on vise la main, on ne fait pas de remplacement
-    if (['hand_glyphes', 'hand_prodiges'].includes(target.getAttributeNode("class").value)) {
-        target.appendChild(src)
-    } else {
-        if (target.firstElementChild !== null) {
-            // S'il y a déjà quelque chose dans la case
+    if (target_class === 'hand_glyphes') {
+        add_glyph_to_hand(src); 
+    } else if (target_class === 'empty_voie') {
+        if (target.hasChildNodes()) {
             t = target.firstElementChild;
             target.replaceChild(src, t);
-            srcParent.appendChild(t);
-        } else {
-            // Sinon
-            if (target.getAttributeNode("class").value === 'empty_prodige') {
-                src = get_full_art_prodige(src.getAttributeNode('id').value);
+            if (srcParent_class === 'empty_voie') {
+                srcParent.appendChild(t);
+            } else if (srcParent_class === 'hand_glyphes') {
+                add_glyph_to_hand(t);
             }
+        } else {
             target.appendChild(src);
         }
+    } else if (target_class === 'empty_prodige') {
+        src = get_full_art_prodige(src.getAttributeNode('id').value);
+        target.appendChild(src);
     }
+    update_borders_empty_voies();
     socket.emit('check_validate_button');
 });
 
@@ -347,6 +379,10 @@ socket.on('choix_glyphe_opp', function(data){
     let valeur = data['valeur'];
     let remove = data['remove'];
     let empty_voie = document.getElementById('j0-' + voie);
+    let hand = document.querySelector('#hand_glyphes_j0_2345');
+    if (hand.children.length === 0) {
+        hand = document.querySelector('#hand_glyphes_j0_01');
+    }
     if (data['regard']){
         let glyph = document.createElement("div");
         glyph.setAttribute("id", "glyph_opp_regard");
@@ -355,20 +391,18 @@ socket.on('choix_glyphe_opp', function(data){
         glyph.innerHTML = valeur;
         let already_played = empty_voie.firstElementChild;
         if (already_played === null || remove) {
-            let hand = document.getElementById('hand_glyphes_j0');
             hand.removeChild(hand.firstElementChild);
         }
         empty_voie.innerHTML = "";
         empty_voie.appendChild(glyph);
     } else {
         let already_played = empty_voie.firstElementChild;
+        let glyph = hand.firstElementChild;
         if (already_played === null || remove) {
-            let glyph = document.getElementById('hand_glyphes_j0').firstElementChild;
             empty_voie.appendChild(glyph);
-        } else {
-
         }
     }
+    update_borders_empty_voies();
 });
 
 socket.on('ask_for_glyphs', function(data){
@@ -760,7 +794,6 @@ socket.on('list_images', function(list) {
     for (let name of list) {
         let img = new Image();
         img.onload = function() {
-            console.log(name + ' loaded');
             images_to_load--;
             if (images_to_load === 0) {
                 document.getElementById('waiting').style.display = 'none';

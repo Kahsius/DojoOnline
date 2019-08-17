@@ -176,7 +176,7 @@ io.on('connection', function(socket){
         let opp = players[player.opp];
         let valeur = parseInt(data.value);
         let target = data.target;
-        let source = data.source;
+        let source = data.source.split(' ')[0];
         let target_elem = data.target_elem;
         let source_elem = data.source_elem;
         if (game.state.label === 'choice_glyphes') {
@@ -190,7 +190,7 @@ io.on('connection', function(socket){
                         opp.socket.emit('retire_glyphe_opp', source_elem);
                     }
                     socket.emit('drop_validated');
-                } else {
+                } else if (source === 'hand_glyphes') {
                     console.log(player.pseudo + ' joue ' + valeur + ' sur ' + target_elem);
 
                     // Est-ce que le glyphe est valide ?
@@ -204,11 +204,12 @@ io.on('connection', function(socket){
                     else socket.emit('drop_not_validated', 'Choix invalide');
                 }
             } else if ( target === 'hand_glyphes') {
-                if ( source === 'empty_voies' ) {
+                if ( source === 'empty_voie' ) {
                     // Le joueur retire un glyphe
                     console.log(player.pseudo + ' retire '
                         + player.played_glyphs[source_elem] + ' de la voie ' + source_elem);
                     let valid = player.retire_glyphe(source_elem);
+                    debugger;
                     if (valid) {
                         // Si l'adversaire avait déjà validé
                         if (opp.ready

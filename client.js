@@ -39,28 +39,19 @@ function drop(ev) {
     drop_src = document.getElementById(ev.dataTransfer.getData("id"));
     drop_srcParent = drop_src.parentNode;
     drop_target_zone = ev.currentTarget;
+    // Drop _item to avoid drop problems
     let data = {
-        'source': drop_srcParent.getAttribute('class'),
-        'target': drop_target_zone.getAttribute('class')
+        'source': drop_srcParent.getAttribute('class').split('_item')[0],
+        'target': drop_target_zone.getAttribute('class').split(' ')[0].split('_item')[0]
     };
-
-    if(drop_srcParent !== drop_target_zone) {
-        if (drop_src.getAttribute('class') === 'glyphe'
-            && ['empty_voie', 'hand_glyphes'].includes(data.target)) {
-            data['value'] = drop_src.getAttribute('valeur');
-            if (data.source !== data.target) {
-                let voie = (data.target) === 'empty_voie' ? drop_target_zone : drop_srcParent;
-                data['voie'] = voie.getAttribute('id').split('-')[1];
-            } else {
-                data.source_elem = drop_srcParent.getAttribute('id').split('-')[1];
-                data.target_elem = drop_target_zone.getAttribute('id').split('-')[1];
-            }
-            socket.emit('drop_glyphe', data);
-        } else if (drop_src.getAttribute('class') === 'prodige'
-            && ['empty_prodige', 'hand_prodiges'].includes(data.target)) {
-            data['name'] = drop_src.getAttribute('id');
-            socket.emit('drop_prodige', data);
-        }
+    let elem = drop_src.getAttribute('class');
+    if (elem === 'glyphe') {
+        if (data.source === 'empty_voie') data.source_elem = drop_srcParent.getAttribute('id').split('-')[1];
+        if (data.target === 'empty_voie') data.target_elem = drop_target_zone.getAttribute('id').split('-')[1];
+        socket.emit('drop_glyphe', data);
+    } else if (elem === 'prodige') {
+        data['name'] = drop_src.getAttribute('id');
+        socket.emit('drop_prodige', data);
     }
 }
 
@@ -316,7 +307,6 @@ socket.on('drop_validated', function(){
             target.appendChild(src);
         }
     }
-
     socket.emit('check_validate_button');
 });
 
@@ -394,13 +384,10 @@ socket.on('choix_maitrise_voix', function(){
 socket.on('validate_button', function(validate){
     // Activation ou non du bouton "Valider"
     const btn = document.getElementById('validate_button');
-    const false_btn = document.getElementById('false_button');
     if (validate) {
         btn.style.display = 'flex';
-        false_btn.style.display = 'none';
     } else {
         btn.style.display = 'none';
-        false_btn.style.display = 'flex';
     }
 });
 

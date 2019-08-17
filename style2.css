@@ -253,15 +253,26 @@
 }
 
 #hand_glyphes_j0 {
+    flex-wrap: wrap;
     flex-direction: column;
 }
 
 #hand_glyphes_j1 {
+    flex-wrap: wrap;
     flex-direction: column-reverse;
 }
 
+#validate_zone {
+    width: 40%;
+    height: 100%;
+    justify-content: right;
+}
+
+.hand_glyphes_item {
+    width: 60%;
+}
+
 .hand_glyphes > div {
-    width: 100%;
     display: flex;
     justify-content: left;
     align-items: center;
@@ -362,9 +373,20 @@
 .empty_prodige .capacity {
     width: 30vh;
     height: 5.5vh;
+    text-align: center;
+    padding-top: 1.7vh;
 }
 
 .hand_prodiges .prodige {
     border-radius: 5px;
     border: 3px solid;
+}
+
+#validate_button {
+    height: 8vh;
+    width: 20vh;
+    background-color: white;
+    justify-content: center;
+    align-items: center;
+    border-radius: 8px;
 }

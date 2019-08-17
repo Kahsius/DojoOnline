@@ -15,8 +15,9 @@
     <div id="main_game">
         <div id="battlefield">
             <div id="hand_glyphes_j0" class="hand_glyphes">
-                <div id="hand_glyphes_j0_01"></div>
-                <div id="hand_glyphes_j0_2345"></div>
+                <div class="hand_glyphes_item" id="hand_glyphes_j0_01"></div>
+                <div class="hand_glyphes_item" id="hand_glyphes_j0_2345"></div>
+                <div id="validate_zone"></div>
             </div>
             <div id="pseudos_and_voies">
                 <div id="pseudos">
@@ -51,8 +52,11 @@
                 </div>
             </div>
             <div id="hand_glyphes_j1" class="hand_glyphes" ondrop="drop(event)" ondragover="event.preventDefault();">
-                <div id="hand_glyphes_j1_2345"></div>
-                <div id="hand_glyphes_j1_01"></div>
+                <div class="hand_glyphes_item" id="hand_glyphes_j1_2345"></div>
+                <div class="hand_glyphes_item" id="hand_glyphes_j1_01"></div>
+                <div id="validate_zone">
+                    <div id="validate_button" style="display: none" onclick="validate_choice();">VALIDER</div>
+                </div>
             </div>
         </div>
         <div id="prodiges">

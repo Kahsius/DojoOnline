@@ -173,51 +173,53 @@ io.on('connection', function(socket){
     socket.on('drop_glyphe', function(data){
         let game = games[socket.pseudo];
         let player = players[socket.pseudo];
-        let hand = player.hand;
         let opp = players[player.opp];
-        let voie = data.voie;
         let valeur = parseInt(data.value);
         let target = data.target;
+        let source = data.source;
+        let target_elem = data.target_elem;
+        let source_elem = data.source_elem;
         if (game.state.label === 'choice_glyphes') {
-            if ( target === 'empty_voie'){
-                if (target === data.source) {
-                    let need_update = player.switch_glyphs(data.source_elem, data.target_elem);
+            if (target === 'empty_voie'){
+                if (source === 'empty_voie') {
+                    let need_update = player.switch_glyphs(source_elem, target_elem);
                     if (need_update) {
-                        let body = {'voie': data.target_elem, 'valeur': valeur, 'remove': false};
-                        body['regard'] = (player.on_opp_regard(data.target_elem));
+                        let body = {'voie': target_elem, 'valeur': valeur, 'remove': false};
+                        body['regard'] = (player.on_opp_regard(target_elem));
                         opp.socket.emit('choix_glyphe_opp', body);
-                        opp.socket.emit('retire_glyphe_opp', data.source_elem);
+                        opp.socket.emit('retire_glyphe_opp', source_elem);
                     }
                     socket.emit('drop_validated');
-                }
-                else {
-                    console.log(player.pseudo + ' joue ' + valeur + ' sur ' + voie);
+                } else {
+                    console.log(player.pseudo + ' joue ' + valeur + ' sur ' + target_elem);
 
                     // Est-ce que le glyphe est valide ?
-                    let valid = player.valide_choix_glyphe(voie, valeur);
+                    let valid = player.valide_choix_glyphe(target_elem, valeur);
                     if (valid) {
                         socket.emit('drop_validated');
                         // Est-ce que l'adversaire peut voir le glyphe ?
-                        let body = {'voie': voie, 'valeur': valeur, 'regard': false};
-                        if (player.on_opp_regard(voie)) body['regard'] = true;
+                        let body = {'voie': target_elem, 'valeur': valeur, 'regard': player.on_opp_regard(target_elem)};
                         opp.socket.emit('choix_glyphe_opp', body);
                     }
                     else socket.emit('drop_not_validated', 'Choix invalide');
                 }
             } else if ( target === 'hand_glyphes') {
-                // Le joueur retire un glyphe
-                console.log(player.pseudo + ' retire '
-                    + player.played_glyphs[voie] + ' de la voie ' + voie);
-                let valid = player.retire_glyphe(voie);
-                if (valid) {
-                    if (opp.ready
-                        && opp.has_regard
-                        && opp.get_played_prodigy().element === voie) {
-                        opp.ready = false;
-                        opp.socket.emit('validate_button', true);
+                if ( source === 'empty_voies' ) {
+                    // Le joueur retire un glyphe
+                    console.log(player.pseudo + ' retire '
+                        + player.played_glyphs[source_elem] + ' de la voie ' + source_elem);
+                    let valid = player.retire_glyphe(source_elem);
+                    if (valid) {
+                        // Si l'adversaire avait déjà validé
+                        if (opp.ready
+                            && opp.has_regard
+                            && opp.get_played_prodigy().element === source_elem) {
+                            opp.ready = false;
+                            opp.socket.emit('validate_button', true);
+                        }
+                        opp.socket.emit('retire_glyphe_opp', source_elem);
+                        socket.emit('drop_validated');
                     }
-                    opp.socket.emit('retire_glyphe_opp', voie);
-                    socket.emit('drop_validated');
                 }
             }
         }

@@ -197,7 +197,18 @@ module.exports.Game = class {
 
         scores = this.scores;
         effects = [[],[]];
-        for (i of range(0, 2)) {
+        let translated = [{
+            'air': 'none',
+            'terre': 'none',
+            'feu': 'none',
+            'eau': 'none',
+        }, {
+            'air': 'none',
+            'terre': 'none',
+            'feu': 'none',
+            'eau': 'none',
+        }];
+        for (let i = 0; i < 2; i++) {
             p = this.get_player_by_order(i);
             // On étudie toutes les voies
             for (j in this.voies) {
@@ -213,12 +224,17 @@ module.exports.Game = class {
                     effect = {'element': j, 'playable': true, 'display': true};
                     effect.maitrise = (element_ok && not_stopped && check_condition);
                     effects[i].push(effect);
+                    translated[i][effect.element] = 'me';
+                    translated[(i+1)%2][effect.element] = 'opp';
                 }
             }
         }
         this.voies_players = effects;
         this.state.label = 'init_choice_voie';
         this.substate = {'label': 'none'};
+        for (let i = 0; i < 2; i++) {
+            this.get_player_by_order(i).socket.emit('update_voies', translated[i]);
+        }
         this.apply_voies_players()
     }
 
@@ -227,6 +243,7 @@ module.exports.Game = class {
         let order = this.state.order;
         let element = this.state.element;
         let player = this.get_player_by_order(order);
+        let opp = this.get_player_by_order
         let c, p;
         if(label === 'init_choice_voie'){
             let effects = this.voies_players[order];

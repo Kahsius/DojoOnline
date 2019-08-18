@@ -1,8 +1,7 @@
 TODO
 
 EN COURS
-- vérifier drop glyphes
-- mettre bouton valider
+- debugger boutons confirmation voie maitrise
 - réduire la taille du symbôle puissance et réorganiser l'espace entre les
   éléments du titre du prodige
 

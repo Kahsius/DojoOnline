@@ -132,8 +132,8 @@
 
 .empty_voie {
     display: flex;
-    height: 8vh;
-    width: 8vh;
+    height: 10vh;
+    width: 10vh;
     border-radius: 5px;
     justify-content: center;
     align-items: center;
@@ -382,15 +382,29 @@
     border: 3px solid;
 }
 
-#validate_button {
+#voie_button, #validate_button, #maitrise_button {
     height: 8vh;
     width: 20vh;
     background-color: white;
     justify-content: center;
     align-items: center;
     border-radius: 8px;
+    margin-left: 1vh;
+    margin-right: 1vh;
 }
 
 .empty_voie > .glyphe, .empty_voie > .glyphe_opp {
     margin: 0;
+}
+
+.voie[available="me"] {
+    transform: translateY(4vh);
+}
+
+.voie[available="opp"] {
+    transform: translateY(-4vh);
+}
+
+.voie[available="opp"], .voie[available="none"] {
+    filter: opacity(50%);
 }

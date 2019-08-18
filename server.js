@@ -69,18 +69,20 @@ io.on('connection', function(socket){
             games[rooms[id][0].pseudo] = game;
             games[rooms[id][1].pseudo] = game;
             for (let player of game.players) {
+                let opp = players[player.opp];
                 let me = {
                     'pseudo': player.pseudo,
                     'hp': player.hp,
                     'hand': player.hand,
                     'prodiges': player.get_prodiges_front()
                 };
-                let opp = {
-                    'hp': players[player.opp].hp,
-                    'hand': players[player.opp].hand,
-                    'prodiges': players[player.opp].get_prodiges_front()
+                let opp_data = {
+                    'pseudo': opp.pseudo,
+                    'hp': opp.hp,
+                    'hand': opp.hand,
+                    'prodiges': opp.get_prodiges_front()
                 };
-                player.socket.emit('init_game', {'me': me, 'opp': opp});
+                player.socket.emit('init_game', {'me': me, 'opp': opp_data});
             }
             game.update_lists_glyphs();
             game.state.label = 'wait_prodige';
@@ -209,7 +211,6 @@ io.on('connection', function(socket){
                     console.log(player.pseudo + ' retire '
                         + player.played_glyphs[source_elem] + ' de la voie ' + source_elem);
                     let valid = player.retire_glyphe(source_elem);
-                    debugger;
                     if (valid) {
                         // Si l'adversaire avait déjà validé
                         if (opp.ready
@@ -255,10 +256,19 @@ io.on('connection', function(socket){
                 && ['voie', 'prodige'].includes(data.target_zone)) {
                 if (game.voies_players[player.order].map(x => x.element).includes(data.element)
                     && game.valid_effect(player.order, data)){
-                    game.state.label = 'execute_voie';
-                    game.state.element = data.element;
-                    game.state.maitrise = data.maitrise;
-                    game.apply_voies_players();
+                    game.broadcast_cmd('choice_voie_valid', data.element);
+                    let elem_prodige = player.get_played_prodigy().element;
+                    debugger;
+                    if (elem_prodige === data.element) {
+                        game.state.label = 'choice_maitrise_voie';
+                        game.state.waiting_data = data;
+                        socket.emit('choice_voie_maitrise');
+                    } else {
+                        game.state.label = 'execute_voie';
+                        game.state.element = data.element;
+                        game.state.maitrise = data.maitrise;
+                        game.apply_voies_players();
+                    }
                 }
             } else if (ss.label === 'paying_cost'
                 && ss.cost_type === 'glyph'
@@ -307,6 +317,12 @@ io.on('connection', function(socket){
                         if (voies) game.apply_voies_players();
                     }
                 }
+            } else if (game.state.label === 'choice_voie_maitrise') {
+                game.state.maitrise = data.maitrise;
+                data = game.state.waiting_data;
+                game.state.label = 'execute_voie';
+                game.state.element = data.element;
+                game.apply_voies_players();
             }
         } else if (ss.target === 'opp'
             && ss.label === "waiting_choice"

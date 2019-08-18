@@ -21,8 +21,14 @@
             </div>
             <div id="pseudos_and_voies">
                 <div id="pseudos">
-                    <div id="pseudo0"></div>
-                    <div id="pseudo1"></div>
+                    <div id="pseudo0">
+                        <div class='pseudo'></div> 
+                        <div id='hp_j0'></div>
+                    </div>
+                    <div id="pseudo1">
+                        <div class='pseudo'></div> 
+                        <div id='hp_j1'></div>
+                    </div>
                 </div>
                 <div id="voies_all">
                     <div class="empty_voies">
@@ -35,10 +41,10 @@
                         <div id="voies0"></div>
                     </div>
                     <div id="voies_positioned">
-                        <img src="images/Voie_Sulimo.png" class="img_voie"/>
-                        <img src="images/Voie_Ulmo.png" class="img_voie"/>
-                        <img src="images/Voie_Wilwar.png" class="img_voie"/>
-                        <img src="images/Voie_Anar.png" class="img_voie"/>
+                        <img src="images/Voie_Sulimo.png" available='null' id='voie_air' class="img_voie voie" onclick="click_voie(event)"/>
+                        <img src="images/Voie_Ulmo.png" available='null' id='voie_eau' class="img_voie voie" onclick="click_voie(event)"/>
+                        <img src="images/Voie_Wilwar.png" available='null' id='voie_terre' class="img_voie voie" onclick="click_voie(event)"/>
+                        <img src="images/Voie_Anar.png" available='null' id='voie_feu' class="img_voie voie" onclick="click_voie(event)"/>
                     </div>
                     <div class="empty_voies">
                         <div id="voies1"></div>
@@ -56,6 +62,8 @@
                 <div class="hand_glyphes_item" id="hand_glyphes_j1_01"></div>
                 <div id="validate_zone">
                     <div id="validate_button" style="display: none" onclick="validate_choice();">VALIDER</div>
+                    <div id="voie_button" style="display: none" onclick="validate_maitrise(false);">Voie</div>
+                    <div id="maitrise_button" style="display: none" onclick="validate_maitrise(true);">Maitrise</div>
                 </div>
             </div>
         </div>

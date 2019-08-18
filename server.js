@@ -192,7 +192,7 @@ io.on('connection', function(socket){
                         opp.socket.emit('retire_glyphe_opp', source_elem);
                     }
                     socket.emit('drop_validated');
-                } else if (source === 'hand_glyphes') {
+                } else if (source === 'hand_glyphes_item') {
                     console.log(player.pseudo + ' joue ' + valeur + ' sur ' + target_elem);
 
                     // Est-ce que le glyphe est valide ?
@@ -205,7 +205,7 @@ io.on('connection', function(socket){
                     }
                     else socket.emit('drop_not_validated', 'Choix invalide');
                 }
-            } else if ( target === 'hand_glyphes') {
+            } else if ( target === 'hand_glyphes_item') {
                 if ( source === 'empty_voie' ) {
                     // Le joueur retire un glyphe
                     console.log(player.pseudo + ' retire '
@@ -258,9 +258,8 @@ io.on('connection', function(socket){
                     && game.valid_effect(player.order, data)){
                     game.broadcast_cmd('choice_voie_valid', data.element);
                     let elem_prodige = player.get_played_prodigy().element;
-                    debugger;
                     if (elem_prodige === data.element) {
-                        game.state.label = 'choice_maitrise_voie';
+                        game.state.label = 'choice_voie_maitrise';
                         game.state.waiting_data = data;
                         socket.emit('choice_voie_maitrise');
                     } else {
@@ -272,7 +271,7 @@ io.on('connection', function(socket){
                 }
             } else if (ss.label === 'paying_cost'
                 && ss.cost_type === 'glyph'
-                && data.target_zone === 'hand_glyphes'
+                && data.target_zone === 'hand_glyphes_item'
                 && data.value > 0) {
                 let hand = player.hand;
                 let value = parseInt(data.value);
@@ -307,7 +306,7 @@ io.on('connection', function(socket){
                         if (talent) game.apply_talents();
                         if (voies) game.apply_voies_players();
                     }
-                } else if (data.target_zone === 'hand') {
+                } else if (data.target_zone === 'hand_glyphes_item') {
                     if (player.hand.includes(value)
                         && value > 0
                         && ss.capacity.choice_available(value)) {

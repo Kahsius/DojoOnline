@@ -4,6 +4,7 @@ EN COURS
 - debugger boutons confirmation voie maitrise
 - réduire la taille du symbôle puissance et réorganiser l'espace entre les
   éléments du titre du prodige
+- bug d'affichage quand récupère glyphe
 
 A FAIRE
 - voies qui se déplacent lorsques gagnées

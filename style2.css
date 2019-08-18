@@ -408,3 +408,58 @@
 .voie[available="opp"], .voie[available="none"] {
     filter: opacity(50%);
 }
+
+#pseudo0, #pseudo1 {
+    display: flex;
+    flex-direction: row;
+    justify-content: center;
+}
+
+#pseudo0 {
+    align-items: flex-end;
+    color: #3e403f;
+}
+
+#pseudo1 {
+    align-items: flex-start;
+    color: white;
+}
+
+.pseudo {
+    text-align: right;
+    padding-top: 4px;
+}
+
+.pseudo, .hp {
+    font: 3vh Tahoma;
+    margin: 3vh;
+    width: 6vh;
+    height: 6vh;
+}
+
+.hp {
+    text-align: center;
+    padding-top: 3px;
+}
+
+#hp_j0 {
+    background-image: url('images/Reputation_PourFondBlanc.png');
+    background-repeat: no-repeat;
+    background-size: contain;
+    background-position: center;
+    color: white;
+}
+
+#hp_j1 {
+    background-image: url('images/Reputation_PourFondGris.png');
+    background-repeat: no-repeat;
+    background-size: contain;
+    background-position: center;
+    color: #3e403f;
+}
+
+.hand_prodiges > .prodige[playable='false'] {
+    border: gray;
+    filter: grayscale(100%);
+    background-color: grey;
+}

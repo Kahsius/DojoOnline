@@ -16,8 +16,8 @@ let regard = null;
 
 function validate_maitrise(answer) {
     socket.emit('click', {'maitrise': answer});
-    document.querySelector('voie_button').style.display = 'none';     
-    document.querySelector('maitrise_button').style.display = 'none';     
+    document.querySelector('#voie_button').style.display = 'none';     
+    document.querySelector('#maitrise_button').style.display = 'none';     
 }
 
 function update_regard() {
@@ -40,6 +40,15 @@ function update_regard() {
             let voie = document.querySelector('#' + observed + '-' + elem);
             voie.style.backgroundColor = COL_AIR;
         }
+    }
+}
+
+function add_glyph_to_opp_hand(glyph) {
+    let hand = document.querySelector('#hand_glyphes_j0_01');
+    if (hand.children.length < 7) {
+        hand.appendChild(glyph);
+    } else {
+        document.querySelector('#hand_glyphes_j0_2345').appendChild(glyph);
     }
 }
 
@@ -109,10 +118,9 @@ function drop(ev) {
     drop_src = document.getElementById(ev.dataTransfer.getData("id"));
     drop_srcParent = drop_src.parentNode;
     drop_target_zone = ev.currentTarget;
-    // Drop _item to avoid drop problems
     let data = {
-        'source': drop_srcParent.getAttribute('class').split(' ')[0].split('_item')[0],
-        'target': drop_target_zone.getAttribute('class').split(' ')[0].split('_item')[0]
+        'source': drop_srcParent.getAttribute('class').split(' ')[0],
+        'target': drop_target_zone.getAttribute('class').split(' ')[0]
     };
     let elem = drop_src.getAttribute('class');
     if (elem === 'glyphe') {
@@ -130,7 +138,7 @@ function click_glyph(ev) {
     let node = ev.currentTarget;
     let parent = node.parentNode;
     let value = node.getAttribute('valeur');
-    let target_zone = parent.getAttribute('class');
+    let target_zone = parent.getAttribute('class').split(' ')[0];
     let element = (target_zone === 'empty_voie') ? parent.getAttribute('id').split('-')[1] : '';
     socket.emit('click', {
         'value': value,
@@ -286,7 +294,7 @@ function init_game(data) {
     document.getElementById('hp_j1').innerHTML = me.hp;
     document.getElementById('hp_j0').innerHTML = opp.hp;
     document.querySelector('#pseudo0').querySelector('.pseudo').innerHTML = me.pseudo;
-    document.querySelector('#pseudo0').querySelector('.pseudo').innerHTML = opp.pseudo;
+    document.querySelector('#pseudo1').querySelector('.pseudo').innerHTML = opp.pseudo;
 }
 
 function init_debug() {
@@ -366,15 +374,16 @@ socket.on('drop_validated', function(){
     let srcParent_class = srcParent.getAttribute('class').split(' ')[0];
 
     // Si on vise la main, on ne fait pas de remplacement
-    if (target_class === 'hand_glyphes') {
+    if (target_class === 'hand_glyphes_item') {
         add_glyph_to_hand(src); 
     } else if (target_class === 'empty_voie') {
+        debugger;
         if (target.hasChildNodes()) {
             t = target.firstElementChild;
             target.replaceChild(src, t);
             if (srcParent_class === 'empty_voie') {
                 srcParent.appendChild(t);
-            } else if (srcParent_class === 'hand_glyphes') {
+            } else if (srcParent_class === 'hand_glyphes_item') {
                 add_glyph_to_hand(t);
             }
         } else {
@@ -490,9 +499,6 @@ socket.on('choices_voies', function(effects){
         if (effect.display) {
             voie = document.getElementById('voie_' + effect.element);
             voie.setAttribute('available', 'me');
-            if (prodige.getAttribute('element') === effect.element && effect.maitrise) {
-                prodige.setAttribute('available', 'me');
-            }
         }
     }
 });
@@ -574,9 +580,9 @@ socket.on('capacity_resolution', function(state){
             // TODO 
         } else if (state.label === 'protection') {
             if (state.target === 'own' && state.me
-                || state.target === 'opp' && !state.me) document.getElementById('protection').style.display = 'flex';
+                || state.target === 'opp' && !state.me) null;
             if (state.target === 'opp' && state.me
-                || state.target === 'own' && !state.me) document.getElementById('protection_opp').style.display = 'flex';
+                || state.target === 'own' && !state.me) null;
         } else if (state.label === 'echange_p') {
             if (state.target === 'own' && state.me
                 || state.target === 'opp' && !state.me) {
@@ -645,14 +651,14 @@ socket.on('capacity_resolution', function(state){
             }
         } else if (state.label === 'initiative') {
             if (state.target === 'own' && state.me
-                || state.target === 'opp' && !state.me) document.getElementById('initiative').style.display = 'flex';
+                || state.target === 'opp' && !state.me) null;
             if (state.target === 'opp' && state.me
-                || state.target === 'own' && !state.me) document.getElementById('initiative_opp').style.display = 'flex';
+                || state.target === 'own' && !state.me) null;
         } else if (state.label === 'avantage') {
             if (state.target === 'own' && state.me
-                || state.target === 'opp' && !state.me) document.getElementById('avantage').style.display = 'flex';
+                || state.target === 'opp' && !state.me) null;
             if (state.target === 'opp' && state.me
-                || state.target === 'own' && !state.me) document.getElementById('avantage_opp').style.display = 'flex';
+                || state.target === 'own' && !state.me) null;
         } else if (state.label === 'vampirism') {
             if (state.target === 'own' && state.me
                 || state.target === 'opp' && !state.me) {
@@ -690,6 +696,7 @@ socket.on('capacity_resolution', function(state){
 });
 
 socket.on('clean_round', function() {
+    debugger;
     let ev, g, voie;
 
     let p0 = document.getElementById('empty_prodige_j0').children[0].firstChild;
@@ -707,11 +714,8 @@ socket.on('clean_round', function() {
             g = ev.children[0];
             if (g) {
                 if (g.getAttribute('valeur') === '0') {
-                    if (i === 1) document.getElementById('hand_glyphes_j' + i).appendChild(g);
-                    if (i === 0) {
-                        document.getElementById('hand_glyphes_j' + i).appendChild(create_glyph(-1));
-                        g.remove();
-                    }
+                    if (i === 0) add_glyph_to_opp_hand(g);
+                    if (i === 1) add_glyph_to_hand(g);
                 } else {
                     g.remove();
                 }
@@ -721,10 +725,7 @@ socket.on('clean_round', function() {
         }
     }
 
-    //for (let status of ['initiative', 'protection', 'avantage']){
-        //document.getElementById(status).style.display = 'none';
-        //document.getElementById(status + '_opp').style.display = 'none';
-    //}
+    update_borders();
 });
 
 socket.on('end_game', function(winners){
@@ -808,10 +809,10 @@ socket.on('reconnect', function(state){
     document.getElementById('pseudo').innerText = state.me.pseudo;
     document.getElementById('hp_j0').innerHTML = opp.hp;
     document.getElementById('hp_j1').innerHTML = me.hp;
-    for (let status of ['protection', 'avantage', 'initiative']){
-        if (me[status]) document.getElementById(status).innerHTML = status;
-        if (opp[status]) document.getElementById(status + '_opp').innerHTML = status;
-    }
+    //for (let status of ['protection', 'avantage', 'initiative']){
+        //if (me[status]) document.getElementById(status).innerHTML = status;
+        //if (opp[status]) document.getElementById(status + '_opp').innerHTML = status;
+    //}
 });
 
 socket.on('list_glyphs_opp', function (list) {
@@ -852,7 +853,7 @@ socket.on('choice_voie_valid', function(elem) {
     node.setAttribute('available', 'none');
 });
 
-socket.on('choice_maitrise_voix', function() {
-    document.querySelector('voie_button').style.display = 'flex';     
-    document.querySelector('maitrise_button').style.display = 'flex';     
+socket.on('choice_voie_maitrise', function() {
+    document.querySelector('#voie_button').style.display = 'flex';     
+    document.querySelector('#maitrise_button').style.display = 'flex';     
 });

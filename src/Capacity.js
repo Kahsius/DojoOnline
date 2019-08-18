@@ -80,10 +80,10 @@ module.exports.Capacity = class {
     get_target_zone(){
         let e = this.data.effect;
         if (this.data.cost_type === 'glyph' && !this.cost_paid){
-            return 'hand_glyphes';
+            return 'hand_glyphes_item';
         } else {
             if (['oppression', 'pillage'].includes(e)) {
-                return 'hand_glyphes';
+                return 'hand_glyphes_item';
             } else if (e === 'recuperation') {
                 return 'empty_voie';
             } 
@@ -245,7 +245,7 @@ effets['recuperation'] = function(capa) {
         'choices': capa.choices,
         'status': 'done',
 		'target': capa.target_label,
-        'owner': capa.owner.socket.pseudo
+        'owner': capa.owner.socket.pseudo,
     }
 };
 

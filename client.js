@@ -14,6 +14,25 @@ let id_glyphe = 0;
 let data_game = null;
 let regard = null;
 
+function hover_prodige(prodige) {
+    let preview = document.querySelector('#preview');
+    preview.style.backgroundImage = "none";
+    let clone = prodige.cloneNode(true);
+    clone = get_full_art_prodige(clone);
+    preview.appendChild(clone);
+}
+
+function hover_out_prodige(e) {
+    let preview = document.querySelector('#preview');
+    preview.innerHTML = '';
+    preview.style.backgroundImage = 'url("images/Carte_DOJO.png")';
+}
+
+function text_ig(str) {
+    let zone = document.querySelector('#hand_glyphes_j0 > #text_zone');
+    zone.innerText = str;
+}
+
 function validate_maitrise(answer) {
     socket.emit('click', {'maitrise': answer});
     document.querySelector('#voie_button').style.display = 'none';     
@@ -43,8 +62,9 @@ function update_regard() {
     }
 }
 
-function add_glyph_to_opp_hand(glyph) {
+function add_glyph_to_opp_hand() {
     let hand = document.querySelector('#hand_glyphes_j0_01');
+    let glyph = create_glyph(-1);
     if (hand.children.length < 7) {
         hand.appendChild(glyph);
     } else {
@@ -79,12 +99,16 @@ function update_borders() {
     for (let tag of ['.empty_voie', '.empty_prodige']) {
         let lst = document.querySelectorAll(tag);
         for (let item of lst) {
+            let parent = item.parentNode;
+            let item_class = item.getAttribute('class');
+            let parent_id = parent.getAttribute('id');
+            parent_id = parent_id ? parent_id : '';
             if (item.hasChildNodes()) {
                 item.style.border = "medium none";
             } else {
-                if (item.getAttribute('class').includes('j0')) {
+                if (item_class.includes('j0') || parent_id.includes('j0')) {
                     item.style.border = "2px solid #3e403f";
-                } else if (item.getAttribute('class').includes('j1')) {
+                } else if (item_class.includes('j1') || parent_id.includes('j1')) {
                     item.style.border = "2px solid white";
                 }        
             }
@@ -92,8 +116,7 @@ function update_borders() {
     }
 }
 
-function get_full_art_prodige(id) {
-    const prodige = document.getElementById(id);
+function get_full_art_prodige(prodige) {
     let elem = prodige.getAttribute('element');
 
     if (elem === 'feu') elem = 'Anar';
@@ -203,6 +226,8 @@ function create_prodige(data, opp=false) {
     prodige.setAttribute("available", "false");
     prodige.setAttribute('element', data.element);
     prodige.setAttribute("onclick", "click_prodige(event);");
+    prodige.setAttribute('onmouseover', 'hover_prodige(this)');
+    prodige.setAttribute('onmouseout', 'hover_out_prodige(this)');
 
     let color = "";
     if (data.element === "air") color = COL_AIR;
@@ -229,13 +254,17 @@ function create_prodige(data, opp=false) {
     img.setAttribute("class", "img");
     img.setAttribute("id", "img_" + data.name);
 
-    talent.setAttribute("class", "capacity");
+    talent.setAttribute("class", "capacity talent");
     talent.setAttribute("id", "talent_" + data.name);
-    talent.innerHTML = "Talent";
+    talent.setAttribute('talent_short', data.talent);
+    talent.setAttribute('talent_long', data.talent_long);
+    talent.innerHTML = data.talent;
 
-    maitrise.setAttribute("class", "capacity");
+    maitrise.setAttribute("class", "capacity maitrise");
     maitrise.setAttribute("id", "maitrise_" + data.name);
-    maitrise.innerHTML = "Maitrise";
+    maitrise.setAttribute('maitrise_short', data.maitrise);
+    maitrise.setAttribute('maitrise_long', data.maitrise_long);
+    maitrise.innerHTML = data.maitrise;
 
     prodige.appendChild(puissance);
     prodige.appendChild(name);
@@ -293,8 +322,8 @@ function init_game(data) {
 
     document.getElementById('hp_j1').innerHTML = me.hp;
     document.getElementById('hp_j0').innerHTML = opp.hp;
-    document.querySelector('#pseudo0').querySelector('.pseudo').innerHTML = me.pseudo;
-    document.querySelector('#pseudo1').querySelector('.pseudo').innerHTML = opp.pseudo;
+    document.querySelector('#pseudo0').querySelector('.pseudo').innerHTML = opp.pseudo;
+    document.querySelector('#pseudo1').querySelector('.pseudo').innerHTML = me.pseudo;
 }
 
 function init_debug() {
@@ -377,7 +406,6 @@ socket.on('drop_validated', function(){
     if (target_class === 'hand_glyphes_item') {
         add_glyph_to_hand(src); 
     } else if (target_class === 'empty_voie') {
-        debugger;
         if (target.hasChildNodes()) {
             t = target.firstElementChild;
             target.replaceChild(src, t);
@@ -390,7 +418,8 @@ socket.on('drop_validated', function(){
             target.appendChild(src);
         }
     } else if (target_class === 'empty_prodige') {
-        src = get_full_art_prodige(src.getAttributeNode('id').value);
+        src = document.querySelector('#' + src.getAttributeNode('id').value);
+        src = get_full_art_prodige(src);
         target.appendChild(src);
         update_regard();
     }
@@ -418,7 +447,8 @@ socket.on('init_choix_glyphes', function() {
 
 socket.on('choix_prodige_adverse', function(id){
     text_log('L\'adversaire joue ' + id);
-    let prodige = get_full_art_prodige(id);
+    let prodige = document.querySelector('#' + id);
+    prodige = get_full_art_prodige(prodige);
     const empty_prodige = document.querySelector('#empty_prodige_j0 > .empty_prodige');
     empty_prodige.appendChild(prodige);
     update_borders();
@@ -517,35 +547,28 @@ socket.on('capacity_resolution', function(state){
     let hp = document.getElementById('hp_j1');
     let hp_opp = document.getElementById('hp_j0');
     let prodige = document.querySelector('#empty_prodige_j1 .prodige')
-    let p, d;
+    let g;
+    let p = prodige.querySelector('.puissance')
+    let d = prodige.querySelector('.degats')
     let node, id, hand;
-    for (let child of prodige.children) {
-        if (child.className === 'puissance') p = child;
-        if (child.className === 'degats') d = child;
-    }
     let prodige_opp = document.querySelector('#empty_prodige_j0 .prodige')
-    let p_opp, d_opp;
-    for (let child of prodige_opp.children) {
-        if (child.className === 'puissance') p_opp = child;
-        if (child.className === 'degats') d_opp = child;
-    }
+    let p_opp = prodige_opp.querySelector('.puissance')
+    let d_opp = prodige_opp.querySelector('.degats')
     if (state.status === 'done') {
         if (state.label === 'recuperation') {
             if (state.target === 'own' && state.me
                 || state.target === 'opp' && !state.me) {
                 for (let item of state.choices) {
                     voie = document.getElementById('j1-' + item.element);
-                    id = voie.children[0].getAttribute('id');
-                    voie.innerHTML = '';
-                    document.getElementById('hand_glyphes_j1').appendChild(create_glyph(item.value));
+                    g = voie.children[0];
+                    add_glyph_to_hand(g);
                 }
             } else if (state.target === 'opp' && state.me
                 || state.target === 'own' && !state.me) {
                 for (let item of state.choices) {
                     voie = document.getElementById('j0-' + item.element);
-                    id = voie.children[0].getAttribute('id');
                     voie.innerHTML = '';
-                    document.getElementById('hand_glyphes_j0').appendChild(create_glyph(-1));
+                    add_glyph_to_opp_hand();
                 }
             }
         } else if (state.label === 'modif_degats') {
@@ -689,6 +712,11 @@ socket.on('capacity_resolution', function(state){
                 || state.target === 'own' && !state.me) {
                 document.getElementById('hand_glyphes_j0').children[0].remove();
             }
+        } else if (state.label === 'protected') {
+            if (state.target === 'own' && state.me
+                || state.target === 'opp' && !state.me) text_log('Vous êtes protégés');
+            if (state.target === 'opp' && state.me
+                || state.target === 'own' && !state.me) text_log('L\'adversaire est protégé');
         }
     } else {
         text_log('En cours : ' + state.status);
@@ -696,14 +724,15 @@ socket.on('capacity_resolution', function(state){
 });
 
 socket.on('clean_round', function() {
-    debugger;
     let ev, g, voie;
 
     let p0 = document.getElementById('empty_prodige_j0').children[0].firstChild;
     let p1 = document.getElementById('empty_prodige_j1').children[0].firstChild;
 
     p0.setAttribute('playable', 'false');
+    p0.style.backgroundImage = 'none';
     p1.setAttribute('playable', 'false');
+    p1.style.backgroundImage = 'none';
 
     document.getElementById('hand_prodiges_j0').appendChild(p0);
     document.getElementById('hand_prodiges_j1').appendChild(p1);
@@ -714,7 +743,10 @@ socket.on('clean_round', function() {
             g = ev.children[0];
             if (g) {
                 if (g.getAttribute('valeur') === '0') {
-                    if (i === 0) add_glyph_to_opp_hand(g);
+                    if (i === 0) {
+                        add_glyph_to_opp_hand();
+                        g.remove();
+                    }
                     if (i === 1) add_glyph_to_hand(g);
                 } else {
                     g.remove();
@@ -729,13 +761,10 @@ socket.on('clean_round', function() {
 });
 
 socket.on('end_game', function(winners){
-    document.getElementById('main').style.display = 'none';
-    document.getElementById('end').style.display = 'flex';
-    let win = document.getElementById('winners');
     if (winners.length === 1) {
-        win.innerHTML = winners[0] + ' est le plus grand Maître de Dojo ! \\o/';
+       text_ig(winners[0] + ' est le plus grand Maître de Dojo ! \\o/');
     } else if (winners.length === 2) {
-        win.innerHTML = 'Vous n\'avez pas réussi à vous départager, try again 8)';
+        text_if('Vous n\'avez pas réussi à vous départager, try again 8)');
     }
     socket.emit('delete_game');
 });

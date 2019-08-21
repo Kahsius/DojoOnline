@@ -1,11 +1,10 @@
 TODO
 
 EN COURS
-- debugger boutons confirmation voie maitrise
+- récupere automatique si un seul glyphe marche pas premier tour
+- faire écran de fin
 - réduire la taille du symbôle puissance et réorganiser l'espace entre les
   éléments du titre du prodige
-- bug d'affichage quand récupère glyphe
-- bug feinte visibles chez l'adversaire après clean_round
 
 A FAIRE
 - voies qui se déplacent lorsques gagnées

@@ -126,7 +126,11 @@ module.exports.Player = class {
                 'name': p.name,
                 'p': p.puissance,
                 'd': p.degats,
-                'element': p.element
+                'element': p.element,
+                'talent': p.talent.short,
+                'talent_long': p.talent.long,
+                'maitrise': p.maitrise.short,
+                'maitrise_log': p.maitrise.long
             });
         }
         return prodiges;

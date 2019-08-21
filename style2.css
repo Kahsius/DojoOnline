@@ -93,11 +93,11 @@
     height: 8%;
 }
 
-#preview {
+#preview_zone{
     height: 69%;
 }
 
-#preview, #glyphs_opp, #logs {
+#preview_zone, #glyphs_opp, #logs {
     background-color: darkgrey;
 }
 
@@ -109,7 +109,7 @@
 #empty_prodige_j0, #empty_prodige_j1 {
     display: flex;
     align-items: center;
-    justify-content: right;
+    justify-content: flex-end;
     width: 70%;
 }
 
@@ -220,7 +220,7 @@
     flex-direction: row;
 }
 
-#preview_zone {
+#preview {
     border-radius: 8px;
     width: 80%;
     height: 90%;
@@ -230,7 +230,7 @@
     background-position: center;
 }
 
-#preview {
+#preview_zone {
     display: flex;
     align-items: center;
     justify-content: center;
@@ -262,10 +262,18 @@
     flex-direction: column-reverse;
 }
 
-#validate_zone {
+#validate_zone, #text_zone {
     width: 40%;
     height: 100%;
-    justify-content: right;
+}
+
+#validate_zone {
+    justify-content: flex-end;
+}
+
+#text_zone {
+    font: 3vh Tahoma;
+    justify-content: center;
 }
 
 .hand_glyphes_item {
@@ -274,7 +282,7 @@
 
 .hand_glyphes > div {
     display: flex;
-    justify-content: left;
+    justify-content: flex-start;
     align-items: center;
 }
 
@@ -304,6 +312,9 @@
     width: 20vh;
     height: 37vh;
     border-radius: 5px;
+}
+
+#prodiges .empty_prodige {
     margin-right: 20px;
 }
 
@@ -346,7 +357,7 @@
 
 .empty_prodige .puissance, .empty_prodige .degats {
     display: flex;
-    width: 4.5vh;
+    width: 20%;
     height: 4vh;
     justify-content: center;
     align-items: center;
@@ -355,6 +366,8 @@
     background-size: contain;
     background-position: center;
     color: white;
+    margin-left: 0.5vh;
+    margin-right: 0.5vh;
 }
 
 .empty_prodige .name {
@@ -374,6 +387,13 @@
     width: 30vh;
     height: 5.5vh;
     text-align: center;
+}
+
+.talent {
+    padding-top: 2.5vh;
+}
+
+.maitrise {
     padding-top: 1.7vh;
 }
 

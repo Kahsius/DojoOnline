@@ -257,8 +257,9 @@ io.on('connection', function(socket){
                 if (game.voies_players[player.order].map(x => x.element).includes(data.element)
                     && game.valid_effect(player.order, data)){
                     game.broadcast_cmd('choice_voie_valid', data.element);
-                    let elem_prodige = player.get_played_prodigy().element;
-                    if (elem_prodige === data.element) {
+                    let prodige = player.get_played_prodigy();
+                    let elem_prodige = prodige.element;
+                    if (elem_prodige === data.element && prodige.maitrise.check_condition()) {
                         game.state.label = 'choice_voie_maitrise';
                         game.state.waiting_data = data;
                         socket.emit('choice_voie_maitrise');

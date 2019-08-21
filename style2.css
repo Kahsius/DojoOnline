@@ -1,0 +1,485 @@
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+#main {
+    height: 100vh;
+    display: flex;
+    flex-direction: column;
+}
+
+#header {
+    height: 8%;
+    background-color: black;
+}
+
+#main_game {
+    height: 92%;
+    display: flex;
+    flex-direction: row;
+}
+
+#main_game > div {
+    height: 100%;
+    display: flex;
+}
+
+#battlefield {
+    width: 55%;
+    flex-direction: column;
+}
+
+#battlefield > div {
+    display: flex;
+}
+
+#prodiges {
+    width: 25%;
+    flex-direction: column;
+    display: flex;
+}
+
+#infos {
+    width: 20%;
+    display: flex;
+    flex-direction: column;
+}
+
+.hand_glyphes {
+    height: 25%;
+}
+
+#hand_glyphes_j1, #empty_voies_j1, #pseudo1, #prodiges_j1, #voies1, .log{
+    background-color: #3e403f;
+}
+
+#hand_glyphes_j0, #empty_voies_j0, #pseudo0, #prodiges_j0, #voies0{
+    background-color: white;
+}
+
+#pseudos_and_voies {
+    height: 50%;
+}
+
+#pseudos {
+    width: 40%;
+    display: flex;
+    flex-direction: column;
+}
+
+#voies_all {
+    width: 60%;
+    display: flex;
+    flex-direction: column;
+}
+
+.empty_voies {
+    height: 50%;
+    display: flex;
+    flex-direction: column;
+}
+
+#pseudo0, #pseudo1, #empty_voies_j0, #empty_voies_j1, #voies0, #voies1{
+    height: 50%;
+}
+
+#prodiges > div {
+    height: 50%;
+}
+
+#glyphs_opp {
+    height: 8%;
+}
+
+#preview_zone{
+    height: 69%;
+}
+
+#preview_zone, #glyphs_opp, #logs {
+    background-color: darkgrey;
+}
+
+.prodiges {
+    display: flex;
+    flex-direction: row;
+}
+
+#empty_prodige_j0, #empty_prodige_j1 {
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    width: 70%;
+}
+
+.hand_prodiges {
+    width: 30%;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-around;
+    align-items: center;
+    padding-top: 7%;
+    padding-bottom: 7%;
+}
+
+#empty_voies_j0, #empty_voies_j1 {
+    display: flex;
+    flex-direction: row;
+    justify-content: space-around;
+    align-items: center;
+}
+
+.empty_voie {
+    display: flex;
+    height: 10vh;
+    width: 10vh;
+    border-radius: 5px;
+    justify-content: center;
+    align-items: center;
+}
+
+.empty_voie_j0 {
+    border: 2px solid #3e403f;
+}
+
+.empty_voie_j1 {
+    border: 2px solid white;
+}
+
+#logs {
+    height: 23%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.log {
+    padding: 5%;
+    overflow: auto;
+    border-radius: 8px;
+    width: 80%;
+    height: 80%;
+}
+
+#refresh {
+    height: 3vh;
+    width: 20vh;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    background-color: green;
+}
+
+.btn_room_choice {
+    height: 3vh;
+    width: 20vh;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    background-color: aquamarine;
+}
+
+.btn_room_choice:hover {
+    background-color: CadetBlue;
+}
+
+#waiting {
+    display: flex;
+    height: 100vh;
+    justify-content: center;
+    align-items: center;
+}
+
+#glyphs_opp {
+    display: flex;
+    flex-direction: row;
+    justify-content: space-around;
+    align-items: center;
+    padding-right: 10%;
+    padding-left: 10%;
+}
+
+.text_white {
+    color: white;
+}
+
+.text_small {
+    font-size: 13px;
+}
+
+.text_centered {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    padding-bottom: 15%;
+}
+
+.defausse {
+    display: flex;
+    flex-direction: row;
+}
+
+#preview {
+    border-radius: 8px;
+    width: 80%;
+    height: 90%;
+    background-image: url('images/Carte_DOJO.png');
+    background-repeat: no-repeat;
+    background-size: contain;
+    background-position: center;
+}
+
+#preview_zone {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.glyphe, .glyphe_opp {
+    height: 8vh;
+    width: 8vh;
+    background-repeat: no-repeat;
+    background-size: contain;
+    background-position: center;
+    margin: 4px;
+}
+
+.hand_glyphes {
+    padding-left: 3%;
+    padding-bottom: 1%;
+    padding-top: 1%;
+    display: flex;
+}
+
+#hand_glyphes_j0 {
+    flex-wrap: wrap;
+    flex-direction: column;
+}
+
+#hand_glyphes_j1 {
+    flex-wrap: wrap;
+    flex-direction: column-reverse;
+}
+
+#validate_zone, #text_zone {
+    width: 40%;
+    height: 100%;
+}
+
+#validate_zone {
+    justify-content: flex-end;
+}
+
+#text_zone {
+    font: 3vh Tahoma;
+    justify-content: center;
+}
+
+.hand_glyphes_item {
+    width: 60%;
+}
+
+.hand_glyphes > div {
+    display: flex;
+    justify-content: flex-start;
+    align-items: center;
+}
+
+#voies_positioned {
+    display: flex;
+    flex-direction: row;
+    justify-content: center;
+    align-items: center;
+    position: absolute;
+    top: 44%;
+    left: 18.5%;
+    width: 40%;
+    height: 20%;
+}
+
+.img_defausse {
+    width: 30px;
+    height: 30px;
+}
+
+.img_voie {
+    width: 16vh;
+    margin: 5px;
+}
+
+.empty_prodige {
+    width: 20vh;
+    height: 37vh;
+    border-radius: 5px;
+}
+
+#prodiges .empty_prodige {
+    margin-right: 20px;
+}
+
+#empty_prodige_j0 > .empty_prodige {
+    border: 2px solid #3e403f;
+}
+
+#empty_prodige_j1 > .empty_prodige {
+    border: 2px solid white;
+}
+
+.hand_prodiges .puissance,
+.hand_prodiges .degats,
+.hand_prodiges .img,
+.hand_prodiges .capacity {
+    display: none;
+}
+
+.prodige {
+    display: flex;
+    height: 8vh;
+    width: 8vh;
+    background-color: grey;
+    justify-content: space-between;
+    align-items: flex-start;
+    flex-wrap: wrap;
+}
+
+.empty_prodige > .prodige {
+    display: flex;
+    height: 100%;
+    width: 100%;
+    background-color: transparent;
+    background-repeat: no-repeat;
+    background-size: contain;
+    background-position: center;
+    border: medium none;
+    display: flex;
+}
+
+.empty_prodige .puissance, .empty_prodige .degats {
+    display: flex;
+    width: 20%;
+    height: 4vh;
+    justify-content: center;
+    align-items: center;
+    background-color: transparent;
+    background-repeat: no-repeat;
+    background-size: contain;
+    background-position: center;
+    color: white;
+    margin-left: 0.5vh;
+    margin-right: 0.5vh;
+}
+
+.empty_prodige .name {
+    display: flex;
+    width: 10vh;
+    height: 4vh;
+    justify-content: center;
+    align-items: center;
+}
+
+.empty_prodige .img {
+    width: 30vh;
+    height: 21vh;
+}
+
+.empty_prodige .capacity {
+    width: 30vh;
+    height: 5.5vh;
+    text-align: center;
+}
+
+.talent {
+    padding-top: 2.5vh;
+}
+
+.maitrise {
+    padding-top: 1.7vh;
+}
+
+.hand_prodiges .prodige {
+    border-radius: 5px;
+    border: 3px solid;
+}
+
+#voie_button, #validate_button, #maitrise_button {
+    height: 8vh;
+    width: 20vh;
+    background-color: white;
+    justify-content: center;
+    align-items: center;
+    border-radius: 8px;
+    margin-left: 1vh;
+    margin-right: 1vh;
+}
+
+.empty_voie > .glyphe, .empty_voie > .glyphe_opp {
+    margin: 0;
+}
+
+.voie[available="me"] {
+    transform: translateY(4vh);
+}
+
+.voie[available="opp"] {
+    transform: translateY(-4vh);
+}
+
+.voie[available="opp"], .voie[available="none"] {
+    filter: opacity(50%);
+}
+
+#pseudo0, #pseudo1 {
+    display: flex;
+    flex-direction: row;
+    justify-content: center;
+}
+
+#pseudo0 {
+    align-items: flex-end;
+    color: #3e403f;
+}
+
+#pseudo1 {
+    align-items: flex-start;
+    color: white;
+}
+
+.pseudo {
+    text-align: right;
+    padding-top: 4px;
+}
+
+.pseudo, .hp {
+    font: 3vh Tahoma;
+    margin: 3vh;
+    width: 6vh;
+    height: 6vh;
+}
+
+.hp {
+    text-align: center;
+    padding-top: 3px;
+}
+
+#hp_j0 {
+    background-image: url('images/Reputation_PourFondBlanc.png');
+    background-repeat: no-repeat;
+    background-size: contain;
+    background-position: center;
+    color: white;
+}
+
+#hp_j1 {
+    background-image: url('images/Reputation_PourFondGris.png');
+    background-repeat: no-repeat;
+    background-size: contain;
+    background-position: center;
+    color: #3e403f;
+}
+
+.hand_prodiges > .prodige[playable='false'] {
+    border: gray;
+    filter: grayscale(100%);
+    background-color: grey;
+}

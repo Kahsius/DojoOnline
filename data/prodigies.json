@@ -1,385 +1,450 @@
 [
     {
-      "name": "Alissonne",
-      "puissance": 8,
-      "degats": 6,
-      "talent": {
-          "target": "opp",
-          "condition": "victoire",
-          "value": -2,
-          "effect": "modif_hp",
-          "contrecoup": true
-      },
-      "maitrise": {
-          "effect": "nothing"
-      },
-      "element": "feu"
-  },
-  {
-      "name": "Batsu",
-      "puissance": 7,
-      "degats": 3,
-      "talent": {
-          "target": "owner",
-          "condition": "riposte",
-          "value": 1,
-          "effect": "modif_puissance_degats"
-      },
-      "maitrise": {
-          "target": "owner",
-          "condition": "courage",
-          "value": 4,
-          "effect": "modif_degats"
-      },
-      "element": "terre"
-  },
-  {
-      "name": "Svenn",
-      "puissance": 7,
-      "degats": 2,
-      "talent": {
-          "target": "owner",
-          "value": 2,
-          "effect": "modif_degats"
-      },
-      "maitrise": {
-          "target": "opp",
-          "effect": "echange_d"
-      },
-      "element": "eau"
-  },
-  {
-      "name": "Amalrik",
-      "puissance": 5,
-      "degats": 1,
-      "talent": {
-          "target": "owner",
-          "value": 3,
-          "effect": "modif_puissance"
-      },
-      "maitrise": {
-          "target": "opp",
-          "value": -3,
-          "effect": "modif_hp"
-      },
-      "element": "feu"
-  },
-  {
-      "name": "Asato",
-      "puissance": 7,
-      "degats": 2,
-      "talent": {
-          "target": "owner",
-          "effect": "protection"
-      },
-      "maitrise": {
-          "target": "owner",
-          "value": 3,
-          "effect": "modif_degats"
-      },
-      "element": "air"
-  },
-  {
-      "name": "Faine",
-      "puissance": 5,
-      "degats": 2,
-      "talent": {
-          "target": "opp",
-          "modification": "patience",
-          "value": -1,
-          "effect": "modif_degats"
-      },
-      "maitrise": {
-          "target": "opp",
-          "value": -3,
-          "effect": "modif_degats"
-      },
-      "element": "terre"
-  },
-  {
-      "name": "Haru",
-      "puissance": 7,
-      "degats": 3,
-      "talent": {
-          "target": "owner",
-          "effect": "initiative"
-      },
-      "maitrise": {
-          "target": "owner",
-          "value": 1,
-          "modification": "par_glyphe",
-          "effect": "modif_degats"
-      },
-      "element": "terre"
-  },
-  {
-      "name": "Persephone",
-      "puissance": 7,
-      "degats": 3,
-      "talent": {
-          "target": "opp",
-          "condition": "defaite",
-          "value": -2,
-          "effect": "modif_hp"
-      },
-      "maitrise": {
-          "target": "owner",
-          "condition": "defaite",
-          "value": 2,
-          "effect": "recuperation"
-      },
-      "element": "feu"
-  },
-  {
-      "name": "Siam",
-      "puissance": 7,
-      "degats": 1,
-      "talent": {
-          "target": "opp",
-          "condition": "courage",
-          "value": -2,
-          "effect": "modif_degats"
-      },
-      "maitrise": {
-          "target": "opp",
-          "value": 1,
-          "effect": "pillage"
-      },
-      "element": "feu"
-  },
-  {
-      "name": "Fizz",
-      "puissance": 7,
-      "degats": 2,
-      "talent": {
-          "target": "owner",
-          "value": 2,
-          "effect": "modif_puissance"
-      },
-      "maitrise": {
-          "target": "owner",
-          "condition": "courage",
-          "value": 2,
-          "effect": "recuperation"
-      },
-      "element": "eau"
-  },
-  {
-      "name": "Marcus",
-      "puissance": 7,
-      "degats": 2,
-      "talent": {
-          "target": "opp",
-          "effect": "stop_talent"
-      },
-      "maitrise": {
-          "target": "opp",
-          "value": 1,
-          "effect": "oppression"
-      },
-      "element": "air"
-  },
-  {
-      "name": "Luss",
-      "puissance": 7,
-      "degats": 4,
-      "talent": {
-          "target": "opp",
-          "effect": "stop_maitrise"
-      },
-      "maitrise": {
-          "target": "opp",
-          "effect": "copy_maitrise"
-      },
-      "element": "eau"
-  },
-  {
-      "name": "Orsun",
-      "puissance": 6,
-      "degats": 4,
-      "talent": {
-          "target": "opp",
-          "effect": "echange_p"
-      },
-      "maitrise": {
-          "target": "owner",
-          "condition": "riposte",
-          "value": 2,
-          "effect": "recuperation"
-      },
-      "element": "terre"
-  },
-  {
-      "name": "Rubis",
-      "puissance": 6,
-      "degats": 2,
-      "talent": {
-          "target": "opp",
-          "value": -2,
-          "effect": "modif_puissance"
-      },
-      "maitrise": {
-          "target": "opp",
-          "value": 2,
-          "effect": "oppression",
-          "cost": true,
-          "cost_type": "glyph",
-          "cost_value": 1
+        "name": "Alissonne",
+        "puissance": 8,
+        "degats": 6,
+        "talent": {
+            "target": "opp",
+            "condition": "victoire",
+            "value": -2,
+            "effect": "modif_hp",
+            "contrecoup": true,
+            "short": "Contrecoup: -2 PV"
+        },
+        "maitrise": {
+            "effect": "nothing",
+            "short": ""
+        },
+        "element": "feu"
+    },
+    {
+        "name": "Batsu",
+        "puissance": 7,
+        "degats": 3,
+        "talent": {
+            "target": "owner",
+            "condition": "riposte",
+            "value": 1,
+            "effect": "modif_puissance_degats",
+            "short": "Riposte: +1 Puissance/Dégâts"
+        },
+        "maitrise": {
+            "target": "owner",
+            "condition": "courage",
+            "value": 4,
+            "effect": "modif_degats",
+            "short": "Courage: +4 Dégâts"
+        },
+        "element": "terre"
+    },
+    {
+        "name": "Svenn",
+        "puissance": 7,
+        "degats": 2,
+        "talent": {
+            "target": "owner",
+            "value": 2,
+            "effect": "modif_degats",
+            "short": "+2 Dégâts"
+        },
+        "maitrise": {
+            "target": "opp",
+            "effect": "echange_d",
+            "short": "Echange Dégâts"
+        },
+        "element": "eau"
+    },
+    {
+        "name": "Amalrik",
+        "puissance": 5,
+        "degats": 1,
+        "talent": {
+            "target": "owner",
+            "value": 3,
+            "effect": "modif_puissance",
+            "short": "+3 Puissance"
+        },
+        "maitrise": {
+            "target": "opp",
+            "value": -3,
+            "effect": "modif_hp",
+            "short": "-3 PV"
+        },
+        "element": "feu"
+    },
+    {
+        "name": "Asato",
+        "puissance": 7,
+        "degats": 2,
+        "talent": {
+            "target": "owner",
+            "effect": "protection",
+            "short": "Protection"
+        },
+        "maitrise": {
+            "target": "owner",
+            "value": 3,
+            "effect": "modif_degats",
+            "short": "+3 Dégâts"
+        },
+        "element": "air"
+    },
+    {
+        "name": "Faine",
+        "puissance": 5,
+        "degats": 2,
+        "talent": {
+            "target": "opp",
+            "modification": "patience",
+            "value": -1,
+            "effect": "modif_degats",
+            "short": "Patience: -1 Dégât"
+        },
+        "maitrise": {
+            "target": "opp",
+            "value": -3,
+            "effect": "modif_degats",
+            "short": "-3 Dégâts"
+        },
+        "element": "terre"
+    },
+    {
+        "name": "Haru",
+        "puissance": 7,
+        "degats": 3,
+        "talent": {
+            "target": "owner",
+            "effect": "initiative",
+            "short": "Initiative"
+        },
+        "maitrise": {
+            "target": "owner",
+            "value": 1,
+            "modification": "par_glyphe",
+            "effect": "modif_degats",
+            "short": "+1 Dégât par Glyphe"
+        },
+        "element": "terre"
+    },
+    {
+        "name": "Persephone",
+        "puissance": 7,
+        "degats": 3,
+        "talent": {
+            "target": "opp",
+            "condition": "defaite",
+            "value": -2,
+            "effect": "modif_hp",
+            "short": "Défaite: -2 PV"
+        },
+        "maitrise": {
+            "target": "owner",
+            "condition": "defaite",
+            "value": 2,
+            "effect": "recuperation",
+            "short": "Défaite: Récupération 2"
+        },
+        "element": "feu"
+    },
+    {
+        "name": "Siam",
+        "puissance": 7,
+        "degats": 1,
+        "talent": {
+            "target": "opp",
+            "condition": "courage",
+            "value": -2,
+            "effect": "modif_degats",
+            "short": "Courage: -2 Dégâts"
+        },
+        "maitrise": {
+            "target": "opp",
+            "value": 1,
+            "effect": "pillage",
+            "short": "Pillage 1"
+        },
+        "element": "feu"
+    },
+    {
+        "name": "Fizz",
+        "puissance": 7,
+        "degats": 2,
+        "talent": {
+            "target": "owner",
+            "value": 2,
+            "effect": "modif_puissance",
+            "short": "+2 Puissance"
+        },
+        "maitrise": {
+            "target": "owner",
+            "condition": "courage",
+            "value": 2,
+            "effect": "recuperation",
+            "short": "Courage: Récupération 2"
+        },
+        "element": "eau"
+    },
+    {
+        "name": "Marcus",
+        "puissance": 7,
+        "degats": 2,
+        "talent": {
+            "target": "opp",
+            "effect": "stop_talent",
+            "short": "Stop Talent"
+        },
+        "maitrise": {
+            "target": "opp",
+            "value": 1,
+            "effect": "oppression",
+            "short": "Oppression 1"
+        },
+        "element": "air"
+    },
+    {
+        "name": "Luss",
+        "puissance": 7,
+        "degats": 4,
+        "talent": {
+            "target": "opp",
+            "effect": "stop_maitrise",
+            "short": "Stop Maîtrise"
+        },
+        "maitrise": {
+            "target": "opp",
+            "effect": "copy_maitrise",
+            "short": "Copy Maîtrise"
+        },
+        "element": "eau"
+    },
+    {
+        "name": "Orsun",
+        "puissance": 6,
+        "degats": 4,
+        "talent": {
+            "target": "opp",
+            "effect": "echange_p",
+            "short": "Echange Puissances"
+        },
+        "maitrise": {
+            "target": "owner",
+            "condition": "riposte",
+            "value": 2,
+            "effect": "recuperation",
+            "short": "Riposte: Récupération 2"
+        },
+        "element": "terre"
+    },
+    {
+        "name": "Rubis",
+        "puissance": 6,
+        "degats": 2,
+        "talent": {
+            "target": "opp",
+            "value": -2,
+            "effect": "modif_puissance",
+            "short": "-2 Puissance"
+        },
+        "maitrise": {
+            "target": "opp",
+            "value": 2,
+            "effect": "oppression",
+            "short": "Sacrifice: Oppression 2",
+            "cost": true,
+            "cost_type": "glyph",
+            "cost_value": 1
 
-      },
-      "element": "air"
-  },
-  {
-      "name": "Aurore",
-      "puissance": 7,
-      "degats": 2,
-      "talent": {
-          "target": "owner",
-          "effect": "avantage"
-      },
-      "maitrise": {
-          "target": "opp",
-          "condition": "victoire",
-          "value": 2,
-          "effect": "oppression"
-      },
-      "element": "air"
-  },
-  {
-      "name": "Paar",
-      "puissance": 8,
-      "degats": 2,
-      "talent": {
-          "target": "opp",
-          "contrecoup": true,
-          "value": -1,
-          "effect": "modif_hp"
-      },
-      "maitrise": {
-          "target": "owner",
-          "cost": true,
-          "cost_type": "glyph",
-          "cost_value": 1,
-          "value": 5,
-          "effect": "modif_hp"
-      },
-      "element": "eau"
-  },
-  {
-      "name": "Olivaw",
-      "puissance": 9,
-      "degats": 2,
-      "talent": {
-          "target": "owner",
-          "value": 1,
-          "effect": "modif_hp"
-      },
-      "maitrise": {
-          "target": "opp",
-          "value": -1,
-          "effect": "modif_degats",
-          "modification": "par_glyphe"
-      },
-      "element": "terre"
-  },
-  {
-      "name": "Oren",
-      "puissance": 7,
-      "degats": 7,
-      "talent": {
-          "target": "owner",
-          "value": 2,
-          "effect": "modif_degats",
-          "contrecoup": true
-      },
-      "maitrise": {
-          "effect": "nothing"
-      },
-      "element": "feu"
-  },
-  {
-      "name": "Kiran",
-      "puissance": 7,
-      "degats": 0,
-      "talent": {
-          "target": "opp",
-          "effect": "stop_talent"
-      },
-      "maitrise": {
-          "effect": "vampirism",
-          "value": 2,
-          "target": "opp"
-      },
-      "element": "air"
-  },
-  {
-      "name": "Berthudon",
-      "puissance": 7,
-      "degats": 2,
-      "talent": {
-          "target": "opp",
-          "value": -1,
-          "modification": "patience",
-          "effect": "modif_puissance"
-      },
-      "maitrise": {
-          "effect": "modif_degats",
-          "value": 2,
-          "target": "owner",
-          "modification": "acharnement"
-      },
-      "element": "terre"
-  },
-  {
-      "name": "Bulle",
-      "puissance": 6,
-      "degats": 1,
-      "talent": {
-          "target": "opp",
-          "condition": "courage",
-          "effect": "stop_maitrise"
-      },
-      "maitrise": {
-          "effect": "vampirism",
-          "value": 1,
-          "target": "opp",
-          "modification": "acharnement"
-      },
-      "element": "eau"
-  },
-  {
-      "name": "Foudre",
-      "puissance": 6,
-      "degats": 3,
-      "talent":{
-          "target": "opp",
-          "effect": "modif_puissance",
-          "value": -2
-      },
-      "maitrise": {
-          "effect": "oppression",
-          "value": 2,
-          "target": "opp",
-          "condition": "defaite"
-      },
-      "element": "air"
-  },
-  {
-      "name": "Sielahti",
-      "puissance": 8,
-      "degats": 3,
-      "talent":{
-          "target": "opp",
-          "effect": "oppression",
-          "value": 1,
-          "condition": "victoire"
-      },
-      "maitrise": {
-          "effect": "recuperation",
-          "value": 1,
-          "target": "owner",
-          "modification": "patience"
-      },
-      "element": "feu"
-  }
+        },
+        "element": "air"
+    },
+    {
+        "name": "Aurore",
+        "puissance": 7,
+        "degats": 2,
+        "talent": {
+            "target": "owner",
+            "effect": "avantage",
+            "short": "Avantage"
+        },
+        "maitrise": {
+            "target": "opp",
+            "condition": "victoire",
+            "value": 2,
+            "effect": "oppression",
+            "short": "Victoire: Oppression 2"
+        },
+        "element": "air"
+    },
+    {
+        "name": "Paar",
+        "puissance": 8,
+        "degats": 2,
+        "talent": {
+            "target": "opp",
+            "contrecoup": true,
+            "value": -1,
+            "effect": "modif_hp",
+            "short": "Contrecoup: -1 PV"
+        },
+        "maitrise": {
+            "target": "owner",
+            "cost": true,
+            "cost_type": "glyph",
+            "cost_value": 1,
+            "value": 5,
+            "effect": "modif_hp",
+            "short": "Sacrifice: +5 PV"
+        },
+        "element": "eau"
+    },
+    {
+        "name": "Tenael",
+        "puissance": 6,
+        "degats": 2,
+        "talent": {
+            "target": "opp",
+            "value": 1,
+            "effect": "modif_puissance",
+            "modification": "patience",
+            "short": "Patience: -1 Puissance"
+        },
+        "maitrise": {
+            "target": "owner",
+            "value": 2,
+            "effect": "modif_degats",
+            "modification": "acharnement",
+            "short": "Impatience: +2D"
+        },
+        "element": "terre"
+    },
+    {
+        "name": "Sorkat",
+        "puissance": 7,
+        "degats": 7,
+        "talent": {
+            "target": "owner",
+            "value": 2,
+            "effect": "modif_degats",
+            "contrecoup": true,
+            "short": "Contrecoup: +2 Dégâts"
+        },
+        "maitrise": {
+            "effect": "nothing",
+            "short": ""
+        },
+        "element": "feu"
+    },
+    {
+        "name": "Vents",
+        "puissance": 8,
+        "degats": 2,
+        "talent": {
+            "contrecoup": true,
+            "target": "owner",
+            "effect": "modif_hp",
+            "short": "Contrecoup: +2 PV"
+        },
+        "maitrise": {
+            "effect": "modif_hp",
+            "value": 2,
+            "target": "opp",
+            "modification": "acharnement",
+            "short": "Impatience: -2 PV"
+        },
+        "element": "air"
+    },
+    {
+        "name": "Berthudon",
+        "puissance": 7,
+        "degats": 1,
+        "talent": {
+            "target": "owner",
+            "value": 2,
+            "effect": "modif_hp",
+            "condition": "courage",
+            "short": "Courage: +2 PV"
+        },
+        "maitrise": {
+            "effect": "modif_hp",
+            "value": 3,
+            "target": "owner",
+            "short": "+3 PV"
+        },
+        "element": "terre"
+    },
+    {
+        "name": "Bulle",
+        "puissance": 7,
+        "degats": 1,
+        "talent": {
+            "target": "opp",
+            "effect": "stop_maitrise",
+            "short": "Stop Maîtrise"
+        },
+        "maitrise": {
+            "effect": "vampirism",
+            "value": 1,
+            "target": "opp",
+            "modification": "acharnement",
+            "short": "Impatience: Vampirisme 1"
+        },
+        "element": "eau"
+    },
+    {
+        "name": "Foudre",
+        "puissance": 7,
+        "degats": 1,
+        "talent":{
+            "target": "opp",
+            "effect": "stop_talent",
+            "short": "Stop Talent"
+        },
+        "maitrise": {
+            "effect": "vampirisme",
+            "value": 2,
+            "target": "opp",
+            "short": "Vampirisme 2"
+        },
+        "element": "air"
+    },
+    {
+        "name": "Sielahti",
+        "puissance": 8,
+        "degats": 3,
+        "talent":{
+            "target": "opp",
+            "effect": "oppression",
+            "value": 1,
+            "contrecoup": true,
+            "condition": "victoire",
+            "short": "Victoire, Contrecoup: Oppression 1"
+        },
+        "maitrise": {
+            "effect": "recuperation",
+            "value": 1,
+            "target": "owner",
+            "modification": "patience",
+            "short": "Patience: Récupération 2"
+        },
+        "element": "feu"
+    },
+    {
+        "name": "Géro",
+        "puissance": 6,
+        "degats": 1,
+        "talent": {
+            "effect": "modif_puissance",
+            "value": 1,
+            "modification": "patience",
+            "target": "owner",
+            "short": "Patience: +1 Puissance"
+        },
+        "maitrise": {
+            "effect": "modif_hp",
+            "value": 4,
+            "target": "owner",
+            "condition": "courage",
+            "short": "Courage: +4 PV"
+        }
+    }
 ]

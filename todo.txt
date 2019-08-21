@@ -1,8 +1,12 @@
 TODO
 
 EN COURS
-- finir système reconnection
-- vérifier que terre3 s'applique comme il faut
+- récupere automatique si un seul glyphe marche pas premier tour
+- faire écran de fin
+- réduire la taille du symbôle puissance et réorganiser l'espace entre les
+  éléments du titre du prodige
 
 A FAIRE
-- UI everywhere !
+- voies qui se déplacent lorsques gagnées
+- feedback element clickable
+

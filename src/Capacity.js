@@ -27,6 +27,8 @@ module.exports.Capacity = class {
         this.contrecoup = (json['contrecoup']) ? json['contrecoup'] : false;
         this.need_choice = (['recuperation', 'oppression',
             'pillage'].includes(json['effect']) || this.cost);
+        this.short = json['short'];
+        this.long = json['short'];
         this.choice_made = false;
         this.choices = [];
         this.stopped = false;
@@ -66,11 +68,7 @@ module.exports.Capacity = class {
             players[this.owner.opp].socket.emit('text_log', msg);
             this.value *= this.get_modification(this.turn);
             return this.effect(this);
-	    } else if (this.check_condition()
-            && !this.available_targets()) {
-            this.value *= this.get_modification(this.turn);
-            return this.effect(this);
-        }
+	    }
         return {
             'status': 'done',
             'label': 'not_executed'
@@ -80,10 +78,10 @@ module.exports.Capacity = class {
     get_target_zone(){
         let e = this.data.effect;
         if (this.data.cost_type === 'glyph' && !this.cost_paid){
-            return 'hand_glyphes';
+            return 'hand_glyphes_item';
         } else {
             if (['oppression', 'pillage'].includes(e)) {
-                return 'hand_glyphes';
+                return 'hand_glyphes_item';
             } else if (e === 'recuperation') {
                 return 'empty_voie';
             } 
@@ -245,7 +243,7 @@ effets['recuperation'] = function(capa) {
         'choices': capa.choices,
         'status': 'done',
 		'target': capa.target_label,
-        'owner': capa.owner.socket.pseudo
+        'owner': capa.owner.socket.pseudo,
     }
 };
 
@@ -253,10 +251,11 @@ effets['recuperation'] = function(capa) {
 effets['modif_degats'] = function(capa) {
     let p = capa.target.get_played_prodigy();
     let v = capa.value;
-    p.degats = (p.protection && v < 0) ? p.degats : Math.max(0, p.degats + v);
+    let protec = p.protection && v < 0;
+    p.degats = protec ? p.degats : Math.max(0, p.degats + v);
     return {
-        'label': 'modif_degats',
-        'value': (p.protection && v < 0) ? 0 : v,
+        'label': protec ? 'protected' : 'modif_degats',
+        'value': protec ? 0 : v,
         'status': 'done',
 		'target': capa.target_label,
 		'owner': capa.owner.socket.pseudo
@@ -267,10 +266,11 @@ effets['modif_degats'] = function(capa) {
 effets['modif_puissance'] = function(capa) {
     let p = capa.target.get_played_prodigy();
     let v = capa.value;
-    p.puissance = (p.protection && v < 0) ? p.puissance : Math.max(0, p.puissance + v);
+    let protec = p.protection && v < 0;
+    p.puissance = protec ? p.puissance : Math.max(0, p.puissance + v);
     return {
-        'label': 'modif_puissance',
-        'value': (p.protection && v < 0) ? 0 : v,
+        'label': protec ? 'protected' : 'modif_puissance',
+        'value': protec ? 0 : v,
         'status': 'done',
 		'target': capa.target_label,
 		'owner': capa.owner.socket.pseudo
@@ -281,11 +281,12 @@ effets['modif_puissance'] = function(capa) {
 effets['modif_puissance_degats'] = function(capa) {
     let p = capa.target.get_played_prodigy();
     let v = capa.value;
+    let protec = (p.protection && v < 0);
     effets['modif_puissance'](capa);
     effets['modif_degats'](capa);
     return {
-        'label': 'modif_puissance_degats',
-        'value': (p.protection && v < 0) ? 0 : v,
+        'label': protec ? 'protected' : 'modif_puissance_degats',
+        'value':  protec ? 0 : v,
         'status': 'done',
 		'target': capa.target_label,
 		'owner': capa.owner.socket.pseudo
@@ -312,7 +313,7 @@ effets['stop_talent'] = function(capa) {
         p.talent.stopped = true;
     }
     return {
-        'label': 'stop_talent',
+        'label': p.protection ? 'protected' : 'stop_talent',
         'status': 'done',
 		'target': capa.target_label,
 		'owner': capa.owner.socket.pseudo
@@ -326,7 +327,7 @@ effets['stop_maitrise'] = function(capa) {
         p.maitrise.stopped = true;
     }
     return {
-        'label': 'stop_maitrise',
+        'label': p.protection ? 'protected' : 'stop_maitrise',
         'status': 'done',
 		'target': capa.target_label,
 		'owner': capa.owner.socket.pseudo
@@ -347,15 +348,17 @@ effets['protection'] = function(capa) {
 
 effets['echange_p'] = function(capa) {
     let p1 = capa.target.get_played_prodigy();
-    let p2 = capa.target.opp.get_played_prodigy();
+    let p2 = players[capa.target.opp].get_played_prodigy();
     let bp1 = p1.base_puissance;
     let bp2 = p2.base_puissance;
-    p1.base_puissance = bp2;
-    p1.puissance = Math.max(0, p1.puissance - bp1 + bp2);
-    p2.base_puissance = bp1;
-    p2.puissance = Math.max(0, p2.puissance - bp2 + bp1);
+    if (!p1.protection) {
+        p1.base_puissance = bp2;
+        p1.puissance = Math.max(0, p1.puissance - bp1 + bp2);
+        p2.base_puissance = bp1;
+        p2.puissance = Math.max(0, p2.puissance - bp2 + bp1);
+    }
     return {
-        'label': 'echange_p',
+        'label': p1.protection ? 'protected' : 'echange_p',
         'status': 'done',
         'values' : [p1.puissance, p2.puissance],
 		'target': capa.target_label,
@@ -365,16 +368,18 @@ effets['echange_p'] = function(capa) {
 
 
 effets['echange_d'] = function(capa) {
-    let d1 = capa.target.get_played_prodigy();
-    let d2 = capa.target.opp.get_played_prodigy();
+    let p1 = capa.target.get_played_prodigy();
+    let p2 = players[capa.target.opp].get_played_prodigy();
     let bd1 = p1.base_degats;
     let bd2 = p2.base_degats;
-    d1.base_degats = bd2;
-    d1.degats = Math.max(0, d1.degats - bd1 + bd2);
-    d2.base_degats = bp1;
-    d2.degats = Math.max(0, d2.degats - bd2 + bd1);
+    if (!p1.protection) {
+        p1.base_degats = bd2;
+        p1.degats = Math.max(0, p1.degats - bd1 + bd2);
+        d2.base_degats = bp1;
+        d2.degats = Math.max(0, p2.degats - bd2 + bd1);
+    }
     return {
-        'label': 'echange_p',
+        'label': p1.protection ? 'protected' : 'echange_p',
         'status': 'done',
         'values' : [p1.degats, p2.degats],
         'target': capa.target_label,

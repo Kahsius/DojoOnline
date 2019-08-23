@@ -1,12 +1,6 @@
 TODO
 
-EN COURS
 - récupere automatique si un seul glyphe marche pas premier tour
-- faire écran de fin
-- réduire la taille du symbôle puissance et réorganiser l'espace entre les
-  éléments du titre du prodige
-
-A FAIRE
-- voies qui se déplacent lorsques gagnées
+- refaire le css du .preview .empty_prodige 
 - feedback element clickable
-
+- passer sur bitbucket

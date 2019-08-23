@@ -370,6 +370,16 @@
     margin-right: 0.5vh;
 }
 
+#preview .puissance, #preview .degats {
+    width: 30%;
+}
+
+#preview .puissance, #preview .degats, #preview. .name {
+    font: 4.5vh Tahoma;
+    height: 4.5vh;
+    margin-top: 2%;
+}
+
 .empty_prodige .name {
     display: flex;
     width: 10vh;
@@ -379,13 +389,13 @@
 }
 
 .empty_prodige .img {
-    width: 30vh;
-    height: 21vh;
+    width: 100%;
+    height: 57%;
 }
 
 .empty_prodige .capacity {
-    width: 30vh;
-    height: 5.5vh;
+    width: 100%;
+    height: 15%;
     text-align: center;
 }
 

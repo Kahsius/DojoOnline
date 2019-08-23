@@ -23,9 +23,9 @@ function hover_prodige(prodige) {
 }
 
 function hover_out_prodige(e) {
-    let preview = document.querySelector('#preview');
-    preview.innerHTML = '';
-    preview.style.backgroundImage = 'url("images/Carte_DOJO.png")';
+    //let preview = document.querySelector('#preview');
+    //preview.innerHTML = '';
+    //preview.style.backgroundImage = 'url("images/Carte_DOJO.png")';
 }
 
 function text_ig(str) {
@@ -555,16 +555,16 @@ socket.on('capacity_resolution', function(state){
     let p_opp = prodige_opp.querySelector('.puissance')
     let d_opp = prodige_opp.querySelector('.degats')
     if (state.status === 'done') {
+        let on_me = (state.target === 'own' && state.me || state.target === 'opp' && !state.me);
+        let on_opp = (state.target === 'opp' && state.me || state.target === 'own' && !state.me);
         if (state.label === 'recuperation') {
-            if (state.target === 'own' && state.me
-                || state.target === 'opp' && !state.me) {
+            if (on_me) {
                 for (let item of state.choices) {
                     voie = document.getElementById('j1-' + item.element);
                     g = voie.children[0];
                     add_glyph_to_hand(g);
                 }
-            } else if (state.target === 'opp' && state.me
-                || state.target === 'own' && !state.me) {
+            } else if (on_opp) {
                 for (let item of state.choices) {
                     voie = document.getElementById('j0-' + item.element);
                     voie.innerHTML = '';
@@ -572,59 +572,45 @@ socket.on('capacity_resolution', function(state){
                 }
             }
         } else if (state.label === 'modif_degats') {
-            if (state.target === 'own' && state.me
-                || state.target === 'opp' && !state.me) d.innerHTML = Math.max(0, parseInt(d.innerHTML) + state.value);
-            if (state.target === 'opp' && state.me
-                || state.target === 'own' && !state.me) d_opp.innerHTML = Math.max(0, parseInt(d_opp.innerHTML) + state.value);
+            if (on_me) d.innerHTML = Math.max(0, parseInt(d.innerHTML) + state.value);
+            if (on_opp) d_opp.innerHTML = Math.max(0, parseInt(d_opp.innerHTML) + state.value);
         } else if (state.label === 'modif_puissance') {
-            if (state.target === 'own' && state.me
-                || state.target === 'opp' && !state.me) p.innerHTML = Math.max(0, parseInt(p.innerHTML) + state.value);
-            if (state.target === 'opp' && state.me
-                || state.target === 'own' && !state.me) p_opp.innerHTML = Math.max(0, parseInt(p_opp.innerHTML) + state.value);
+            if (on_me) p.innerHTML = Math.max(0, parseInt(p.innerHTML) + state.value);
+            if (on_opp) p_opp.innerHTML = Math.max(0, parseInt(p_opp.innerHTML) + state.value);
         } else if (state.label === 'modif_puissance_degats') {
-            if (state.target === 'own' && state.me
-                || state.target === 'opp' && !state.me) {
+            if (on_me) {
                 d.innerHTML = Math.max(0, parseInt(d.innerHTML) + state.value);
                 p.innerHTML = Math.max(0, parseInt(p.innerHTML) + state.value);
             }
-            if (state.target === 'opp' && state.me
-                || state.target === 'own' && !state.me) {
+            if (on_opp) {
                 d_opp.innerHTML = Math.max(0, parseInt(d_opp.innerHTML) + state.value);
                 p_opp.innerHTML = Math.max(0, parseInt(p_opp.innerHTML) + state.value);
             }
         } else if (state.label === 'modif_hp') {
-            if (state.target === 'own' && state.me
-                || state.target === 'opp' && !state.me) hp.innerHTML = parseInt(hp.innerHTML) + state.value;
-            if (state.target === 'opp' && state.me
-                || state.target === 'own' && !state.me) hp_opp.innerHTML = parseInt(hp_opp.innerHTML) + state.value;
+            if (on_me) hp.innerHTML = parseInt(hp.innerHTML) + state.value;
+            if (on_opp) hp_opp.innerHTML = parseInt(hp_opp.innerHTML) + state.value;
         } else if (state.label === 'stop_talent') {
             // TODO
         } else if (state.label === 'stop_maitrise') {
             // TODO 
         } else if (state.label === 'protection') {
-            if (state.target === 'own' && state.me
-                || state.target === 'opp' && !state.me) null;
-            if (state.target === 'opp' && state.me
-                || state.target === 'own' && !state.me) null;
+            if (on_me) null;
+            if (on_opp) null;
         } else if (state.label === 'echange_p') {
-            if (state.target === 'own' && state.me
-                || state.target === 'opp' && !state.me) {
+            if (on_me) {
                 p.innerHTML = state.values[0];
                 p_opp.innerHTML = state.values[1];
             }
-            if (state.target === 'opp' && state.me
-                || state.target === 'own' && !state.me) {
+            if (on_opp) {
                 p.innerHTML = state.values[1];
                 p_opp.innerHTML = state.values[0];
             }
         } else if (state.label === 'echange_d') {
-            if (state.target === 'own' && state.me
-                || state.target === 'opp' && !state.me) {
+            if (on_me) {
                 d.innerHTML = state.values[0];
                 d_opp.innerHTML = state.values[1];
             }
-            if (state.target === 'opp' && state.me
-                || state.target === 'own' && !state.me) {
+            if (on_opp) {
                 d.innerHTML = state.values[1];
                 d_opp.innerHTML = state.values[0];
             }
@@ -633,8 +619,7 @@ socket.on('capacity_resolution', function(state){
         } else if (state.label === 'copy_maitrise') {
             // TODO
         } else if (state.label === 'oppression') {
-            if (state.target === 'own' && state.me
-                || state.target === 'opp' && !state.me) {
+            if (on_me) {
                 for (let item of state.choices) {
                     hand = document.getElementById('hand_glyphes_j1');
                     for (let node of hand.children) {
@@ -644,8 +629,7 @@ socket.on('capacity_resolution', function(state){
                         }
                     }
                 }
-            } else if (state.target === 'opp' && state.me
-                || state.target === 'own' && !state.me) {
+            } else if (on_opp) {
                 hand = document.getElementById('hand_glyphes_j0');
                 for (let item of state.choices) {
                     hand.removeChild(hand.children[0]);
@@ -654,8 +638,7 @@ socket.on('capacity_resolution', function(state){
         } else if (state.label === 'pillage') {
             hand = document.getElementById('hand_glyphes_j1');
             hand_opp = document.getElementById('hand_glyphes_j0');
-            if (state.target === 'own' && state.me
-                || state.target === 'opp' && !state.me) {
+            if (on_me) {
                 for (let item of state.choices) {
                     for (let node of hand.children) {
                         if (node.getAttribute('valeur') === item) {
@@ -665,42 +648,32 @@ socket.on('capacity_resolution', function(state){
                         }
                     }
                 }
-            } else if (state.target === 'opp' && state.me
-                || state.target === 'own' && !state.me) {
+            } else if (on_opp) {
                 for (let item of state.choices) {
                     hand_opp.children[0].remove();
                     hand.appendChild(create_glyph(item));
                 }
             }
         } else if (state.label === 'initiative') {
-            if (state.target === 'own' && state.me
-                || state.target === 'opp' && !state.me) null;
-            if (state.target === 'opp' && state.me
-                || state.target === 'own' && !state.me) null;
+            if (on_me) null;
+            if (on_opp) null;
         } else if (state.label === 'avantage') {
-            if (state.target === 'own' && state.me
-                || state.target === 'opp' && !state.me) null;
-            if (state.target === 'opp' && state.me
-                || state.target === 'own' && !state.me) null;
+            if (on_me) null;
+            if (on_opp) null;
         } else if (state.label === 'vampirism') {
-            if (state.target === 'own' && state.me
-                || state.target === 'opp' && !state.me) {
+            if (on_me) {
                 hp.innerHTML = parseInt(hp.innerHTML) + state.value;
                 hp_opp.innerHTML = parseInt(hp_opp.innerHTML) - state.value;
             }
-            if (state.target === 'opp' && state.me
-                || state.target === 'own' && !state.me) {
+            if (on_opp) {
                 hp.innerHTML = parseInt(hp.innerHTML) - state.value;
                 hp_opp.innerHTML = parseInt(hp_opp.innerHTML) + state.value;
             }
         } else if (state.label === 'regard') {
-            if (state.target === 'own' && state.me
-                || state.target === 'opp' && !state.me) regard = 'me';
-            if (state.target === 'opp' && state.me
-                || state.target === 'own' && !state.me) regard = 'opp';
+            if (on_me) regard = 'me';
+            if (on_opp) regard = 'opp';
         } else if (state.label === 'remove_glyph_hand') {
-            if (state.target === 'own' && state.me
-                || state.target === 'opp' && !state.me) {
+            if (on_me) {
                 hand = document.getElementById('hand_glyphes_j1');
                 for (g of hand.children) {
                     if (g.getAttribute('valeur') === state.value) {
@@ -708,15 +681,12 @@ socket.on('capacity_resolution', function(state){
                         break;
                     }
                 }
-            } else if (state.target === 'opp' && state.me
-                || state.target === 'own' && !state.me) {
+            } else if (on_opp) {
                 document.getElementById('hand_glyphes_j0').children[0].remove();
             }
         } else if (state.label === 'protected') {
-            if (state.target === 'own' && state.me
-                || state.target === 'opp' && !state.me) text_log('Vous êtes protégés');
-            if (state.target === 'opp' && state.me
-                || state.target === 'own' && !state.me) text_log('L\'adversaire est protégé');
+            if (on_me) text_log('Vous êtes protégés');
+            if (on_opp) text_log('L\'adversaire est protégé');
         }
     } else {
         text_log('En cours : ' + state.status);

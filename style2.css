@@ -4,6 +4,10 @@
     box-sizing: border-box;
 }
 
+#battlefield > div {
+    display: flex;
+}
+
 #main {
     height: 100vh;
     display: flex;
@@ -29,10 +33,6 @@
 #battlefield {
     width: 55%;
     flex-direction: column;
-}
-
-#battlefield > div {
-    display: flex;
 }
 
 #prodiges {
@@ -222,7 +222,7 @@
 
 #preview {
     border-radius: 8px;
-    width: 80%;
+    width: 75%;
     height: 90%;
     background-image: url('images/Carte_DOJO.png');
     background-repeat: no-repeat;
@@ -262,18 +262,13 @@
     flex-direction: column-reverse;
 }
 
-#validate_zone, #text_zone {
+#validate_zone {
     width: 40%;
     height: 100%;
 }
 
 #validate_zone {
     justify-content: flex-end;
-}
-
-#text_zone {
-    font: 3vh Tahoma;
-    justify-content: center;
 }
 
 .hand_glyphes_item {
@@ -338,7 +333,7 @@
     height: 8vh;
     width: 8vh;
     background-color: grey;
-    justify-content: space-between;
+    justify-content: center;
     align-items: flex-start;
     flex-wrap: wrap;
 }
@@ -358,7 +353,7 @@
 .empty_prodige .puissance, .empty_prodige .degats {
     display: flex;
     width: 20%;
-    height: 4vh;
+    height: 11%;
     justify-content: center;
     align-items: center;
     background-color: transparent;
@@ -366,45 +361,22 @@
     background-size: contain;
     background-position: center;
     color: white;
-    margin-left: 0.5vh;
-    margin-right: 0.5vh;
-}
-
-#preview .puissance, #preview .degats {
-    width: 30%;
-}
-
-#preview .puissance, #preview .degats, #preview. .name {
-    font: 4.5vh Tahoma;
-    height: 4.5vh;
-    margin-top: 2%;
+    margin-left: 4%;
+    margin-right: 4%;
+    /* margin-top: 3%; */
 }
 
 .empty_prodige .name {
     display: flex;
-    width: 10vh;
-    height: 4vh;
+    width: 44%;
+    height: 11%;
     justify-content: center;
     align-items: center;
 }
 
 .empty_prodige .img {
     width: 100%;
-    height: 57%;
-}
-
-.empty_prodige .capacity {
-    width: 100%;
-    height: 15%;
-    text-align: center;
-}
-
-.talent {
-    padding-top: 2.5vh;
-}
-
-.maitrise {
-    padding-top: 1.7vh;
+    height: 63%;
 }
 
 .hand_prodiges .prodige {
@@ -492,4 +464,60 @@
     border: gray;
     filter: grayscale(100%);
     background-color: grey;
+}
+
+.prodige .maitrise,
+.prodige .talent,
+.prodige .name {
+    font: 92% Tahoma;
+}
+
+#preview_zone > .prodige {
+    font-size: large;
+}
+
+#prodiges .prodige {
+    font-size: small;
+}
+
+.prodige .degats,
+.prodige .puissance {
+    font: 100% Tahoma;
+}
+
+.capacity {
+    justify-content: center;
+    align-items: center;
+    display: flex;
+    padding-right: 5%;
+    width: 100%;
+}
+
+.talent {
+    justify-content: center;
+    padding-left: 5%;
+    height: 11%;
+    text-align: center;
+}
+
+.maitrise {
+    justify-content: left;
+    padding-left: 32%;
+    height: 14%;
+}
+
+#text_zone {
+    z-index: 1;
+    font: 5vh Tahoma;
+    justify-content: center;
+    align-items: center;
+    position: absolute;
+    width: 40%;
+    height: 40%;
+    top: 30%;
+    left: 30%;
+    background-color: white;
+    border: 2px solid black;
+    border-radius: 8px;
+    display: none;
 }

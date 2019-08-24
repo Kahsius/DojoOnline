@@ -1,6 +1,3 @@
 TODO
 
-- récupere automatique si un seul glyphe marche pas premier tour
-- refaire le css du .preview .empty_prodige 
-- feedback element clickable
 - passer sur bitbucket

@@ -50,7 +50,7 @@
         "maitrise": {
             "target": "opp",
             "effect": "echange_d",
-            "short": "Echange Dégâts"
+            "short": "Échange Dégâts"
         },
         "element": "eau"
     },

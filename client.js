@@ -23,14 +23,16 @@ function hover_prodige(prodige) {
 }
 
 function hover_out_prodige(e) {
-    //let preview = document.querySelector('#preview');
-    //preview.innerHTML = '';
-    //preview.style.backgroundImage = 'url("images/Carte_DOJO.png")';
+    let preview = document.querySelector('#preview');
+    preview.innerHTML = '';
+    preview.style.backgroundImage = 'url("images/Carte_DOJO.png")';
 }
 
 function text_ig(str) {
-    let zone = document.querySelector('#hand_glyphes_j0 > #text_zone');
+    let zone = document.querySelector('#text_zone');
+    zone.style.display = 'flex';
     zone.innerText = str;
+    document.querySelector('#main');
 }
 
 function validate_maitrise(answer) {
@@ -219,7 +221,9 @@ function create_prodige(data, opp=false) {
     const name = document.createElement("div");
     const img = document.createElement("div");
     const talent = document.createElement("div");
+    const talent_in = document.createElement("div");
     const maitrise = document.createElement("div");
+    const maitrise_in = document.createElement("div");
 
     prodige.setAttribute("id", data.name);
     prodige.setAttribute("class", "prodige");
@@ -258,13 +262,15 @@ function create_prodige(data, opp=false) {
     talent.setAttribute("id", "talent_" + data.name);
     talent.setAttribute('talent_short', data.talent);
     talent.setAttribute('talent_long', data.talent_long);
-    talent.innerHTML = data.talent;
+    talent_in.innerHTML = data.talent;
+    talent.appendChild(talent_in);
 
     maitrise.setAttribute("class", "capacity maitrise");
     maitrise.setAttribute("id", "maitrise_" + data.name);
     maitrise.setAttribute('maitrise_short', data.maitrise);
     maitrise.setAttribute('maitrise_long', data.maitrise_long);
-    maitrise.innerHTML = data.maitrise;
+    maitrise_in.innerHTML = data.maitrise;
+    maitrise.appendChild(maitrise_in);
 
     prodige.appendChild(puissance);
     prodige.appendChild(name);
